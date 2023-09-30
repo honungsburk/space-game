@@ -59,7 +59,6 @@ fn gamepad_connections(
     mut gamepad_evr: EventReader<GamepadEvent>,
 ) {
     for gamepad_event in gamepad_evr.iter() {
-        print!("Gamepad event: ");
         match gamepad_event {
             GamepadEvent::Connection(connection_event) => {
                 match &connection_event.connection {

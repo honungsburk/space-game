@@ -7,39 +7,6 @@ use bevy::{prelude::*, transform::commands};
 use bevy_rapier2d::prelude::*;
 use leafwing_input_manager::{prelude::*, user_input::InputKind};
 
-impl PlayerAction {
-    fn default_keyboard_mouse_input(action: PlayerAction) -> Result<UserInput, String> {
-        // Match against the provided action to get the correct default keyboard-mouse input
-        match action {
-            Self::ThrottleForward => Ok(UserInput::Single(InputKind::Keyboard(KeyCode::W))),
-            Self::ThrottleBackwards => Ok(UserInput::Single(InputKind::Keyboard(KeyCode::S))),
-            Self::RotateShipLeft => Ok(UserInput::Single(InputKind::Keyboard(KeyCode::A))),
-            Self::RotateShipRight => Ok(UserInput::Single(InputKind::Keyboard(KeyCode::D))),
-            Self::FireWeapon => Ok(UserInput::Single(InputKind::Keyboard(KeyCode::L))),
-            _ => Err(format!("No default keyboard-mouse input for {:?}", action)),
-        }
-    }
-
-    fn default_gamepad_input(action: PlayerAction) -> Result<UserInput, String> {
-        // Match against the provided action to get the correct default gamepad input
-        match action {
-            Self::ThrottleForward => Ok(UserInput::Single(InputKind::GamepadButton(
-                GamepadButtonType::RightTrigger2,
-            ))),
-            Self::ThrottleBackwards => Ok(UserInput::Single(InputKind::GamepadButton(
-                GamepadButtonType::LeftTrigger2,
-            ))),
-            Self::RotateShip => Ok(UserInput::Single(InputKind::DualAxis(
-                DualAxis::left_stick(),
-            ))),
-            Self::FireWeapon => Ok(UserInput::Single(InputKind::GamepadButton(
-                GamepadButtonType::South,
-            ))),
-            _ => Err(format!("No default gamepad-mouse input for {:?}", action)),
-        }
-    }
-}
-
 pub fn spawn_player(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
@@ -47,18 +14,41 @@ pub fn spawn_player(
 ) {
     let window = window_query.get_single().unwrap();
     // Create an `InputMap` to add default inputs to
-    let mut input_map = InputMap::default();
-
-    // Loop through each action in `PlayerAction` and get the default `UserInput`,
-    // then insert each default input into input_map
-    for action in PlayerAction::variants() {
-        if let Ok(keyboard_input) = PlayerAction::default_keyboard_mouse_input(action) {
-            input_map.insert(keyboard_input, action);
-        }
-        if let Ok(gamepad_input) = PlayerAction::default_gamepad_input(action) {
-            input_map.insert(gamepad_input, action);
-        }
-    }
+    let mut input_map = InputMap::default()
+        .insert(
+            InputKind::Keyboard(KeyCode::W),
+            PlayerAction::ThrottleForward,
+        )
+        .insert(
+            InputKind::Keyboard(KeyCode::S),
+            PlayerAction::ThrottleBackwards,
+        )
+        .insert(
+            InputKind::Keyboard(KeyCode::A),
+            PlayerAction::RotateShipLeft,
+        )
+        .insert(
+            InputKind::Keyboard(KeyCode::D),
+            PlayerAction::RotateShipRight,
+        )
+        .insert(InputKind::Keyboard(KeyCode::L), PlayerAction::FireWeapon)
+        .insert(
+            InputKind::GamepadButton(GamepadButtonType::RightTrigger2),
+            PlayerAction::ThrottleForward,
+        )
+        .insert(
+            InputKind::GamepadButton(GamepadButtonType::LeftTrigger2),
+            PlayerAction::ThrottleBackwards,
+        )
+        .insert(
+            InputKind::GamepadButton(GamepadButtonType::South),
+            PlayerAction::FireWeapon,
+        )
+        .insert(
+            InputKind::DualAxis(DualAxis::left_stick()),
+            PlayerAction::RotateShip,
+        )
+        .build();
 
     commands
         .spawn(SpriteBundle {
@@ -91,9 +81,17 @@ pub fn spawn_player(
 }
 
 pub fn control_ship(
-    mut query: Query<(&mut ExternalImpulse, &ActionState<PlayerAction>, &Transform), With<Player>>,
+    mut query: Query<
+        (
+            &mut ExternalImpulse,
+            &ActionState<PlayerAction>,
+            &mut Transform,
+        ),
+        With<Player>,
+    >,
 ) {
-    if let Ok((mut player_impulse, player_action_state, player_transform)) = query.get_single_mut()
+    if let Ok((mut player_impulse, player_action_state, mut player_transform)) =
+        query.get_single_mut()
     {
         // player_impulse.impulse = Vec2::new(0.0, 0.0);
         // player_impulse.torque_impulse = 0.0;
@@ -124,9 +122,14 @@ pub fn control_ship(
         }
 
         if player_action_state.pressed(PlayerAction::RotateShip) {
-            let value = player_action_state.value(PlayerAction::RotateShip);
+            if let Some(value) = player_action_state.clamped_axis_pair(PlayerAction::RotateShip) {
+                let desired_direction = value.xy();
 
-            player_impulse.torque_impulse = value * 0.001;
+                if desired_direction.length() > 0.5 {
+                    player_transform.rotation =
+                        Quat::from_rotation_z(Vec2::Y.angle_between(desired_direction))
+                }
+            }
         }
 
         if player_action_state.pressed(PlayerAction::RotateShipLeft) {
