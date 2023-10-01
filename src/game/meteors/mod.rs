@@ -77,6 +77,14 @@ pub fn spawn_meteor(
             linear_damping: 0.5,
             angular_damping: 1.0,
         })
+        .insert(ExternalForce {
+            force: Vec2::new(0.0, 0.0),
+            torque: 0.0,
+        })
+        .insert(ExternalImpulse {
+            impulse: Vec2::new(0.0, 0.0),
+            torque_impulse: 0.0,
+        })
         .insert(Velocity {
             linvel: linear_velocity,
             angvel: angel_velocity,
@@ -95,11 +103,19 @@ pub fn spawn_random_meteor(
     let window = window_query.get_single().unwrap();
     let mut rng = rand::thread_rng();
 
-    let uniform = Uniform::new(-1.0, 1.0);
+    let uniform = Uniform::new(0.0, 1.0);
 
-    let x: f32 = uniform.sample(&mut rng) * window.width() / 2.0;
-    let y: f32 = uniform.sample(&mut rng) * window.height() / 2.0;
-    let transform = Transform::from_xyz(x, y, 0.0);
+    let x: f32 = uniform.sample(&mut rng) * window.width();
+    let y: f32 = uniform.sample(&mut rng) * window.height();
+    // Only positive runbers!
+    // Make sure not to spawn on player!
+    let transform = Transform::from_xyz(200.0, 100.0, 0.0);
+
+    println!(
+        "Spawning meteor at: {:?}, {:?}",
+        x.to_string().as_str(),
+        y.to_string().as_str()
+    );
 
     spawn_meteor(
         asset_server,
