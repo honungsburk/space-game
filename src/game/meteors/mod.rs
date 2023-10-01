@@ -72,7 +72,7 @@ pub fn spawn_meteor(
         })
         .insert(Meteor)
         .insert(RigidBody::Dynamic)
-        .insert(Collider::ball(1.0))
+        .insert(Collider::ball(50.0))
         .insert(Damping {
             linear_damping: 0.5,
             angular_damping: 1.0,

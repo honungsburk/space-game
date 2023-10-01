@@ -63,7 +63,7 @@ pub fn spawn_player(
             input_map: input_map.build(),
         })
         .insert(RigidBody::Dynamic)
-        .insert(Collider::ball(1.0))
+        .insert(Collider::ball(50.0))
         .insert(Damping {
             linear_damping: 0.5,
             angular_damping: 1.0,
@@ -103,7 +103,7 @@ pub fn control_ship(
 
             let impulse = player_transform
                 .rotation
-                .mul_vec3(Vec3::new(0.0, value * 0.001, 0.0));
+                .mul_vec3(Vec3::new(0.0, value * 1.0, 0.0));
             player_impulse.impulse = Vec2::new(impulse.x, impulse.y);
             // player_transform.rotation.into::<Vec2>() * Vec2::new(0.0, value * 0.001);
         }
@@ -116,7 +116,7 @@ pub fn control_ship(
 
             let impulse = player_transform
                 .rotation
-                .mul_vec3(Vec3::new(0.0, value * -0.0001, 0.0));
+                .mul_vec3(Vec3::new(0.0, value * -0.2, 0.0));
             player_impulse.impulse = Vec2::new(impulse.x, impulse.y);
         }
 
@@ -134,12 +134,12 @@ pub fn control_ship(
         if player_action_state.pressed(PlayerAction::RotateShipLeft) {
             let value = player_action_state.value(PlayerAction::RotateShipLeft);
 
-            player_impulse.torque_impulse = value * 0.000000001;
+            player_impulse.torque_impulse = value * 0.005;
         }
         if player_action_state.pressed(PlayerAction::RotateShipRight) {
             let value = player_action_state.value(PlayerAction::RotateShipRight);
 
-            player_impulse.torque_impulse = value * -0.000000001;
+            player_impulse.torque_impulse = value * -0.005;
         }
     }
 }
