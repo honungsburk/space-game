@@ -1,4 +1,5 @@
 mod gamepad;
+mod meteors;
 pub mod player;
 mod projectile;
 mod systems;
@@ -6,7 +7,7 @@ mod weapon;
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use leafwing_input_manager::prelude::*;
+use meteors::MeteorPlugin;
 use player::PlayerPlugin;
 use systems::*;
 use weapon::WeaponPlugin;
@@ -31,7 +32,13 @@ impl Plugin for GamePlugin {
         // States
         .add_state::<SimulationState>()
         // Systems
-        .add_plugins((PlayerPlugin, GamepadPlugin, ProjectilePlugin, WeaponPlugin))
+        .add_plugins((
+            PlayerPlugin,
+            GamepadPlugin,
+            ProjectilePlugin,
+            WeaponPlugin,
+            MeteorPlugin,
+        ))
         .add_systems(
             Update,
             (pause_simulation, toggle_simulation, resume_simulation),

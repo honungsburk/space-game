@@ -1,9 +1,8 @@
 use super::actions::*;
 use super::components::Player;
 use crate::game::weapon::Weapon;
-use crate::game::{projectile as Projectile, weapon};
+use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy::{prelude::*, transform::commands};
 use bevy_rapier2d::prelude::*;
 use leafwing_input_manager::{prelude::*, user_input::InputKind};
 
