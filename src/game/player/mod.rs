@@ -1,5 +1,5 @@
 pub mod actions;
-mod components;
+pub mod components;
 mod systems;
 
 use actions::*;

@@ -1,4 +1,5 @@
 pub mod assets;
+mod camera;
 mod gamepad;
 mod meteors;
 pub mod player;
@@ -15,6 +16,7 @@ use weapon::WeaponPlugin;
 
 use crate::events::GameOver;
 use assets::AssetPlugin;
+use camera::CameraPlugin;
 use gamepad::GamepadPlugin;
 use projectile::ProjectilePlugin;
 pub struct GamePlugin;
@@ -35,6 +37,7 @@ impl Plugin for GamePlugin {
         .add_state::<SimulationState>()
         // Systems
         .add_plugins((
+            CameraPlugin,
             AssetPlugin,
             PlayerPlugin,
             GamepadPlugin,

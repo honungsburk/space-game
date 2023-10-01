@@ -19,7 +19,6 @@ fn main() {
         // .add_plugin(MainMenuPlugin)
         .add_plugins(GamePlugin)
         // Startup Systems
-        .add_systems(Startup, spawn_camera)
         // Systems
         // .add_system(transition_to_game_state)
         // .add_system(transition_to_main_menu_state)
