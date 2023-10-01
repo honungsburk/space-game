@@ -1,8 +1,11 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy_rapier2d::{prelude::*, rapier::prelude::RigidBodyVelocity};
+use bevy_rapier2d::prelude::*;
 use rand::distributions::*;
 use rand::prelude::*;
+
+use super::assets::Asset;
+use super::assets::AssetDB;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -40,20 +43,25 @@ pub enum MeteorColor {
 // Helpers
 ////////////////////////////////////////////////////////////////////////////////
 
-pub fn meteor_asset_path(size: MeteorSize, color: MeteorColor) -> &'static str {
+pub fn meteor_asset<'a>(
+    asset_db: &'a AssetDB,
+    size: &MeteorSize,
+    color: &MeteorColor,
+) -> &'a Asset {
     match (size, color) {
-        (MeteorSize::Tiny, MeteorColor::Brown) => "sprites/meteors/meteorBrown_tiny1.png",
-        (MeteorSize::Tiny, MeteorColor::Grey) => "sprites/meteors/meteorGrey_tiny1.png",
-        (MeteorSize::Small, MeteorColor::Brown) => "sprites/meteors/meteorBrown_small1.png",
-        (MeteorSize::Small, MeteorColor::Grey) => "sprites/meteors/meteorGrey_small1.png",
-        (MeteorSize::Medium, MeteorColor::Brown) => "sprites/meteors/meteorBrown_med1.png",
-        (MeteorSize::Medium, MeteorColor::Grey) => "sprites/meteors/meteorGrey_med1.png",
-        (MeteorSize::Big, MeteorColor::Brown) => "sprites/meteors/meteorBrown_big1.png",
-        (MeteorSize::Big, MeteorColor::Grey) => "sprites/meteors/meteorGrey_big1.png",
+        (MeteorSize::Tiny, MeteorColor::Brown) => &asset_db.meteor_brown_tiny_1,
+        (MeteorSize::Tiny, MeteorColor::Grey) => &asset_db.meteor_grey_tiny_1,
+        (MeteorSize::Small, MeteorColor::Brown) => &asset_db.meteor_brown_small_1,
+        (MeteorSize::Small, MeteorColor::Grey) => &asset_db.meteor_grey_small_1,
+        (MeteorSize::Medium, MeteorColor::Brown) => &asset_db.meteor_brown_medium_1,
+        (MeteorSize::Medium, MeteorColor::Grey) => &asset_db.meteor_grey_medium_1,
+        (MeteorSize::Big, MeteorColor::Brown) => &asset_db.meteor_brown_big_1,
+        (MeteorSize::Big, MeteorColor::Grey) => &asset_db.meteor_grey_big_1,
     }
 }
 
 pub fn spawn_meteor(
+    asset_db: Res<AssetDB>,
     asset_server: Res<AssetServer>,
     commands: &mut Commands,
     size: MeteorSize,
@@ -62,17 +70,16 @@ pub fn spawn_meteor(
     linear_velocity: Vec2,
     angel_velocity: f32,
 ) {
-    let texture = asset_server.load(meteor_asset_path(size, color));
-
+    let asset = meteor_asset(&asset_db, &size, &color);
     commands
         .spawn(SpriteBundle {
             transform: transform,
-            texture,
+            texture: asset_server.load(asset.sprite_path),
             ..Default::default()
         })
         .insert(Meteor)
         .insert(RigidBody::Dynamic)
-        .insert(Collider::ball(50.0))
+        .insert(asset.collider.clone())
         .insert(Damping {
             linear_damping: 0.5,
             angular_damping: 1.0,
@@ -97,6 +104,7 @@ pub fn spawn_meteor(
 
 pub fn spawn_random_meteor(
     mut commands: Commands,
+    asset_db: Res<AssetDB>,
     asset_server: Res<AssetServer>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
@@ -118,6 +126,7 @@ pub fn spawn_random_meteor(
     );
 
     spawn_meteor(
+        asset_db,
         asset_server,
         &mut commands,
         MeteorSize::Big,
