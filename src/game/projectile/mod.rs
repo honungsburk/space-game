@@ -12,7 +12,10 @@ pub struct ProjectilePlugin;
 
 impl Plugin for ProjectilePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (update_projectiles, update_time_to_live));
+        app.add_systems(
+            Update,
+            (update_projectiles_on_collision, update_time_to_live),
+        );
     }
 }
 
@@ -72,6 +75,7 @@ pub fn spawn_laser_projectile(
             assets::PLAYER_PROJECTILE_GROUP.into(),
             assets::PLAYER_PROJECTILE_FILTER_MASK.into(),
         ))
+        .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(SolverGroups::new(
             assets::PLAYER_PROJECTILE_GROUP.into(),
             assets::PLAYER_PROJECTILE_FILTER_MASK.into(),
@@ -89,12 +93,26 @@ pub fn spawn_laser_projectile(
 // Systems
 ////////////////////////////////////////////////////////////////////////////////
 
-fn update_projectiles(
+fn update_projectiles_on_collision(
+    mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
     mut contact_force_events: EventReader<ContactForceEvent>,
+    query: Query<(Entity, &Projectile)>,
 ) {
     for collision_event in collision_events.iter() {
-        println!("Received collision event: {:?}", collision_event);
+        match collision_event {
+            // Will be removed before collision is resolved
+            CollisionEvent::Started(entity1, entity2, _) => {
+                if query.contains(*entity1) {
+                    commands.entity(*entity1).despawn();
+                }
+
+                if query.contains(*entity2) {
+                    commands.entity(*entity2).despawn();
+                }
+            }
+            _ => {}
+        }
     }
 
     for contact_force_event in contact_force_events.iter() {
