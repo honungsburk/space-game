@@ -1,7 +1,6 @@
+use crate::misc::random;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-
-use crate::misc::random;
 use bevy_rapier2d::prelude::*;
 
 use super::assets;
@@ -60,6 +59,14 @@ pub fn spawn_random_arena(
             window.height() / 2.0,
             0.0,
         )))
+        .insert(CollisionGroups::new(
+            assets::ARENA_GROUP.into(),
+            assets::ARENA_FILTER_MASK.into(),
+        ))
+        .insert(SolverGroups::new(
+            assets::ARENA_GROUP.into(),
+            assets::ARENA_FILTER_MASK.into(),
+        ))
         .insert(hollow_circle(1000.0, 200))
         .insert(Arena);
 

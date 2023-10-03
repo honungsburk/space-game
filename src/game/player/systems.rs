@@ -1,6 +1,6 @@
 use super::actions::*;
 use super::components::Player;
-use crate::game::{assets::AssetDB, weapon::Weapon};
+use crate::game::{assets, assets::AssetDB, weapon::Weapon};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
@@ -65,6 +65,14 @@ pub fn spawn_player(
         })
         .insert(RigidBody::Dynamic)
         .insert(asset_db.player_ship.collider.clone())
+        .insert(CollisionGroups::new(
+            assets::PLAYER_GROUP.into(),
+            assets::PLAYER_FILTER_MASK.into(),
+        ))
+        .insert(SolverGroups::new(
+            assets::PLAYER_GROUP.into(),
+            assets::PLAYER_FILTER_MASK.into(),
+        ))
         .insert(Damping {
             linear_damping: 0.5,
             angular_damping: 1.0,
@@ -147,6 +155,7 @@ pub fn control_ship(
 
 pub fn fire_weapon(
     commands: Commands,
+    asset_db: Res<AssetDB>,
     asset_server: Res<AssetServer>,
     mut query: Query<(&ActionState<PlayerAction>, &Transform, &mut Weapon), With<Player>>,
 ) {
@@ -154,7 +163,7 @@ pub fn fire_weapon(
         if player_action_state.pressed(PlayerAction::FireWeapon) && weapon.can_fire() {
             let value = player_action_state.value(PlayerAction::FireWeapon);
             if value > 0.0 {
-                weapon.fire(commands, &asset_server, player_transform.clone());
+                weapon.fire(commands, &asset_db, &asset_server, player_transform.clone());
             }
         }
     }

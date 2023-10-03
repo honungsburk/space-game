@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::projectile as Projectile;
+use super::{assets::AssetDB, projectile as Projectile};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -49,10 +49,11 @@ impl Weapon {
     pub fn fire(
         &mut self,
         mut commands: Commands,
+        asset_db: &Res<AssetDB>,
         asset_server: &Res<AssetServer>,
         spawn_transform: Transform,
     ) {
-        Projectile::spawn_laser_projectile(commands, &asset_server, spawn_transform);
+        Projectile::spawn_laser_projectile(commands, &asset_db, &asset_server, spawn_transform);
 
         match &mut self.0 {
             WeaponType::Laser {

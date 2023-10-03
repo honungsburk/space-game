@@ -1,8 +1,8 @@
 use std::f32::consts::PI;
 
 use bevy::prelude::*;
+use bevy_rapier2d::geometry::*;
 use bevy_rapier2d::prelude::*;
-
 ////////////////////////////////////////////////////////////////////////////////
 // Asset Plugin
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,6 +61,9 @@ pub struct AssetDB {
     pub meteor_grey_small_2: Asset,
     pub meteor_grey_tiny_1: Asset,
     pub meteor_grey_tiny_2: Asset,
+
+    // Projectile Assets
+    pub laser_projectile: Asset,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -72,53 +75,72 @@ pub const MEDIUM_METEOR_RADIUS: f32 = 25.0;
 pub const SMALL_METEOR_RADIUS: f32 = 12.5;
 pub const TINY_METEOR_RADIUS: f32 = 6.25;
 
+// SOLVER GROUPS
+pub const PLAYER_GROUP: Group = Group::GROUP_1;
+pub const PLAYER_PROJECTILE_GROUP: Group = Group::GROUP_2;
+pub const METEOR_GROUP: Group = Group::GROUP_3;
+pub const ARENA_GROUP: Group = Group::GROUP_4;
+
+pub const PLAYER_FILTER_MASK: Group = METEOR_GROUP.union(ARENA_GROUP);
+pub const METEOR_FILTER_MASK: Group = PLAYER_GROUP
+    .union(METEOR_GROUP)
+    .union(PLAYER_PROJECTILE_GROUP)
+    .union(ARENA_GROUP);
+pub const PLAYER_PROJECTILE_FILTER_MASK: Group = METEOR_GROUP.union(ARENA_GROUP);
+pub const ARENA_FILTER_MASK: Group = PLAYER_GROUP.union(METEOR_GROUP);
+
+fn ship_collider() -> Collider {
+    Collider::compound(vec![
+        // Main Body
+        (Vec2::ZERO, 0.0, Collider::cuboid(10.0, 38.0)),
+        // Wing Left
+        (
+            Vec2::Y * -10.0,
+            PI / 2.0,
+            Collider::triangle(
+                Vec2::new(30.0, 0.0),
+                Vec2::new(-30.0, 0.0),
+                Vec2::new(0.0, 48.0),
+            ),
+        ),
+        (
+            Vec2::new(-48.0, -10.0),
+            -PI / 2.0,
+            Collider::triangle(
+                Vec2::new(14.0, 0.0),
+                Vec2::new(-14.0, 0.0),
+                Vec2::new(0.0, 20.0),
+            ),
+        ),
+        // Wing Right
+        (
+            Vec2::Y * -10.0,
+            -PI / 2.0,
+            Collider::triangle(
+                Vec2::new(30.0, 0.0),
+                Vec2::new(-30.0, 0.0),
+                Vec2::new(0.0, 48.0),
+            ),
+        ),
+        (
+            Vec2::new(48.0, -10.0),
+            PI / 2.0,
+            Collider::triangle(
+                Vec2::new(14.0, 0.0),
+                Vec2::new(-14.0, 0.0),
+                Vec2::new(0.0, 20.0),
+            ),
+        ),
+    ])
+}
+
+// Assets
 fn create_asset_db() -> AssetDB {
     AssetDB {
         player_ship: Asset::new(
             "Player Ship",
             "sprites/playerShip1_blue.png",
-            Collider::compound(vec![
-                // Main Body
-                (Vec2::ZERO, 0.0, Collider::cuboid(10.0, 38.0)),
-                // Wing Left
-                (
-                    Vec2::Y * -10.0,
-                    PI / 2.0,
-                    Collider::triangle(
-                        Vec2::new(30.0, 0.0),
-                        Vec2::new(-30.0, 0.0),
-                        Vec2::new(0.0, 48.0),
-                    ),
-                ),
-                (
-                    Vec2::new(-48.0, -10.0),
-                    -PI / 2.0,
-                    Collider::triangle(
-                        Vec2::new(14.0, 0.0),
-                        Vec2::new(-14.0, 0.0),
-                        Vec2::new(0.0, 20.0),
-                    ),
-                ),
-                // Wing Right
-                (
-                    Vec2::Y * -10.0,
-                    -PI / 2.0,
-                    Collider::triangle(
-                        Vec2::new(30.0, 0.0),
-                        Vec2::new(-30.0, 0.0),
-                        Vec2::new(0.0, 48.0),
-                    ),
-                ),
-                (
-                    Vec2::new(48.0, -10.0),
-                    PI / 2.0,
-                    Collider::triangle(
-                        Vec2::new(14.0, 0.0),
-                        Vec2::new(-14.0, 0.0),
-                        Vec2::new(0.0, 20.0),
-                    ),
-                ),
-            ]),
+            ship_collider(),
         ),
         meteor_brown_big_1: Asset::new(
             "Meteor Brown Big 1",
@@ -219,6 +241,12 @@ fn create_asset_db() -> AssetDB {
             "Meteor Grey Tiny 2",
             "sprites/meteors/meteorGrey_tiny2.png",
             Collider::ball(TINY_METEOR_RADIUS),
+        ),
+
+        laser_projectile: Asset::new(
+            "Laser Projectile",
+            "sprites/laserBlue01.png",
+            Collider::capsule_y(22.0, 5.0),
         ),
     }
 }

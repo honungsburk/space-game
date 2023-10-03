@@ -1,13 +1,9 @@
-use std::f32::consts::PI;
-
-use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
-use bevy_rapier2d::prelude::*;
-use rand::distributions::*;
-use rand::prelude::*;
-
+use super::assets;
 use super::assets::Asset;
 use super::assets::AssetDB;
+use bevy::prelude::*;
+use bevy_rapier2d::geometry::*;
+use bevy_rapier2d::prelude::*;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Components
@@ -69,6 +65,14 @@ pub fn spawn_meteor(
         .insert(RigidBody::Dynamic)
         .insert(asset.collider.clone())
         .insert(ColliderMassProperties::Density(2.0))
+        .insert(CollisionGroups::new(
+            assets::METEOR_GROUP.into(),
+            assets::METEOR_FILTER_MASK.into(),
+        ))
+        .insert(SolverGroups::new(
+            assets::METEOR_GROUP.into(),
+            assets::METEOR_FILTER_MASK.into(),
+        ))
         .insert(Damping {
             linear_damping: 0.5,
             angular_damping: 1.0,

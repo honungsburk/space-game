@@ -1,4 +1,8 @@
+use super::assets;
+use super::assets::AssetDB;
+use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -44,32 +48,39 @@ impl TimeToLive {
     }
 }
 
-#[derive(Component)]
-pub struct Speed(pub f32);
-
-impl Speed {
-    pub fn new(speed: f32) -> Self {
-        Self(speed)
-    }
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
 ////////////////////////////////////////////////////////////////////////////////
 
 pub fn spawn_laser_projectile(
     mut commands: Commands,
+    asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
     spawn_transform: Transform,
 ) {
+    let laser_projectile = &asset_db.laser_projectile;
+
     commands
         .spawn(SpriteBundle {
             transform: spawn_transform,
-            texture: asset_server.load("sprites/laserBlue01.png"),
+            texture: asset_server.load(laser_projectile.sprite_path),
             ..default()
         })
+        .insert(RigidBody::Dynamic)
+        .insert(laser_projectile.collider.clone())
+        .insert(CollisionGroups::new(
+            assets::PLAYER_PROJECTILE_GROUP.into(),
+            assets::PLAYER_PROJECTILE_FILTER_MASK.into(),
+        ))
+        .insert(SolverGroups::new(
+            assets::PLAYER_PROJECTILE_GROUP.into(),
+            assets::PLAYER_PROJECTILE_FILTER_MASK.into(),
+        ))
+        .insert(Velocity {
+            linvel: spawn_transform.rotation.mul_vec3(Vec3::Y).xy().normalize() * 1000.0,
+            angvel: 0.0,
+        })
         .insert(Projectile::new(ProjectileType::Laser))
-        .insert(Speed::new(500.0))
         .insert(Damage(1.0))
         .insert(TimeToLive::from_seconds(3.0));
 }
@@ -78,16 +89,18 @@ pub fn spawn_laser_projectile(
 // Systems
 ////////////////////////////////////////////////////////////////////////////////
 
-pub fn update_projectiles(
-    time: Res<Time>,
-    mut query: Query<(&mut Transform, &Speed), With<Projectile>>,
+fn update_projectiles(
+    mut collision_events: EventReader<CollisionEvent>,
+    mut contact_force_events: EventReader<ContactForceEvent>,
 ) {
-    for (mut transform, speed) in query.iter_mut() {
-        let step = speed.0 * time.delta_seconds() * transform.rotation.mul_vec3(Vec3::Y);
-        transform.translation += step;
+    for collision_event in collision_events.iter() {
+        println!("Received collision event: {:?}", collision_event);
+    }
+
+    for contact_force_event in contact_force_events.iter() {
+        println!("Received contact force event: {:?}", contact_force_event);
     }
 }
-
 pub fn update_time_to_live(
     mut commands: Commands,
     time: Res<Time>,
