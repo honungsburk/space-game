@@ -1,3 +1,4 @@
+mod arena;
 pub mod assets;
 mod camera;
 mod gamepad;
@@ -15,6 +16,7 @@ use systems::*;
 use weapon::WeaponPlugin;
 
 use crate::events::GameOver;
+use arena::ArenaPlugin;
 use assets::AssetPlugin;
 use camera::CameraPlugin;
 use gamepad::GamepadPlugin;
@@ -37,6 +39,7 @@ impl Plugin for GamePlugin {
         .add_state::<SimulationState>()
         // Systems
         .add_plugins((
+            ArenaPlugin,
             CameraPlugin,
             AssetPlugin,
             PlayerPlugin,
