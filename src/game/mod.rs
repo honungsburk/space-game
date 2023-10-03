@@ -10,7 +10,6 @@ mod weapon;
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use meteors::MeteorPlugin;
 use player::PlayerPlugin;
 use systems::*;
 use weapon::WeaponPlugin;
@@ -46,7 +45,6 @@ impl Plugin for GamePlugin {
             GamepadPlugin,
             ProjectilePlugin,
             WeaponPlugin,
-            MeteorPlugin,
         ))
         .add_systems(
             Update,

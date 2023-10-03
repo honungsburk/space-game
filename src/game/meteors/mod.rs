@@ -10,19 +10,6 @@ use super::assets::Asset;
 use super::assets::AssetDB;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Plugin
-////////////////////////////////////////////////////////////////////////////////
-
-pub struct MeteorPlugin;
-
-impl Plugin for MeteorPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_random_meteors)
-            .add_systems(Update, update_meteors);
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // Components
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -118,54 +105,3 @@ pub fn spawn_immovable_meteor(
         .insert(RigidBody::Fixed)
         .insert(asset.collider.clone());
 }
-
-pub fn uniform_circle(rng: &mut ThreadRng, radius: f32) -> Vec2 {
-    let uniform: Uniform<f32> = Uniform::new(0.0, 1.0);
-    let r = radius * uniform.sample(rng).sqrt();
-    let theta = uniform.sample(rng) * 2.0 * PI;
-
-    let x = r * theta.cos();
-    let y = r * theta.sin();
-    Vec2::new(x, y)
-}
-
-pub fn uniform_donut(rng: &mut ThreadRng, out_radius: f32, inner_radius: f32) -> Vec2 {
-    loop {
-        let candidate = uniform_circle(rng, out_radius);
-        if candidate.length() > inner_radius {
-            return candidate;
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Systems
-////////////////////////////////////////////////////////////////////////////////
-
-pub fn spawn_random_meteors(
-    mut commands: Commands,
-    asset_db: Res<AssetDB>,
-    asset_server: Res<AssetServer>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
-) {
-    let window = window_query.get_single().unwrap();
-    let mut rng = rand::thread_rng();
-
-    for n in 1..=10 {
-        let candidate = uniform_donut(&mut rng, 1000.0, 100.0);
-
-        let transform = Transform::from_xyz(candidate.x, candidate.y, 0.0);
-
-        spawn_immovable_meteor(
-            &asset_db,
-            &asset_server,
-            &mut commands,
-            MeteorSize::Big,
-            transform,
-            // Vec2::ZERO,
-            // 0.0,
-        );
-    }
-}
-
-pub fn update_meteors() {}

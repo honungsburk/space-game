@@ -2,12 +2,12 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
 use crate::misc::random;
-use crate::misc::sdf;
-use crate::misc::sdf::SDF2D;
 use bevy_rapier2d::prelude::*;
 
+use super::assets;
 use super::assets::AssetDB;
-use rand::distributions::*;
+use super::meteors;
+use super::meteors::MeteorSize;
 use rand::prelude::*;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -36,8 +36,8 @@ pub struct Arena;
 pub fn spawn_random_arena(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
-    // asset_db: Res<AssetDB>,
-    // asset_server: Res<AssetServer>,
+    asset_db: Res<AssetDB>,
+    asset_server: Res<AssetServer>,
 ) {
     let window = window_query.get_single().unwrap();
 
@@ -51,6 +51,8 @@ pub fn spawn_random_arena(
 
     // Walk the surface of the SDF and spawn asteroids
 
+    // Create arena entity
+
     commands
         .spawn(RigidBody::Fixed)
         .insert(TransformBundle::from(Transform::from_xyz(
@@ -60,6 +62,10 @@ pub fn spawn_random_arena(
         )))
         .insert(hollow_circle(1000.0, 200))
         .insert(Arena);
+
+    spawn_random_meteors(&mut commands, &asset_db, &asset_server, window_query);
+
+    // Add rocks
 }
 
 fn hollow_circle(radius: f32, number_of_points: u32) -> Collider {
@@ -73,11 +79,66 @@ fn hollow_circle(radius: f32, number_of_points: u32) -> Collider {
     // Close the loop
     vertices.push(vertices[0]);
 
-    // let mut indices: Vec<usize> = Vec::new();
-
-    // for i in 0..number_of_points {
-    //     indices.push(i as usize);
-    // }
-
     Collider::polyline(vertices, None)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Systems
+////////////////////////////////////////////////////////////////////////////////
+
+pub fn spawn_random_meteors(
+    commands: &mut Commands,
+    asset_db: &Res<AssetDB>,
+    asset_server: &Res<AssetServer>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+) {
+    let window = window_query.get_single().unwrap();
+    let arena_center = Vec2::new(window.width() / 2.0, window.height() / 2.0);
+
+    let mut rng = rand::thread_rng();
+
+    for _ in 1..=20 {
+        let size = rng.gen_range(0..10);
+
+        let (meteor_size, meteor_radius) = match size {
+            1..=2 => (MeteorSize::Tiny, assets::TINY_METEOR_RADIUS),
+            3..=5 => (MeteorSize::Small, assets::SMALL_METEOR_RADIUS),
+            6..=8 => (MeteorSize::Medium, assets::MEDIUM_METEOR_RADIUS),
+            _ => (MeteorSize::Big, assets::BIG_METEOR_RADIUS),
+        };
+
+        // Subtract the meteor radius from the arena radius to ensure that the meteor is spawned
+        // within the arena
+
+        let candidate =
+            arena_center + random::uniform_donut(&mut rng, 1000.0 - meteor_radius, 100.0);
+        let transform = Transform::from_xyz(candidate.x, candidate.y, 0.0);
+        let is_movable = match meteor_size {
+            MeteorSize::Tiny => true,
+            MeteorSize::Small => true,
+            MeteorSize::Medium => rng.gen_bool(0.7),
+            MeteorSize::Big => rng.gen_bool(0.5),
+        };
+        if is_movable {
+            meteors::spawn_meteor(
+                asset_db,
+                asset_server,
+                commands,
+                meteor_size,
+                transform,
+                Vec2::ZERO,
+                0.0,
+            );
+        } else {
+            meteors::spawn_immovable_meteor(
+                asset_db,
+                asset_server,
+                commands,
+                meteor_size,
+                transform,
+                // Vec2::ZERO,
+                // 0.0,
+            );
+        }
+    }
 }
