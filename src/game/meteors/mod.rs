@@ -67,12 +67,11 @@ pub fn spawn_meteor(
     asset_server: &Res<AssetServer>,
     commands: &mut Commands,
     size: MeteorSize,
-    color: MeteorColor,
     transform: Transform,
     linear_velocity: Vec2,
     angel_velocity: f32,
 ) {
-    let asset = meteor_asset(&asset_db, &size, &color);
+    let asset = meteor_asset(&asset_db, &size, &MeteorColor::Brown);
     commands
         .spawn(SpriteBundle {
             transform: transform,
@@ -82,6 +81,7 @@ pub fn spawn_meteor(
         .insert(Meteor)
         .insert(RigidBody::Dynamic)
         .insert(asset.collider.clone())
+        .insert(ColliderMassProperties::Density(2.0))
         .insert(Damping {
             linear_damping: 0.5,
             angular_damping: 1.0,
@@ -98,6 +98,25 @@ pub fn spawn_meteor(
             linvel: linear_velocity,
             angvel: angel_velocity,
         });
+}
+
+pub fn spawn_immovable_meteor(
+    asset_db: &Res<AssetDB>,
+    asset_server: &Res<AssetServer>,
+    commands: &mut Commands,
+    size: MeteorSize,
+    transform: Transform,
+) {
+    let asset = meteor_asset(&asset_db, &size, &MeteorColor::Grey);
+    commands
+        .spawn(SpriteBundle {
+            transform: transform,
+            texture: asset_server.load(asset.sprite_path),
+            ..Default::default()
+        })
+        .insert(Meteor)
+        .insert(RigidBody::Fixed)
+        .insert(asset.collider.clone());
 }
 
 pub fn uniform_circle(rng: &mut ThreadRng, radius: f32) -> Vec2 {
@@ -132,22 +151,19 @@ pub fn spawn_random_meteors(
     let window = window_query.get_single().unwrap();
     let mut rng = rand::thread_rng();
 
-    let uniform = Uniform::new(0.0, 1.0);
-
     for n in 1..=10 {
         let candidate = uniform_donut(&mut rng, 1000.0, 100.0);
 
         let transform = Transform::from_xyz(candidate.x, candidate.y, 0.0);
 
-        spawn_meteor(
+        spawn_immovable_meteor(
             &asset_db,
             &asset_server,
             &mut commands,
             MeteorSize::Big,
-            MeteorColor::Brown,
             transform,
-            Vec2::ZERO,
-            0.0,
+            // Vec2::ZERO,
+            // 0.0,
         );
     }
 }
