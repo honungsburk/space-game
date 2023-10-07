@@ -1,0 +1,117 @@
+use super::arena;
+use super::assets;
+use super::assets::Asset;
+use super::assets::AssetDB;
+use super::enemy;
+use super::player::components::Player;
+use crate::misc::random;
+use bevy::math::Vec2Swizzles;
+use bevy::math::Vec3Swizzles;
+use bevy::prelude::*;
+use bevy::window::PrimaryWindow;
+use bevy_rapier2d::geometry::*;
+use bevy_rapier2d::prelude::*;
+use rand::prelude::*;
+pub struct EnemyPlugin;
+
+impl Plugin for EnemyPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, update_enemy)
+            .add_systems(Startup, spawn_enemies);
+        // Systems
+        // On Exit State
+        // .add_system(despawn_player.in_schedule(OnExit(AppState::Game)));
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Components
+////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Component)]
+pub struct Enemy;
+
+////////////////////////////////////////////////////////////////////////////////
+// Systems
+////////////////////////////////////////////////////////////////////////////////
+
+fn update_enemy(
+    mut enemy_query: Query<(&mut ExternalImpulse, &mut Transform), (With<Enemy>, Without<Player>)>,
+    mut player_query: Query<&mut Transform, (With<Player>, Without<Enemy>)>,
+) {
+    if let Ok(player_transform) = player_query.get_single_mut() {
+        for (mut external_impulse, mut transform) in enemy_query.iter_mut() {
+            let direction = player_transform.translation - transform.translation;
+            let direction = direction.normalize();
+            let impulse = direction * 100.0;
+            external_impulse.impulse = impulse.xy();
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Spawn
+////////////////////////////////////////////////////////////////////////////////
+
+fn spawn_enemy(
+    mut commands: Commands,
+    asset_db: &Res<AssetDB>,
+    asset_server: &Res<AssetServer>,
+    spawn_transform: Transform,
+) {
+    let asset = &asset_db.enemy_ship_1;
+
+    commands
+        .spawn(SpriteBundle {
+            texture: asset_server.load(asset.sprite_path),
+            transform: spawn_transform,
+            ..Default::default()
+        })
+        .insert(Enemy)
+        .insert(RigidBody::Dynamic)
+        .insert(asset.collider.clone())
+        .insert(CollisionGroups::new(
+            assets::ENEMY_GROUP.into(),
+            assets::ENEMY_FILTER_MASK.into(),
+        ))
+        .insert(SolverGroups::new(
+            assets::ENEMY_GROUP.into(),
+            assets::ENEMY_FILTER_MASK.into(),
+        ))
+        .insert(Damping {
+            linear_damping: 0.5,
+            angular_damping: 1.0,
+        })
+        .insert(ExternalForce {
+            force: Vec2::new(0.0, 0.0),
+            torque: 0.0,
+        })
+        .insert(ExternalImpulse {
+            impulse: Vec2::new(0.0, 0.0),
+            torque_impulse: 0.0,
+        });
+}
+
+pub fn spawn_enemies(
+    mut commands: Commands,
+    asset_db: Res<crate::game::assets::AssetDB>,
+    asset_server: Res<AssetServer>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+) {
+    let window = window_query.get_single().unwrap();
+    let arena_center = Vec3::new(window.width() / 2.0, window.height() / 2.0, 0.0);
+
+    let mut rng = rand::thread_rng();
+
+    // TODO: Optimize this
+    let spawn_location = arena_center.xy()
+        + random::uniform_donut(
+            &mut rng,
+            arena::ARENA_RADIUS + 400.0,
+            arena::ARENA_RADIUS + 300.0,
+        );
+
+    let spawn_transform = Transform::from_xyz(spawn_location.x, spawn_location.y, 0.0);
+
+    enemy::spawn_enemy(commands, &asset_db, &asset_server, spawn_transform)
+}

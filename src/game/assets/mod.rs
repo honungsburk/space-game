@@ -64,6 +64,9 @@ pub struct AssetDB {
 
     // Projectile Assets
     pub laser_projectile: Asset,
+
+    // Enemy Assets
+    pub enemy_ship_1: Asset,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -80,6 +83,7 @@ pub const PLAYER_GROUP: Group = Group::GROUP_1;
 pub const PLAYER_PROJECTILE_GROUP: Group = Group::GROUP_2;
 pub const METEOR_GROUP: Group = Group::GROUP_3;
 pub const ARENA_GROUP: Group = Group::GROUP_4;
+pub const ENEMY_GROUP: Group = Group::GROUP_5;
 
 pub const PLAYER_FILTER_MASK: Group = METEOR_GROUP.union(ARENA_GROUP);
 pub const METEOR_FILTER_MASK: Group = PLAYER_GROUP
@@ -88,6 +92,10 @@ pub const METEOR_FILTER_MASK: Group = PLAYER_GROUP
     .union(ARENA_GROUP);
 pub const PLAYER_PROJECTILE_FILTER_MASK: Group = METEOR_GROUP.union(ARENA_GROUP);
 pub const ARENA_FILTER_MASK: Group = PLAYER_GROUP.union(METEOR_GROUP);
+pub const ENEMY_FILTER_MASK: Group = PLAYER_GROUP
+    .union(METEOR_GROUP)
+    .union(ENEMY_GROUP)
+    .union(PLAYER_PROJECTILE_GROUP);
 
 fn ship_collider() -> Collider {
     Collider::compound(vec![
@@ -243,10 +251,18 @@ fn create_asset_db() -> AssetDB {
             Collider::ball(TINY_METEOR_RADIUS),
         ),
 
+        // Projectiles
         laser_projectile: Asset::new(
             "Laser Projectile",
             "sprites/laserBlue01.png",
             Collider::capsule_y(22.0, 5.0),
+        ),
+
+        // Enemy Assets
+        enemy_ship_1: Asset::new(
+            "Enemy Ship 1",
+            "sprites/enemyRed1.png",
+            Collider::cuboid(25.0, 25.0),
         ),
     }
 }

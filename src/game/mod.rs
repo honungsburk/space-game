@@ -1,6 +1,7 @@
 mod arena;
 pub mod assets;
 mod camera;
+mod enemy;
 mod gamepad;
 mod meteors;
 pub mod player;
@@ -18,8 +19,10 @@ use crate::events::GameOver;
 use arena::ArenaPlugin;
 use assets::AssetPlugin;
 use camera::CameraPlugin;
+use enemy::EnemyPlugin;
 use gamepad::GamepadPlugin;
 use projectile::ProjectilePlugin;
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
@@ -38,6 +41,7 @@ impl Plugin for GamePlugin {
         .add_state::<SimulationState>()
         // Systems
         .add_plugins((
+            EnemyPlugin,
             ArenaPlugin,
             CameraPlugin,
             AssetPlugin,

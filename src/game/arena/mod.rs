@@ -21,6 +21,9 @@ impl Plugin for ArenaPlugin {
     }
 }
 
+pub const ARENA_RADIUS: f32 = 1000.0;
+pub const PLAYER_SPAWN_RADIUS: f32 = 100.0;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Components
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +70,7 @@ pub fn spawn_random_arena(
             assets::ARENA_GROUP.into(),
             assets::ARENA_FILTER_MASK.into(),
         ))
-        .insert(hollow_circle(1000.0, 200))
+        .insert(hollow_circle(ARENA_RADIUS, 200))
         .insert(Arena);
 
     spawn_random_meteors(&mut commands, &asset_db, &asset_server, window_query);
@@ -117,8 +120,8 @@ pub fn spawn_random_meteors(
         // Subtract the meteor radius from the arena radius to ensure that the meteor is spawned
         // within the arena
 
-        let candidate =
-            arena_center + random::uniform_donut(&mut rng, 1000.0 - meteor_radius, 100.0);
+        let candidate = arena_center
+            + random::uniform_donut(&mut rng, ARENA_RADIUS - meteor_radius, PLAYER_SPAWN_RADIUS);
         let transform = Transform::from_xyz(candidate.x, candidate.y, 0.0);
         let is_movable = match meteor_size {
             MeteorSize::Tiny => true,
