@@ -41,16 +41,24 @@ fn update_enemy(
 ) {
     if let Ok(player_transform) = player_query.get_single_mut() {
         for (mut external_impulse, mut transform) in enemy_query.iter_mut() {
-            let direction = player_transform.translation - transform.translation;
+            let distance_to_player = player_transform.translation - transform.translation;
 
-            transform.rotation = Quat::from_rotation_z(Vec2::Y.angle_between(direction.xy()));
+            transform.rotation =
+                Quat::from_rotation_z(Vec2::Y.angle_between(distance_to_player.xy()));
 
-            if direction.length() < 100.0 {
+            let offset = 200.0;
+
+            if distance_to_player.length() > offset - 10.0
+                && distance_to_player.length() < offset + 10.0
+            {
                 continue;
             }
 
-            let direction = direction.normalize();
-            let impulse = direction * 0.7;
+            let mut impulse = distance_to_player.normalize() * 0.7;
+
+            if distance_to_player.length() < offset - 10.0 {
+                impulse = -1.0 * impulse;
+            }
             external_impulse.impulse = impulse.xy();
         }
     }
@@ -71,6 +79,13 @@ fn spawn_enemy(
     commands
         .spawn(SpriteBundle {
             texture: asset_server.load(asset.sprite_path),
+            sprite: Sprite {
+                // Flip the logo to the left
+                flip_x: false,
+                // And don't flip it upside-down ( the default )
+                flip_y: true,
+                ..default()
+            },
             transform: spawn_transform,
             ..Default::default()
         })
@@ -114,8 +129,8 @@ pub fn spawn_enemies(
     let spawn_location = arena_center.xy()
         + random::uniform_donut(
             &mut rng,
-            arena::ARENA_RADIUS + 400.0,
-            arena::ARENA_RADIUS + 300.0,
+            arena::ARENA_RADIUS - 400.0,
+            arena::ARENA_RADIUS - 500.0,
         );
 
     let spawn_transform = Transform::from_xyz(spawn_location.x, spawn_location.y, 0.0);
