@@ -36,19 +36,21 @@ pub struct Enemy;
 ////////////////////////////////////////////////////////////////////////////////
 
 fn update_enemy(
-    mut enemy_query: Query<(&mut ExternalImpulse, &Transform), (With<Enemy>, Without<Player>)>,
+    mut enemy_query: Query<(&mut ExternalImpulse, &mut Transform), (With<Enemy>, Without<Player>)>,
     mut player_query: Query<&Transform, (With<Player>, Without<Enemy>)>,
 ) {
     if let Ok(player_transform) = player_query.get_single_mut() {
-        for (mut external_impulse, transform) in enemy_query.iter_mut() {
+        for (mut external_impulse, mut transform) in enemy_query.iter_mut() {
             let direction = player_transform.translation - transform.translation;
+
+            transform.rotation = Quat::from_rotation_z(Vec2::Y.angle_between(direction.xy()));
 
             if direction.length() < 100.0 {
                 continue;
             }
 
             let direction = direction.normalize();
-            let impulse = direction * 1.0;
+            let impulse = direction * 0.7;
             external_impulse.impulse = impulse.xy();
         }
     }
