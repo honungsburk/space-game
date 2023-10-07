@@ -1,5 +1,7 @@
 use super::assets;
 use super::assets::AssetDB;
+use super::components::*;
+use super::components::*;
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -36,21 +38,6 @@ pub enum ProjectileType {
     Laser,
 }
 
-#[derive(Component)]
-pub struct Damage(pub f32);
-
-#[derive(Component)]
-pub struct TimeToLive(Timer);
-
-impl TimeToLive {
-    pub fn new(timer: Timer) -> Self {
-        Self(timer)
-    }
-    pub fn from_seconds(secs: f32) -> Self {
-        Self(Timer::from_seconds(secs, TimerMode::Once))
-    }
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers
 ////////////////////////////////////////////////////////////////////////////////
@@ -85,7 +72,7 @@ pub fn spawn_laser_projectile(
             angvel: 0.0,
         })
         .insert(Projectile::new(ProjectileType::Laser))
-        .insert(Damage(1.0))
+        .insert(Damage(1))
         .insert(TimeToLive::from_seconds(3.0));
 }
 
@@ -96,29 +83,59 @@ pub fn spawn_laser_projectile(
 fn update_projectiles_on_collision(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
-    mut contact_force_events: EventReader<ContactForceEvent>,
-    query: Query<(Entity, &Projectile)>,
+    // mut contact_force_events: EventReader<ContactForceEvent>,
+    projectile_query: Query<(&Projectile, Option<&Damage>), Without<Health>>,
+    mut health_query: Query<&mut Health, Without<Projectile>>,
 ) {
     for collision_event in collision_events.iter() {
         match collision_event {
             // Will be removed before collision is resolved
             CollisionEvent::Started(entity1, entity2, _) => {
-                if query.contains(*entity1) {
-                    commands.entity(*entity1).despawn();
-                }
+                let did_resolve = resolve_projectile_collision(
+                    &mut commands,
+                    &projectile_query,
+                    &mut health_query,
+                    entity1,
+                    entity2,
+                );
 
-                if query.contains(*entity2) {
-                    commands.entity(*entity2).despawn();
+                if !did_resolve {
+                    resolve_projectile_collision(
+                        &mut commands,
+                        &projectile_query,
+                        &mut health_query,
+                        entity2,
+                        entity1,
+                    );
                 }
             }
             _ => {}
         }
     }
-
-    for contact_force_event in contact_force_events.iter() {
-        println!("Received contact force event: {:?}", contact_force_event);
-    }
+    // for contact_force_event in contact_force_events.iter() {
+    //     println!("Received contact force event: {:?}", contact_force_event);
+    // }
 }
+
+fn resolve_projectile_collision(
+    commands: &mut Commands,
+    projectile_query: &Query<(&Projectile, Option<&Damage>), Without<Health>>,
+    health_query: &mut Query<&mut Health, Without<Projectile>>,
+    entity1: &Entity,
+    entity2: &Entity,
+) -> bool {
+    if let Ok((_, damge_opt)) = projectile_query.get(*entity1) {
+        commands.entity(*entity1).despawn();
+        if let Some(damage) = damge_opt {
+            if let Ok(mut health) = health_query.get_mut(*entity2) {
+                health.take_damage(damage)
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
 pub fn update_time_to_live(
     mut commands: Commands,
     time: Res<Time>,

@@ -1,6 +1,7 @@
 mod arena;
 pub mod assets;
 mod camera;
+pub mod components;
 mod enemy;
 mod gamepad;
 mod meteors;
@@ -52,7 +53,12 @@ impl Plugin for GamePlugin {
         ))
         .add_systems(
             Update,
-            (pause_simulation, toggle_simulation, resume_simulation),
+            (
+                pause_simulation,
+                toggle_simulation,
+                resume_simulation,
+                despawn_dead,
+            ),
         );
     }
 }

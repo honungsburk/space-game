@@ -2,6 +2,7 @@ use super::arena;
 use super::assets;
 use super::assets::Asset;
 use super::assets::AssetDB;
+use super::components::Health;
 use super::enemy;
 use super::player::components::Player;
 use crate::misc::random;
@@ -90,6 +91,7 @@ fn spawn_enemy(
             ..Default::default()
         })
         .insert(Enemy)
+        .insert(Health::new(1))
         .insert(RigidBody::Dynamic)
         .insert(asset.collider.clone())
         .insert(CollisionGroups::new(

@@ -1,6 +1,8 @@
 use crate::game::SimulationState;
 use bevy::prelude::*;
 
+use super::components::*;
+
 pub fn pause_simulation(mut simulation_state_next_state: ResMut<NextState<SimulationState>>) {
     simulation_state_next_state.set(SimulationState::Paused);
 }
@@ -24,6 +26,14 @@ pub fn toggle_simulation(
                 simulation_state_next_state.set(SimulationState::Running);
                 println!("Simulation Running.");
             }
+        }
+    }
+}
+
+pub fn despawn_dead(mut commands: Commands, mut query: Query<(Entity, &Health)>) {
+    for (entity, health) in query.iter_mut() {
+        if health.is_dead() {
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
