@@ -175,13 +175,6 @@ pub fn update_player_rotation(
 
         if let Some(control_signal) = direction_control.update(current_angle, time.delta_seconds())
         {
-            println!(
-                "Control signal: {}, Value: {}, Target: {}",
-                control_signal,
-                current_angle,
-                direction_control.control.get_setpoint()
-            );
-
             player_impulse.torque_impulse = control_signal * 0.005;
         }
     }

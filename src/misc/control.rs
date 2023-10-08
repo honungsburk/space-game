@@ -11,11 +11,19 @@ pub struct PID {
     setpoint: f32,
     integral: f32,
     last_error: f32,
+    compute_error: fn(f32, f32) -> f32,
 }
 
 impl PID {
-    pub fn new(kp: f32, ki: f32, kd: f32, setpoint: f32) -> Self {
+    pub fn new(
+        compute_error: fn(f32, f32) -> f32,
+        kp: f32,
+        ki: f32,
+        kd: f32,
+        setpoint: f32,
+    ) -> Self {
         Self {
+            compute_error: compute_error,
             kp,
             ki,
             kd,
@@ -25,8 +33,18 @@ impl PID {
         }
     }
 
+    pub fn basic(kp: f32, ki: f32, kd: f32, setpoint: f32) -> Self {
+        Self::new(
+            |setpoint, measured_value| setpoint - measured_value,
+            kp,
+            ki,
+            kd,
+            setpoint,
+        )
+    }
+
     pub fn update(&mut self, measured_value: f32, dt: f32) -> f32 {
-        let error = self.setpoint - measured_value;
+        let error = (self.compute_error)(self.setpoint, measured_value);
         self.integral += error * dt;
         let derivative = (error - self.last_error) / dt;
         self.last_error = error;

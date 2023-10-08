@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::prelude::*;
 
 use crate::misc::control::PID;
@@ -22,7 +24,23 @@ impl DirectionControl {
     pub fn default() -> Self {
         Self {
             is_enabled: false,
-            control: PID::new(1.0, 0.0, 0.0, 0.0),
+            control: PID::new(
+                |setpoint, measured_value| {
+                    let diff = setpoint - measured_value;
+
+                    if diff > PI {
+                        diff - 2.0 * PI
+                    } else if diff < -PI {
+                        diff + 2.0 * PI
+                    } else {
+                        diff
+                    }
+                },
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+            ),
         }
     }
 
