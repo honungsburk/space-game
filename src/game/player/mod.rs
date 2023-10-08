@@ -17,7 +17,8 @@ impl Plugin for PlayerPlugin {
             // .configure_set(MovementSystemSet.before(ConfinementSystemSet))
             // On Enter State
             .add_systems(Startup, spawn_player)
-            .add_systems(Update, (control_ship, fire_weapon));
+            .add_systems(Update, (control_ship, fire_weapon, update_player_rotation));
+
         // Systems
         // On Exit State
         // .add_system(despawn_player.in_schedule(OnExit(AppState::Game)));

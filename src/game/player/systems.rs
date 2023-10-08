@@ -1,5 +1,5 @@
-use super::actions::*;
 use super::components::Player;
+use super::{actions::*, components::DirectionControl};
 use crate::game::{assets, assets::AssetDB, weapon::Weapon};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -57,6 +57,7 @@ pub fn spawn_player(
             ..default()
         })
         .insert(Player {})
+        .insert(DirectionControl::default())
         .insert(InputManagerBundle::<PlayerAction> {
             // Stores "which actions are currently pressed"
             action_state: ActionState::default(),
@@ -93,12 +94,13 @@ pub fn control_ship(
         (
             &mut ExternalImpulse,
             &ActionState<PlayerAction>,
-            &mut Transform,
+            &Transform,
+            &mut DirectionControl,
         ),
         With<Player>,
     >,
 ) {
-    if let Ok((mut player_impulse, player_action_state, mut player_transform)) =
+    if let Ok((mut player_impulse, player_action_state, player_transform, mut direction_control)) =
         query.get_single_mut()
     {
         // player_impulse.impulse = Vec2::new(0.0, 0.0);
@@ -134,8 +136,11 @@ pub fn control_ship(
                 let desired_direction = value.xy();
 
                 if desired_direction.length() > 0.5 {
-                    player_transform.rotation =
-                        Quat::from_rotation_z(Vec2::Y.angle_between(desired_direction))
+                    let setpoint = Vec2::Y.angle_between(desired_direction);
+                    direction_control.set_setpoint(setpoint);
+                    direction_control.turn_on();
+                    // player_transform.rotation =
+                    //     Quat::from_rotation_z(Vec2::Y.angle_between(desired_direction))
                 }
             }
         }
@@ -144,11 +149,40 @@ pub fn control_ship(
             let value = player_action_state.value(PlayerAction::RotateShipLeft);
 
             player_impulse.torque_impulse = value * 0.005;
+            direction_control.turn_off();
         }
         if player_action_state.pressed(PlayerAction::RotateShipRight) {
             let value = player_action_state.value(PlayerAction::RotateShipRight);
 
             player_impulse.torque_impulse = value * -0.005;
+            direction_control.turn_off();
+        }
+    }
+}
+
+pub fn update_player_rotation(
+    time: Res<Time>,
+    mut query: Query<(&mut ExternalImpulse, &Transform, &mut DirectionControl), With<Player>>,
+) {
+    for (mut player_impulse, player_transform, mut direction_control) in query.iter_mut() {
+        // let current_angle =
+        //     player_transform
+        //         .rotation
+        //         .angle_between(Quat::from_euler(EulerRot::XYZ, 0.0, 1.0, 0.0));
+
+        let (_, _, current_angle) = player_transform.rotation.to_euler(EulerRot::XYZ);
+        // let current_angle: f32 = Vec2::Y.angle_between(Vec2::new(x, y));
+
+        if let Some(control_signal) = direction_control.update(current_angle, time.delta_seconds())
+        {
+            println!(
+                "Control signal: {}, Value: {}, Target: {}",
+                control_signal,
+                current_angle,
+                direction_control.control.get_setpoint()
+            );
+
+            player_impulse.torque_impulse = control_signal * 0.005;
         }
     }
 }

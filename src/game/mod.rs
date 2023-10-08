@@ -47,7 +47,7 @@ impl Plugin for GamePlugin {
             CameraPlugin,
             AssetPlugin,
             PlayerPlugin,
-            GamepadPlugin,
+            // GamepadPlugin,
             ProjectilePlugin,
             WeaponPlugin,
         ))
