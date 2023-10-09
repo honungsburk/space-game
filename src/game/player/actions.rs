@@ -12,3 +12,36 @@ pub enum PlayerAction {
     RotateShipRight,
     FireWeapon,
 }
+
+impl PlayerAction {
+    pub fn is_throttle_forward(&self) -> bool {
+        match self {
+            PlayerAction::ThrottleForward => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_throttle(&self) -> bool {
+        match self {
+            PlayerAction::ThrottleForward => true,
+            PlayerAction::ThrottleBackwards => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_rotate(&self) -> bool {
+        match self {
+            PlayerAction::RotateShip => true,
+            PlayerAction::RotateShipLeft => true,
+            PlayerAction::RotateShipRight => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_fire(&self) -> bool {
+        match self {
+            PlayerAction::FireWeapon => true,
+            _ => false,
+        }
+    }
+}

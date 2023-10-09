@@ -79,12 +79,16 @@ pub fn spawn_player(
             angular_damping: 1.0,
         })
         .insert(ExternalForce {
-            force: Vec2::new(0.0, 0.0),
+            force: Vec2::ZERO,
             torque: 0.0,
         })
         .insert(ExternalImpulse {
-            impulse: Vec2::new(0.0, 0.0),
+            impulse: Vec2::ZERO,
             torque_impulse: 0.0,
+        })
+        .insert(Velocity {
+            linvel: Vec2::ZERO,
+            angvel: 0.0,
         })
         .insert(Weapon::simple_laser());
 }
@@ -165,13 +169,7 @@ pub fn update_player_rotation(
     mut query: Query<(&mut ExternalImpulse, &Transform, &mut DirectionControl), With<Player>>,
 ) {
     for (mut player_impulse, player_transform, mut direction_control) in query.iter_mut() {
-        // let current_angle =
-        //     player_transform
-        //         .rotation
-        //         .angle_between(Quat::from_euler(EulerRot::XYZ, 0.0, 1.0, 0.0));
-
         let (_, _, current_angle) = player_transform.rotation.to_euler(EulerRot::XYZ);
-        // let current_angle: f32 = Vec2::Y.angle_between(Vec2::new(x, y));
 
         if let Some(control_signal) = direction_control.update(current_angle, time.delta_seconds())
         {
