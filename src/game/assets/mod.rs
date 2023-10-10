@@ -101,44 +101,36 @@ pub const ENEMY_FILTER_MASK: Group = PLAYER_GROUP
 fn ship_collider() -> Collider {
     Collider::compound(vec![
         // Main Body
-        (Vec2::ZERO, 0.0, Collider::cuboid(10.0, 38.0)),
+        (Vec2::ZERO, 0.0, Collider::round_cuboid(6.0, 34.0, 0.05)),
         // Wing Left
         (
             Vec2::Y * -10.0,
             PI / 2.0,
-            Collider::triangle(
-                Vec2::new(30.0, 0.0),
-                Vec2::new(-30.0, 0.0),
-                Vec2::new(0.0, 48.0),
-            ),
-        ),
-        (
-            Vec2::new(-48.0, -10.0),
-            -PI / 2.0,
-            Collider::triangle(
-                Vec2::new(14.0, 0.0),
-                Vec2::new(-14.0, 0.0),
-                Vec2::new(0.0, 20.0),
-            ),
+            Collider::round_convex_hull(
+                &[
+                    Vec2::new(20.0, 0.0),
+                    Vec2::new(-24.0, 0.0),
+                    Vec2::new(12.0, 44.0),
+                    Vec2::new(-8.0, 44.0),
+                ],
+                0.05,
+            )
+            .unwrap(),
         ),
         // Wing Right
         (
             Vec2::Y * -10.0,
             -PI / 2.0,
-            Collider::triangle(
-                Vec2::new(30.0, 0.0),
-                Vec2::new(-30.0, 0.0),
-                Vec2::new(0.0, 48.0),
-            ),
-        ),
-        (
-            Vec2::new(48.0, -10.0),
-            PI / 2.0,
-            Collider::triangle(
-                Vec2::new(14.0, 0.0),
-                Vec2::new(-14.0, 0.0),
-                Vec2::new(0.0, 20.0),
-            ),
+            Collider::round_convex_hull(
+                &[
+                    Vec2::new(24.0, 0.0),
+                    Vec2::new(-20.0, 0.0),
+                    Vec2::new(8.0, 44.0),
+                    Vec2::new(-12.0, 44.0),
+                ],
+                0.05,
+            )
+            .unwrap(),
         ),
     ])
 }
