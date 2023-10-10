@@ -1,8 +1,4 @@
-use super::assets;
-use super::assets::AssetDB;
-use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
 
 // Damage
 

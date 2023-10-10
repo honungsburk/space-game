@@ -1,5 +1,6 @@
 mod arena;
 pub mod assets;
+pub mod average_velocity;
 mod camera;
 pub mod components;
 mod enemy;
@@ -25,7 +26,7 @@ use enemy::EnemyPlugin;
 // use gamepad::GamepadPlugin;
 use projectile::ProjectilePlugin;
 
-use self::trauma::TraumaPlugin;
+use self::{average_velocity::AverageVelocityPlugin, trauma::TraumaPlugin};
 
 pub struct GamePlugin;
 
@@ -54,6 +55,7 @@ impl Plugin for GamePlugin {
             ProjectilePlugin,
             WeaponPlugin,
             TraumaPlugin,
+            AverageVelocityPlugin,
         ))
         .add_systems(
             Update,

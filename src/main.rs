@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 pub mod events;
 mod game;
 pub mod misc;

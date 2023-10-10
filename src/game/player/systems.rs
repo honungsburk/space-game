@@ -1,5 +1,6 @@
 use super::components::Player;
 use super::{actions::*, components::DirectionControl};
+use crate::game::average_velocity::AverageVelocity;
 use crate::game::trauma::Trauma;
 use crate::game::{assets, assets::AssetDB, weapon::Weapon};
 use bevy::prelude::*;
@@ -95,6 +96,7 @@ pub fn spawn_player(
             linvel: Vec2::ZERO,
             angvel: 0.0,
         })
+        .insert(AverageVelocity::new(10))
         .insert(Weapon::simple_laser());
 }
 
@@ -203,18 +205,20 @@ pub fn fire_weapon(
 
 pub fn player_collision(
     mut collison_events: EventReader<CollisionEvent>,
-    mut player_query: Query<&mut Trauma, With<Player>>,
+    mut player_query: Query<(&mut Trauma, &AverageVelocity, &Velocity), With<Player>>,
 ) {
     for collision_event in collison_events.iter() {
         // TODO: Scale trauma based on force applied to the player
         match collision_event {
             CollisionEvent::Started(entity1, entity2, _) => {
-                println!("CollisionEvent!");
                 if player_query.contains(*entity1) || player_query.contains(*entity2) {
-                    println!("Player collision!");
-                    if let Ok(mut player_trauma) = player_query.get_single_mut() {
-                        // contact_force_event.total_force_magnitude
-                        player_trauma.add_trauma(1.0);
+                    if let Ok((mut player_trauma, average_velocity, velocity)) =
+                        player_query.get_single_mut()
+                    {
+                        // TODO: We need a MAX_VELOCITY to scale this by
+                        player_trauma.add_trauma(
+                            (average_velocity.get_linvel() - velocity.linvel).length() / 200.0,
+                        );
                     }
                 }
             }
@@ -222,24 +226,6 @@ pub fn player_collision(
         }
     }
 }
-
-// pub fn player_collision(
-//     mut contact_force_events: EventReader<ContactForceEvent>,
-//     mut player_query: Query<&mut Trauma, With<Player>>,
-// ) {
-//     for contact_force_event in contact_force_events.iter() {
-//         // TODO: Scale trauma based on force applied to the player
-
-//         if player_query.contains(contact_force_event.collider1)
-//             || player_query.contains(contact_force_event.collider2)
-//         {
-//             if let Ok(mut player_trauma) = player_query.get_single_mut() {
-//                 // contact_force_event.total_force_magnitude
-//                 player_trauma.add_trauma(0.2);
-//             }
-//         }
-//     }
-// }
 
 pub fn despawn_player(mut commands: Commands, player_query: Query<Entity, With<Player>>) {
     if let Ok(player_entity) = player_query.get_single() {
