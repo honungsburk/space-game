@@ -1,15 +1,15 @@
+use super::player::actions::PlayerAction;
+use super::player::components::Player;
+use super::trauma::Trauma;
 use crate::misc::control::PID;
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::Velocity;
 use leafwing_input_manager::prelude::ActionState;
-use rand::distributions::Uniform;
-
-use super::player::actions::PlayerAction;
-use super::player::components::Player;
-use super::trauma::Trauma;
+use noise::{Fbm, NoiseFn, Perlin, Seedable};
 use rand::distributions::Distribution;
+use rand::distributions::Uniform;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -34,7 +34,24 @@ pub struct SmoothCamera;
 
 // This camera is what the player sees. On every frame, it is moved to the player camera's position + add screen shake if there is any
 #[derive(Component)]
-pub struct ShakyCamera;
+pub struct ShakyCamera {
+    pub x_perlin: Fbm<Perlin>,
+    pub y_perlin: Fbm<Perlin>,
+    pub angel_perlin: Fbm<Perlin>,
+}
+
+impl Default for ShakyCamera {
+    fn default() -> Self {
+        let mut fbm = Fbm::<Perlin>::default();
+        // fbm.frequency = 10.0;
+
+        Self {
+            x_perlin: fbm.clone().set_seed(124135),
+            y_perlin: fbm.clone().set_seed(123),
+            angel_perlin: fbm.clone().set_seed(43212),
+        }
+    }
+}
 
 // Camera PID controller
 #[derive(Component)]
@@ -94,7 +111,7 @@ pub fn spawn(mut commands: Commands, window_query: Query<&Window, With<PrimaryWi
             transform: transform,
             ..default()
         })
-        .insert(ShakyCamera);
+        .insert(ShakyCamera::default());
 }
 
 // pub fn debug_camera_position(
@@ -166,8 +183,8 @@ const MAX_SHAKY_OFFSET: f32 = 4.0;
 fn update_shaky_camera(
     time: Res<Time>,
     mut shaky_camera_query: Query<
-        &mut Transform,
-        (Without<Player>, Without<SmoothCamera>, With<ShakyCamera>),
+        (&mut Transform, &mut ShakyCamera),
+        (Without<Player>, Without<SmoothCamera>),
     >,
     smooth_camera_query: Query<
         &Transform,
@@ -178,7 +195,11 @@ fn update_shaky_camera(
         (With<Player>, Without<SmoothCamera>, Without<ShakyCamera>),
     >,
 ) {
-    if let (Ok(player_trauma_op), Ok(smooth_camera_transform), Ok(mut shaky_camera_transform)) = (
+    if let (
+        Ok(player_trauma_op),
+        Ok(smooth_camera_transform),
+        Ok((mut shaky_camera_transform, mut shaky_camera)),
+    ) = (
         player_query.get_single(),
         smooth_camera_query.get_single(),
         shaky_camera_query.get_single_mut(),
@@ -187,12 +208,27 @@ fn update_shaky_camera(
             let trauma = player_trauma.get_trauma();
             let shake = trauma.powi(2);
 
-            let rng = &mut rand::thread_rng();
-            let uniform: Uniform<f32> = Uniform::new(-1.0, 1.0);
+            // let rng = &mut rand::thread_rng();
+            // let uniform: Uniform<f32> = Uniform::new(-1.0, 1.0);
 
-            let random_angel = MAX_SHAKY_ANGEL * shake * uniform.sample(rng);
-            let random_offset_x = MAX_SHAKY_OFFSET * shake * uniform.sample(rng);
-            let random_offset_y = MAX_SHAKY_OFFSET * shake * uniform.sample(rng);
+            // If you slow down the game, the camera will shake smoothly
+            let sample_point = [time.elapsed_seconds_f64(), time.elapsed_seconds_f64()];
+
+            // println!(
+            //     "Sample point: {:?}",
+            //     (shaky_camera.angel_perlin.get(sample_point) as f32)
+            // );
+
+            let random_angel =
+                MAX_SHAKY_ANGEL * shake * (shaky_camera.angel_perlin.get(sample_point) as f32);
+            let random_offset_x =
+                MAX_SHAKY_OFFSET * shake * (shaky_camera.x_perlin.get(sample_point) as f32);
+            let random_offset_y =
+                MAX_SHAKY_OFFSET * shake * (shaky_camera.y_perlin.get(sample_point) as f32);
+
+            // let random_angel = MAX_SHAKY_ANGEL * shake * uniform.sample(rng);
+            // let random_offset_x = MAX_SHAKY_OFFSET * shake * uniform.sample(rng);
+            // let random_offset_y = MAX_SHAKY_OFFSET * shake * uniform.sample(rng);
 
             shaky_camera_transform.translation = smooth_camera_transform.translation
                 + Vec3::new(random_offset_x, random_offset_y, 0.0);
