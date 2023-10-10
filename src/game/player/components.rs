@@ -7,6 +7,7 @@ use crate::misc::control::PID;
 #[derive(Component)]
 pub struct Player {}
 
+// Used to control the player's rotation.
 #[derive(Component)]
 pub struct DirectionControl {
     pub is_enabled: bool,

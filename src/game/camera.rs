@@ -4,9 +4,12 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::Velocity;
 use leafwing_input_manager::prelude::ActionState;
+use rand::distributions::Uniform;
 
 use super::player::actions::PlayerAction;
 use super::player::components::Player;
+use super::trauma::Trauma;
+use rand::distributions::Distribution;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -17,7 +20,7 @@ pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn)
-            .add_systems(Update, update_camera);
+            .add_systems(Update, (update_smooth_camera, update_shaky_camera));
     }
 }
 
@@ -25,6 +28,15 @@ impl Plugin for CameraPlugin {
 // Components
 ////////////////////////////////////////////////////////////////////////////////
 
+// This camera is smooth and follows the player + uses look ahead
+#[derive(Component)]
+pub struct SmoothCamera;
+
+// This camera is what the player sees. On every frame, it is moved to the player camera's position + add screen shake if there is any
+#[derive(Component)]
+pub struct ShakyCamera;
+
+// Camera PID controller
 #[derive(Component)]
 pub struct CameraPID {
     pub x_pid: PID,
@@ -68,18 +80,39 @@ pub fn spawn(mut commands: Commands, window_query: Query<&Window, With<PrimaryWi
     let window = window_query.get_single().unwrap();
     let x = window.width() / 2.0;
     let y = window.height() / 2.0;
+    let transform = Transform::from_xyz(x, y, 0.0);
 
+    // Smooth camera
+    commands
+        .spawn(TransformBundle::from(transform))
+        .insert(SmoothCamera)
+        .insert(CameraPID::from_xy(x, y));
+
+    // Shaky camera (What the player sees)
     commands
         .spawn(Camera2dBundle {
-            transform: Transform::from_xyz(x, y, 0.0),
+            transform: transform,
             ..default()
         })
-        .insert(CameraPID::from_xy(x, y));
+        .insert(ShakyCamera);
 }
 
-pub fn update_camera(
+// pub fn debug_camera_position(
+//     mut commands: Commands,
+//     mut query: Query<(&mut Transform, &mut CameraPID), (Without<Player>, With<Camera>)>,
+// ) {
+//     if let Ok((mut transform, mut pid)) = query.get_single_mut() {
+//         // Create a debug entity to show the camera's position
+//         commands.spawn(bundle)
+//     }
+// }
+
+pub fn update_smooth_camera(
     time: Res<Time>,
-    mut camera_query: Query<(&mut Transform, &mut CameraPID), (Without<Player>, With<Camera>)>,
+    mut camera_query: Query<
+        (&mut Transform, &mut CameraPID),
+        (Without<Player>, With<SmoothCamera>),
+    >,
     player_query: Query<
         (&Transform, &Velocity, &ActionState<PlayerAction>),
         (With<Player>, Without<Camera>),
@@ -123,6 +156,55 @@ pub fn update_camera(
                 camera_pid.update(camera_transform.translation.xy(), time.delta_seconds());
 
             camera_transform.translation += Vec3::new(control_signal.x, control_signal.y, 0.0);
+        }
+    }
+}
+
+const MAX_SHAKY_ANGEL: f32 = 0.05;
+const MAX_SHAKY_OFFSET: f32 = 4.0;
+
+fn update_shaky_camera(
+    time: Res<Time>,
+    mut shaky_camera_query: Query<
+        &mut Transform,
+        (Without<Player>, Without<SmoothCamera>, With<ShakyCamera>),
+    >,
+    smooth_camera_query: Query<
+        &Transform,
+        (Without<Player>, With<SmoothCamera>, Without<ShakyCamera>),
+    >,
+    player_query: Query<
+        Option<&Trauma>,
+        (With<Player>, Without<SmoothCamera>, Without<ShakyCamera>),
+    >,
+) {
+    if let (Ok(player_trauma_op), Ok(smooth_camera_transform), Ok(mut shaky_camera_transform)) = (
+        player_query.get_single(),
+        smooth_camera_query.get_single(),
+        shaky_camera_query.get_single_mut(),
+    ) {
+        if let Some(player_trauma) = player_trauma_op {
+            let trauma = player_trauma.get_trauma();
+            let shake = trauma.powi(2);
+
+            let rng = &mut rand::thread_rng();
+            let uniform: Uniform<f32> = Uniform::new(-1.0, 1.0);
+
+            let random_angel = MAX_SHAKY_ANGEL * shake * uniform.sample(rng);
+            let random_offset_x = MAX_SHAKY_OFFSET * shake * uniform.sample(rng);
+            let random_offset_y = MAX_SHAKY_OFFSET * shake * uniform.sample(rng);
+
+            shaky_camera_transform.translation = smooth_camera_transform.translation
+                + Vec3::new(random_offset_x, random_offset_y, 0.0);
+
+            shaky_camera_transform.rotation = smooth_camera_transform
+                .rotation
+                .mul_quat(Quat::from_rotation_z(random_angel));
+            shaky_camera_transform.scale = smooth_camera_transform.scale;
+        } else {
+            shaky_camera_transform.translation = smooth_camera_transform.translation;
+            shaky_camera_transform.rotation = smooth_camera_transform.rotation;
+            shaky_camera_transform.scale = smooth_camera_transform.scale;
         }
     }
 }

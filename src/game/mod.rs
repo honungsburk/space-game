@@ -8,6 +8,7 @@ mod meteors;
 pub mod player;
 mod projectile;
 mod systems;
+pub mod trauma;
 mod weapon;
 
 use bevy::prelude::*;
@@ -21,8 +22,10 @@ use arena::ArenaPlugin;
 use assets::AssetPlugin;
 use camera::CameraPlugin;
 use enemy::EnemyPlugin;
-use gamepad::GamepadPlugin;
+// use gamepad::GamepadPlugin;
 use projectile::ProjectilePlugin;
+
+use self::trauma::TraumaPlugin;
 
 pub struct GamePlugin;
 
@@ -50,6 +53,7 @@ impl Plugin for GamePlugin {
             // GamepadPlugin,
             ProjectilePlugin,
             WeaponPlugin,
+            TraumaPlugin,
         ))
         .add_systems(
             Update,

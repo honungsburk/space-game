@@ -1,5 +1,6 @@
 use super::components::Player;
 use super::{actions::*, components::DirectionControl};
+use crate::game::trauma::Trauma;
 use crate::game::{assets, assets::AssetDB, weapon::Weapon};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -66,6 +67,10 @@ pub fn spawn_player(
         })
         .insert(RigidBody::Dynamic)
         .insert(asset_db.player_ship.collider.clone())
+        .insert(Trauma::default())
+        .insert(ActiveEvents::COLLISION_EVENTS)
+        .insert(ActiveEvents::CONTACT_FORCE_EVENTS)
+        .insert(ContactForceEventThreshold(1.0))
         .insert(CollisionGroups::new(
             assets::PLAYER_GROUP.into(),
             assets::PLAYER_FILTER_MASK.into(),
@@ -189,6 +194,48 @@ pub fn fire_weapon(
             let value = player_action_state.value(PlayerAction::FireWeapon);
             if value > 0.0 {
                 weapon.fire(commands, &asset_db, &asset_server, player_transform.clone());
+            }
+        }
+    }
+}
+
+// CollisionEvent::Started(entity1, entity2, _) => {
+
+// pub fn player_collision(
+//     mut collison_events: EventReader<CollisionEvent>,
+//     mut player_query: Query<&mut Trauma, With<Player>>,
+// ) {
+//     for collision_event in collison_events.iter() {
+//         // TODO: Scale trauma based on force applied to the player
+//         match collision_event {
+//             CollisionEvent::Started(entity1, entity2, _) => {
+//                 println!("CollisionEvent!");
+//                 if player_query.contains(*entity1) || player_query.contains(*entity2) {
+//                     println!("Player collision!");
+//                     if let Ok(mut player_trauma) = player_query.get_single_mut() {
+//                         // contact_force_event.total_force_magnitude
+//                         player_trauma.add_trauma(1.0);
+//                     }
+//                 }
+//             }
+//             _ => {}
+//         }
+//     }
+// }
+
+pub fn player_collision(
+    mut contact_force_events: EventReader<ContactForceEvent>,
+    mut player_query: Query<&mut Trauma, With<Player>>,
+) {
+    for contact_force_event in contact_force_events.iter() {
+        // TODO: Scale trauma based on force applied to the player
+
+        if player_query.contains(contact_force_event.collider1)
+            || player_query.contains(contact_force_event.collider2)
+        {
+            if let Ok(mut player_trauma) = player_query.get_single_mut() {
+                // contact_force_event.total_force_magnitude
+                player_trauma.add_trauma(0.2);
             }
         }
     }
