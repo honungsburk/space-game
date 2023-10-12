@@ -74,9 +74,6 @@ fn create_turret(
                 texture: asset_server.load(turret_base.sprite_path),
                 ..Default::default()
             });
-            // .insert(SpatialBundle::default());
-
-            // .insert(SpatialBundle::default());
         });
 
     // .add_child(turret_base_entity)
