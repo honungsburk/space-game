@@ -144,7 +144,7 @@ pub fn update_time_to_live(
     for (entity, mut ttl) in query.iter_mut() {
         ttl.0.tick(time.delta());
         if ttl.0.finished() {
-            commands.entity(entity).despawn();
+            commands.entity(entity).despawn_recursive();
         }
     }
 }

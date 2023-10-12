@@ -62,6 +62,13 @@ pub struct AssetDB {
     pub meteor_grey_tiny_1: Asset,
     pub meteor_grey_tiny_2: Asset,
 
+    // Turret Assets
+    pub turret_base_big: Asset,
+    pub turret_base_small: Asset,
+
+    // Guns
+    pub gun_8: Asset,
+
     // Projectile Assets
     pub laser_projectile: Asset,
 
@@ -249,6 +256,26 @@ fn create_asset_db() -> AssetDB {
             "Laser Projectile",
             "sprites/laserBlue01.png",
             Collider::capsule_y(22.0, 5.0),
+        ),
+
+        // Gun
+        gun_8: Asset::new(
+            "Gun 8",
+            "sprites/parts/gun/gun08.png",
+            Collider::cuboid(5.0, 15.0),
+        ),
+
+        // Turret Base
+        turret_base_big: Asset::new(
+            "Turret Base Big",
+            "sprites/parts/turret/turretBase_big.png",
+            Collider::ball(20.0),
+        ),
+
+        turret_base_small: Asset::new(
+            "Turret Base Small",
+            "sprites/parts/turret/turretBase_small.png",
+            Collider::ball(15.0),
         ),
 
         // Enemy Assets

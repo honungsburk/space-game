@@ -4,9 +4,28 @@ Physics based space game. In development.
 
 ## TODO
 
-- Add GUI
+### Current
+
+Current objective is to get a gameplay loop working.
+
+- [ ] Add enemy
+- [ ] Spawn enemies in waves
+- [ ] Add player health
+- [ ] Add player death
+- [ ] Add Score
+- Add UI
+  - [ ] Add Replay button
+  - [ ] Add Game Over screen
+  - [ ] Add Main Menu
+  - [ ] Add Pause Menu
+  - [ ] Add highscore list
+- Add HUD
   - Add score
   - Add health
+
+### Backlog
+
+- Add HUD
   - Add boost fuel
   - Add shield
 - Add visual player damage level.

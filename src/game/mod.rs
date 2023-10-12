@@ -10,6 +10,7 @@ pub mod player;
 mod projectile;
 mod systems;
 pub mod trauma;
+pub mod turret;
 mod weapon;
 
 use bevy::prelude::*;
@@ -26,7 +27,7 @@ use enemy::EnemyPlugin;
 // use gamepad::GamepadPlugin;
 use projectile::ProjectilePlugin;
 
-use self::{average_velocity::AverageVelocityPlugin, trauma::TraumaPlugin};
+use self::{average_velocity::AverageVelocityPlugin, trauma::TraumaPlugin, turret::TurretPlugin};
 
 pub struct GamePlugin;
 
@@ -46,11 +47,12 @@ impl Plugin for GamePlugin {
         .add_state::<SimulationState>()
         // Systems
         .add_plugins((
-            EnemyPlugin,
+            // EnemyPlugin,
             ArenaPlugin,
             CameraPlugin,
             AssetPlugin,
             PlayerPlugin,
+            TurretPlugin,
             // GamepadPlugin,
             ProjectilePlugin,
             WeaponPlugin,
