@@ -23,7 +23,7 @@ use crate::events::GameOver;
 use arena::ArenaPlugin;
 use assets::AssetPlugin;
 use camera::CameraPlugin;
-use enemy::EnemyPlugin;
+// use enemy::EnemyPlugin;
 // use gamepad::GamepadPlugin;
 use projectile::ProjectilePlugin;
 

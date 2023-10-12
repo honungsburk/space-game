@@ -11,3 +11,5 @@ rand = { version = "0.8.5", features = [ "small_rng" ] }
 noise = "0.8.2"
 bevy_rapier2d = "0.22.0"
 leafwing-input-manager = "0.10.0"
+bevy_prototype_lyon = "0.9.0"
+approx = "0.5.1"

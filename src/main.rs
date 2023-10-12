@@ -10,12 +10,15 @@ use game::GamePlugin;
 // use main_menu::MainMenuPlugin;
 
 use bevy::prelude::*;
+use bevy_prototype_lyon::prelude::*;
 use systems::*;
 
 fn main() {
     App::new()
+        .insert_resource(Msaa::Sample4)
         // Bevy Plugins
         .add_plugins(DefaultPlugins)
+        .add_plugins(ShapePlugin)
         // .add_state::<AppState>()
         // My Plugins
         // .add_plugin(MainMenuPlugin)

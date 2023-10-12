@@ -10,7 +10,7 @@ pub struct WeaponPlugin;
 
 impl Plugin for WeaponPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (update_weapon));
+        app.add_systems(Update, update_weapon);
     }
 }
 
@@ -48,7 +48,7 @@ impl Weapon {
 
     pub fn fire(
         &mut self,
-        mut commands: Commands,
+        commands: Commands,
         asset_db: &Res<AssetDB>,
         asset_server: &Res<AssetServer>,
         spawn_transform: Transform,

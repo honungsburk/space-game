@@ -1,6 +1,5 @@
 use bevy::app::AppExit;
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 
 pub fn exit_game(
     keyboard_input: Res<Input<KeyCode>>,

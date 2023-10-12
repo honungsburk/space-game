@@ -1,18 +1,17 @@
 use super::arena;
 use super::assets;
-use super::assets::Asset;
+
 use super::assets::AssetDB;
 use super::components::Health;
 use super::enemy;
 use super::player::components::Player;
 use crate::misc::random;
-use bevy::math::Vec2Swizzles;
+
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::geometry::*;
 use bevy_rapier2d::prelude::*;
-use rand::prelude::*;
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
@@ -117,7 +116,7 @@ fn spawn_enemy(
 }
 
 pub fn spawn_enemies(
-    mut commands: Commands,
+    commands: Commands,
     asset_db: Res<crate::game::assets::AssetDB>,
     asset_server: Res<AssetServer>,
     window_query: Query<&Window, With<PrimaryWindow>>,

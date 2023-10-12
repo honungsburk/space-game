@@ -8,8 +8,6 @@ use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::Velocity;
 use leafwing_input_manager::prelude::ActionState;
 use noise::{Fbm, NoiseFn, Perlin, Seedable};
-use rand::distributions::Distribution;
-use rand::distributions::Uniform;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -42,7 +40,7 @@ pub struct ShakyCamera {
 
 impl Default for ShakyCamera {
     fn default() -> Self {
-        let mut fbm = Fbm::<Perlin>::default();
+        let fbm = Fbm::<Perlin>::default();
         // fbm.frequency = 10.0;
 
         Self {
@@ -154,15 +152,6 @@ pub fn update_smooth_camera(
             let desired_camera_placement = player_transform.translation.xy()
                 + (player_rotation + player_velocity.linvel).clamp_length(0.0, 200.0);
 
-            let current_desired_location = camera_pid.get_setpoint();
-
-            // How much faster/slower the camera can move than the player
-            let max_relative_camera_speed = 20.0;
-            let max_camera_speed = player_velocity.linvel.length() + max_relative_camera_speed;
-
-            // let max_camera_velocity =
-            //     (player_velocity.linvel.normalize_or_zero() + max_camera_speed).min(rhs);
-
             camera_pid.set_setpoint(desired_camera_placement);
 
             // Determine desired camera zoom level
@@ -198,7 +187,7 @@ fn update_shaky_camera(
     if let (
         Ok(player_trauma_op),
         Ok(smooth_camera_transform),
-        Ok((mut shaky_camera_transform, mut shaky_camera)),
+        Ok((mut shaky_camera_transform, shaky_camera)),
     ) = (
         player_query.get_single(),
         smooth_camera_query.get_single(),
