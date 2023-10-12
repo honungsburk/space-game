@@ -4,6 +4,7 @@ pub mod events;
 mod game;
 pub mod misc;
 // mod main_menu;
+mod parent_child_no_rotation;
 mod systems;
 
 use game::GamePlugin;
@@ -11,6 +12,7 @@ use game::GamePlugin;
 
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
+use parent_child_no_rotation::NoRotationPlugin;
 use systems::*;
 
 fn main() {
@@ -23,6 +25,7 @@ fn main() {
         // My Plugins
         // .add_plugin(MainMenuPlugin)
         .add_plugins(GamePlugin)
+        .add_plugins(NoRotationPlugin)
         // Startup Systems
         // Systems
         // .add_system(transition_to_game_state)

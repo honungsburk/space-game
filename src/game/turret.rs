@@ -1,4 +1,7 @@
-use crate::misc::control::{PID, PID2D};
+use crate::{
+    misc::control::{PID, PID2D},
+    parent_child_no_rotation::{NoRotationChild, NoRotationParent},
+};
 
 use bevy_prototype_lyon::prelude::*;
 use std::f32::consts::PI;
@@ -23,11 +26,9 @@ impl Plugin for TurretPlugin {
                 update_turret_target,
                 update_turret_rotation.before(update_stationary_control),
                 update_stationary_control,
+                update_turret_radius_outline.after(update_turret_target),
             ),
         );
-        // Systems
-        // On Exit State
-        // .add_system(despawn_player.in_schedule(OnExit(AppState::Game)));
     }
 }
 
@@ -70,20 +71,30 @@ impl Default for StationaryControl {
 
 #[derive(Component)]
 pub struct Target {
+    pub sees_target: bool,
     pub target: Vec2,
 }
 
 impl Target {
-    pub fn new(target: Vec2) -> Self {
-        Self { target }
+    pub fn new(sees_target: bool, target: Vec2) -> Self {
+        Self {
+            sees_target,
+            target,
+        }
     }
 }
 
 impl Default for Target {
     fn default() -> Self {
-        Self { target: Vec2::ZERO }
+        Self {
+            sees_target: false,
+            target: Vec2::ZERO,
+        }
     }
 }
+
+#[derive(Component)]
+struct TurretRadiusOutline {}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Systems
@@ -131,6 +142,7 @@ fn update_turret_rotation(
     }
 }
 
+// TODO: Replace this with a sensor from bevy_rapier2d
 fn update_turret_target(
     mut query: Query<(&mut Target, &Transform)>,
     player_query: Query<&Transform, With<Player>>,
@@ -139,6 +151,9 @@ fn update_turret_target(
         for (mut target, transform) in query.iter_mut() {
             if transform.translation.distance(player_transform.translation) < 300.0 {
                 target.target = player_transform.translation.xy();
+                target.sees_target = true;
+            } else {
+                target.sees_target = false;
             }
         }
     }
@@ -171,6 +186,22 @@ fn update_stationary_control(
     }
 }
 
+// Use events instead???
+fn update_turret_radius_outline(
+    turret_query: Query<&Target, With<Turret>>,
+    mut turret_radius_query: Query<(&Parent, &mut Stroke), With<TurretRadiusOutline>>,
+) {
+    for (parent, mut stroke) in turret_radius_query.iter_mut() {
+        if let Ok(target) = turret_query.get(parent.get()) {
+            if target.sees_target {
+                stroke.color = Color::rgba(1.0, 0.0, 0.0, 0.4);
+            } else {
+                stroke.color = Color::rgba(0.0, 0.0, 0.0, 0.2);
+            }
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Spawn
 ////////////////////////////////////////////////////////////////////////////////
@@ -190,6 +221,7 @@ fn spawn_turret(
         .insert(Health::new(1))
         // Physics
         .insert(SpatialBundle::from_transform(spawn_transform))
+        .insert(NoRotationParent)
         .insert(RigidBody::Dynamic)
         .insert(CollisionGroups::new(
             assets::ENEMY_GROUP.into(),
@@ -228,12 +260,17 @@ fn spawn_turret(
                 ..Default::default()
             });
 
-            let mut stroke = Stroke::new(Color::BLACK, 4.0);
+            let grey = Color::rgba(0.0, 0.0, 0.0, 0.2);
+
+            let mut stroke = Stroke::new(grey, 4.0);
 
             stroke.options.start_cap = LineCap::Round;
             stroke.options.end_cap = LineCap::Round;
 
-            parent.spawn((dashed_circle(300.0, 10.0, 10.0), stroke));
+            parent
+                .spawn((dashed_circle(300.0, 10.0, 10.0), stroke))
+                .insert(NoRotationChild)
+                .insert(TurretRadiusOutline {});
         });
 }
 
@@ -242,11 +279,6 @@ fn dashed_circle(radius: f32, dash_length: f32, gap_length: f32) -> ShapeBundle 
 
     let mut path_builder = PathBuilder::new();
     let (dash_radians, gap_radians) = calculate_dash_gap_radians(radius, dash_length, gap_length);
-
-    print!(
-        "dash_radians: {}, gap_radians: {}",
-        dash_radians, gap_radians
-    );
 
     let mut total_radians = 0.0;
 
