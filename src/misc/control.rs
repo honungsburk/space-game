@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 // A PID controller is a control loop feedback mechanism widely used in industrial
 // control systems and a variety of other applications requiring continuously modulated control.
 //
@@ -31,6 +33,26 @@ impl PID {
             integral: 0.0,
             last_error: 0.0,
         }
+    }
+
+    pub fn rotation(kp: f32, ki: f32, kd: f32, setpoint: f32) -> Self {
+        Self::new(
+            |setpoint, measured_value| {
+                let diff = setpoint - measured_value;
+
+                if diff > PI {
+                    diff - 2.0 * PI
+                } else if diff < -PI {
+                    diff + 2.0 * PI
+                } else {
+                    diff
+                }
+            },
+            kp,
+            ki,
+            kd,
+            setpoint,
+        )
     }
 
     pub fn basic(kp: f32, ki: f32, kd: f32, setpoint: f32) -> Self {
