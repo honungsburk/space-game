@@ -1,5 +1,7 @@
 use std::f32::consts::PI;
 
+use bevy::prelude::Vec2;
+
 // A PID controller is a control loop feedback mechanism widely used in industrial
 // control systems and a variety of other applications requiring continuously modulated control.
 //
@@ -83,5 +85,46 @@ impl PID {
 
     pub fn add_to_setpoint(&mut self, amount: f32) {
         self.setpoint += amount;
+    }
+}
+
+// 2D PID controller
+pub struct PID2D {
+    pub x: PID,
+    pub y: PID,
+}
+
+impl PID2D {
+    pub fn new(x: PID, y: PID) -> Self {
+        Self { x, y }
+    }
+
+    pub fn update(&mut self, measured_value: Vec2, dt: f32) -> Vec2 {
+        Vec2::new(
+            self.x.update(measured_value.x, dt),
+            self.y.update(measured_value.y, dt),
+        )
+    }
+
+    pub fn update_xy(&mut self, x: f32, y: f32, dt: f32) -> (f32, f32) {
+        (self.x.update(x, dt), self.y.update(y, dt))
+    }
+
+    pub fn set_setpoint(&mut self, setpoint: Vec2) {
+        self.x.set_setpoint(setpoint.x);
+        self.y.set_setpoint(setpoint.y);
+    }
+
+    pub fn set_setpoint_xy(&mut self, x: f32, y: f32) {
+        self.x.set_setpoint(x);
+        self.y.set_setpoint(y);
+    }
+
+    pub fn get_setpoint(&self) -> Vec2 {
+        Vec2::new(self.x.get_setpoint(), self.y.get_setpoint())
+    }
+
+    pub fn get_setpoint_xy(&self) -> (f32, f32) {
+        (self.x.get_setpoint(), self.y.get_setpoint())
     }
 }

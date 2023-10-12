@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use crate::misc::control::PID;
+use crate::misc::control::{PID, PID2D};
 
 use super::{
     assets::{self, AssetDB},
@@ -10,14 +10,20 @@ use super::{
 use bevy::{math::Vec3Swizzles, prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::{
     geometry::*,
-    prelude::{ExternalForce, ExternalImpulse, RigidBody},
+    prelude::{ExternalForce, ExternalImpulse, RigidBody, Velocity},
 };
 pub struct TurretPlugin;
 
 impl Plugin for TurretPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_test_turret)
-            .add_systems(Update, (update_turret_target, update_turret_rotation));
+        app.add_systems(Startup, spawn_test_turret).add_systems(
+            Update,
+            (
+                update_turret_target,
+                update_turret_rotation.before(update_stationary_control),
+                update_stationary_control,
+            ),
+        );
         // Systems
         // On Exit State
         // .add_system(despawn_player.in_schedule(OnExit(AppState::Game)));
@@ -37,14 +43,26 @@ pub struct RotationControl {
     pub control: PID,
 }
 
-impl RotationControl {
-    pub fn new(control: PID) -> Self {
-        Self { control }
-    }
-
-    pub fn default() -> Self {
+impl Default for RotationControl {
+    fn default() -> Self {
         Self {
             control: PID::rotation(0.05, 0.0, 0.05, 0.0),
+        }
+    }
+}
+
+#[derive(Component)]
+pub struct StationaryControl {
+    pub control: PID2D,
+}
+
+impl Default for StationaryControl {
+    fn default() -> Self {
+        Self {
+            control: PID2D::new(
+                PID::basic(0.1, 0.0, 0.0, 0.0),
+                PID::basic(0.1, 0.0, 0.0, 0.0),
+            ),
         }
     }
 }
@@ -123,6 +141,33 @@ fn update_turret_target(
     }
 }
 
+fn update_stationary_control(
+    mut query: Query<(&mut StationaryControl, &Velocity, &mut ExternalImpulse)>,
+    time: Res<Time>,
+) {
+    let dt = time.delta_seconds();
+
+    if dt == 0.0 {
+        return;
+    }
+
+    for (mut stationary_control, turret_velocity, mut turret_impulse) in query.iter_mut() {
+        if turret_velocity.linvel.length() == 0.0 {
+            continue;
+        }
+
+        let control_signal = stationary_control
+            .control
+            .update(turret_velocity.linvel, dt);
+
+        let new_impulse = (control_signal * 1.0).clamp_length_max(0.4);
+        if new_impulse.length() > 0.0 {
+            turret_impulse.impulse = new_impulse
+            //TODO: add max impulse
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Spawn
 ////////////////////////////////////////////////////////////////////////////////
@@ -152,6 +197,7 @@ fn spawn_turret(
             assets::ENEMY_GROUP.into(),
             assets::ENEMY_FILTER_MASK.into(),
         ))
+        .insert(Velocity { ..default() })
         .insert(ExternalForce {
             force: Vec2::new(0.0, 0.0),
             torque: 0.0,
@@ -161,6 +207,7 @@ fn spawn_turret(
             torque_impulse: 0.0,
         })
         .insert(RotationControl::default())
+        .insert(StationaryControl::default())
         .insert(Target::default())
         .with_children(|parent| {
             let mut gun_transform = Transform::from_translation(Vec3::new(0.0, 20.0, 0.0));
@@ -178,7 +225,4 @@ fn spawn_turret(
                 ..Default::default()
             });
         });
-
-    // .add_child(turret_base_entity)
-    // .add_child(turret_gun_entity);
 }
