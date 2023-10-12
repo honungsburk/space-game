@@ -44,7 +44,7 @@ impl RotationControl {
 
     pub fn default() -> Self {
         Self {
-            control: PID::rotation(0.5, 0.0, 0.0, 0.0),
+            control: PID::rotation(0.05, 0.0, 0.05, 0.0),
         }
     }
 }
@@ -108,7 +108,7 @@ fn update_turret_rotation(
 
         let control_signal = rotation_control.control.update(current_angle, dt);
 
-        turret_impulse.torque_impulse = control_signal * 0.005;
+        turret_impulse.torque_impulse = control_signal * 0.001;
     }
 }
 
