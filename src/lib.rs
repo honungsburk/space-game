@@ -1,18 +1,22 @@
+pub mod cli;
+pub mod config;
 pub mod events;
 mod game;
 pub mod misc;
-
 mod parent_child_no_rotation;
+pub mod settings;
 mod systems;
-
-use game::GamePlugin;
 
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
+use config::Config;
+use game::GamePlugin;
 use parent_child_no_rotation::NoRotationPlugin;
+use settings::Settings;
 use systems::*;
 
-pub fn run() {
+// pub fn run(config: Config, settings: Settings) {
+pub fn run(_config: Config, _settings: Settings) {
     App::new()
         .insert_resource(Msaa::Sample4)
         // External Plugins

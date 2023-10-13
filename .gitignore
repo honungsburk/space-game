@@ -1,3 +1,6 @@
 /target
 /assets
 .DS_Store
+
+config.toml
+settings.toml
