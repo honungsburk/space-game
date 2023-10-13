@@ -20,9 +20,32 @@ cargo install
 cargo run
 ```
 
-### Options
+### Settings (Not implemented yet)
 
-> **NOTE**: None of the options are implemented yet.
+Settings can be set in the `settings.toml` file. The file is created on first run.
+Otherwise the file is located in the same directory as the executable.
+
+```toml
+[window]
+width = 1280
+height = 720
+fullscreen = false
+vsync = true
+
+[accessibility]
+# TODO: Add accessibility options
+
+[keybindings.game]
+shoot = ["space"]
+# TODO: Add keybindings
+
+[keybindings.development]
+restart = ["r"]
+# TODO: Add keybindings
+
+```
+
+### Options (Not implemented yet)
 
 There are two ways to set options: config file and command line arguments.
 The CLI arguments override the config file.
@@ -50,7 +73,7 @@ The CLI arguments override the config file.
 - scene
   - game: The actual game (default)
   - colliders: Every asset and their colliders
-  - enemy-turret: player turret
+  - enemy-turret: play against a turret
 
 #### Config file (TODO)
 
@@ -71,6 +94,8 @@ line argument. Options
 - **--show-fps**: Start the game with the FPS counter showing
 - **--visual-debug**: Show visual debug information, takes a list of options
   - values: colliders, normals, velocity, impulses, forces, camera, all
+- **--config**: Path to config file
+- **--settings**: Path to settings file
 
 ##### Commands
 
@@ -147,3 +172,9 @@ Current objective is to get a gameplay loop working.
 - Add mine powerup
 - Add examples for different developing scenarios
 - Add visual debugging for camera
+
+### Resources
+
+- [ThisFromThat](https://accessible.games/accessible-player-experiences/access-patterns/distinguish-this-from-that/)
+- [Accessable Game Design](https://www.youtube.com/watch?v=4NGe4dzlukc)
+- [Game Feel](https://www.youtube.com/watch?v=AJdEqssNZ-U)
