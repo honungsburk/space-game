@@ -2,7 +2,7 @@
 //!
 //! Contains all options that are usefull during development.
 //!
-use clap::{Parser, ValueEnum};
+use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::error::Error;
