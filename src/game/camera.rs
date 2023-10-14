@@ -13,12 +13,30 @@ use noise::{Fbm, NoiseFn, Perlin, Seedable};
 // Plugin
 ////////////////////////////////////////////////////////////////////////////////
 
-pub struct CameraPlugin;
+pub struct CameraPlugin {
+    pub is_debug: bool,
+}
+
+impl Default for CameraPlugin {
+    fn default() -> Self {
+        Self { is_debug: false }
+    }
+}
+
+impl CameraPlugin {
+    pub fn new(is_debug: bool) -> Self {
+        Self { is_debug }
+    }
+}
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn)
             .add_systems(Update, (update_smooth_camera, update_shaky_camera));
+
+        if self.is_debug {
+            app.add_systems(Last, debug_camera_position);
+        }
     }
 }
 
@@ -232,4 +250,33 @@ fn update_shaky_camera(
             shaky_camera_transform.scale = smooth_camera_transform.scale;
         }
     }
+}
+
+pub fn debug_camera_position(
+    mut gizmos: Gizmos,
+    mut query: Query<(&mut Transform, &mut CameraPID), With<SmoothCamera>>,
+) {
+    if let Ok((mut transform, mut pid)) = query.get_single_mut() {
+        // Crosshair for the camera's setpoint
+        gizmo_crosshair(&mut gizmos, &pid.get_setpoint(), Color::GREEN, 10.0);
+
+        // Crosshair for the camera's current position
+        gizmo_crosshair(&mut gizmos, &transform.translation.xy(), Color::BLUE, 10.0);
+    }
+}
+
+fn gizmo_crosshair(gizmos: &mut Gizmos, position: &Vec2, color: Color, size: f32) {
+    let x = position.x;
+    let y = position.y;
+
+    gizmos.line(
+        Vec3::new(x - size, y, 0.0),
+        Vec3::new(x + size, y, 0.0),
+        color,
+    );
+    gizmos.line(
+        Vec3::new(x, y - size, 0.0),
+        Vec3::new(x, y + size, 0.0),
+        color,
+    );
 }

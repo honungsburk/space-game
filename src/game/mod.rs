@@ -14,6 +14,7 @@ pub mod turret;
 mod weapon;
 
 use bevy::prelude::*;
+use bevy_rapier2d::prelude::*;
 use player::PlayerPlugin;
 use systems::*;
 use weapon::WeaponPlugin;
@@ -28,38 +29,58 @@ use projectile::ProjectilePlugin;
 
 use self::{average_velocity::AverageVelocityPlugin, trauma::TraumaPlugin, turret::TurretPlugin};
 
-pub struct GamePlugin;
+pub struct GamePlugin {
+    pub has_camera_debug: bool,
+    pub has_colliders_debug: bool,
+}
+
+impl Default for GamePlugin {
+    fn default() -> Self {
+        Self {
+            has_camera_debug: false,
+            has_colliders_debug: false,
+        }
+    }
+}
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app
-            // Events
-            .add_event::<GameOver>()
-            // States
-            .add_state::<SimulationState>()
-            // Systems
-            .add_plugins((
-                // EnemyPlugin,
-                ArenaPlugin,
-                CameraPlugin,
-                AssetPlugin,
-                PlayerPlugin,
-                TurretPlugin,
-                // GamepadPlugin,
-                ProjectilePlugin,
-                WeaponPlugin,
-                TraumaPlugin,
-                AverageVelocityPlugin,
-            ))
-            .add_systems(
-                Update,
-                (
-                    pause_simulation,
-                    toggle_simulation,
-                    resume_simulation,
-                    despawn_dead,
-                ),
-            );
+        app.insert_resource(RapierConfiguration {
+            gravity: Vec2::ZERO,
+            ..Default::default()
+        })
+        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
+        // Events
+        .add_event::<GameOver>()
+        // States
+        .add_state::<SimulationState>()
+        // Systems
+        .add_plugins((
+            // EnemyPlugin,
+            ArenaPlugin,
+            CameraPlugin::new(self.has_camera_debug),
+            AssetPlugin,
+            PlayerPlugin,
+            TurretPlugin,
+            // GamepadPlugin,
+            ProjectilePlugin,
+            WeaponPlugin,
+            TraumaPlugin,
+            AverageVelocityPlugin,
+        ))
+        .add_systems(
+            Update,
+            (
+                pause_simulation,
+                toggle_simulation,
+                resume_simulation,
+                despawn_dead,
+            ),
+        );
+
+        if self.has_colliders_debug {
+            app.add_plugins(RapierDebugRenderPlugin::default());
+        }
     }
 }
 

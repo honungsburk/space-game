@@ -11,7 +11,6 @@ mod systems;
 
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use bevy_rapier2d::prelude::*;
 use config::{Config, VisualDebug};
 use game::GamePlugin;
 use parent_child_no_rotation::NoRotationPlugin;
@@ -25,28 +24,17 @@ pub fn run(config: Config, _settings: Settings) {
     // Defaults
     app.add_plugins(DefaultPlugins);
 
-    // Add Physics Plugin
-    app.insert_resource(RapierConfiguration {
-        gravity: Vec2::ZERO,
-        ..Default::default()
-    })
-    .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0));
-
     // Add 2D drawing Plugin
     app.insert_resource(Msaa::Sample4).add_plugins(ShapePlugin);
 
     // Add Internal Plugins
-
-    app.add_plugins(GamePlugin)
-        .add_plugins(NoRotationPlugin)
-        // Systems
-        .add_systems(Update, exit_game);
-
-    // Add Visual Debugging
-
-    if config.has_visual_debug(VisualDebug::Colliders) {
-        app.add_plugins(RapierDebugRenderPlugin::default());
-    }
+    app.add_plugins(GamePlugin {
+        has_camera_debug: config.has_visual_debug(VisualDebug::Camera),
+        has_colliders_debug: config.has_visual_debug(VisualDebug::Colliders),
+    })
+    .add_plugins(NoRotationPlugin)
+    // Systems
+    .add_systems(Update, exit_game);
 
     app.run()
 }
