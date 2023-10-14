@@ -43,6 +43,14 @@ impl Config {
         std::fs::write(path, contents)?;
         Ok(())
     }
+
+    pub fn has_visual_debug(&self, visual_debug: VisualDebug) -> bool {
+        self.visual_debug.contains(&visual_debug)
+    }
+
+    pub fn has_visual_debug_colliders(&self) -> bool {
+        self.has_visual_debug(VisualDebug::Colliders)
+    }
 }
 
 /// The LogLevel for the game. Usefull for debugging and development.

@@ -14,7 +14,6 @@ pub mod turret;
 mod weapon;
 
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
 use player::PlayerPlugin;
 use systems::*;
 use weapon::WeaponPlugin;
@@ -33,41 +32,34 @@ pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((
-            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
-            RapierDebugRenderPlugin::default(),
-        ))
-        .insert_resource(RapierConfiguration {
-            gravity: Vec2::ZERO,
-            ..Default::default()
-        })
-        // Events
-        .add_event::<GameOver>()
-        // States
-        .add_state::<SimulationState>()
-        // Systems
-        .add_plugins((
-            // EnemyPlugin,
-            ArenaPlugin,
-            CameraPlugin,
-            AssetPlugin,
-            PlayerPlugin,
-            TurretPlugin,
-            // GamepadPlugin,
-            ProjectilePlugin,
-            WeaponPlugin,
-            TraumaPlugin,
-            AverageVelocityPlugin,
-        ))
-        .add_systems(
-            Update,
-            (
-                pause_simulation,
-                toggle_simulation,
-                resume_simulation,
-                despawn_dead,
-            ),
-        );
+        app
+            // Events
+            .add_event::<GameOver>()
+            // States
+            .add_state::<SimulationState>()
+            // Systems
+            .add_plugins((
+                // EnemyPlugin,
+                ArenaPlugin,
+                CameraPlugin,
+                AssetPlugin,
+                PlayerPlugin,
+                TurretPlugin,
+                // GamepadPlugin,
+                ProjectilePlugin,
+                WeaponPlugin,
+                TraumaPlugin,
+                AverageVelocityPlugin,
+            ))
+            .add_systems(
+                Update,
+                (
+                    pause_simulation,
+                    toggle_simulation,
+                    resume_simulation,
+                    despawn_dead,
+                ),
+            );
     }
 }
 
