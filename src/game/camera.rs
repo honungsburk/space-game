@@ -254,9 +254,9 @@ fn update_shaky_camera(
 
 pub fn debug_camera_position(
     mut gizmos: Gizmos,
-    mut query: Query<(&mut Transform, &mut CameraPID), With<SmoothCamera>>,
+    mut query: Query<(&Transform, &CameraPID), With<SmoothCamera>>,
 ) {
-    if let Ok((mut transform, mut pid)) = query.get_single_mut() {
+    if let Ok((transform, pid)) = query.get_single_mut() {
         // Crosshair for the camera's setpoint
         gizmo_crosshair(&mut gizmos, &pid.get_setpoint(), Color::GREEN, 10.0);
 
