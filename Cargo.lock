@@ -335,6 +335,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy-progressbar"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5975aca41a8c2688f4daca11fed1e984d1095e379197e66c3360231994fb6a4"
+dependencies = [
+ "bevy_app",
+ "bevy_asset",
+ "bevy_ecs",
+ "bevy_render",
+ "bevy_ui",
+]
+
+[[package]]
 name = "bevy_a11y"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3400,6 +3413,7 @@ version = "0.1.0"
 dependencies = [
  "approx",
  "bevy",
+ "bevy-progressbar",
  "bevy_prototype_lyon",
  "bevy_rapier2d",
  "clap",

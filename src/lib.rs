@@ -8,6 +8,7 @@ pub mod misc;
 mod parent_child_no_rotation;
 pub mod settings;
 mod systems;
+mod ui;
 
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
@@ -16,6 +17,7 @@ use game::GamePlugin;
 use parent_child_no_rotation::NoRotationPlugin;
 use settings::Settings;
 use systems::*;
+use ui::hud::HudPlugin;
 
 // pub fn run(config: Config, settings: Settings) {
 pub fn run(config: Config, _settings: Settings) {
@@ -33,6 +35,7 @@ pub fn run(config: Config, _settings: Settings) {
         has_colliders_debug: config.has_visual_debug(VisualDebug::Colliders),
     })
     .add_plugins(NoRotationPlugin)
+    .add_plugins(HudPlugin)
     // Systems
     .add_systems(Update, exit_game);
 

@@ -4,15 +4,12 @@
 
 Current objective is to get a gameplay loop working.
 
-- [ ] Make an infinite world
-  - [ ] Sphere world?
-  - [ ] Torus world?
-  - [ ] Infinite plane world?
+- [ ] Make a large circular arena the player can fly around in.
 - [ ] Add enemy
 - [ ] Spawn enemies in waves
 - [ ] Add player health
 - [ ] Add player death
-- [ ] Add Score
+- [ x ] Add Score System
 - Add UI
   - [ ] Add Replay button
   - [ ] Add Game Over screen
@@ -22,6 +19,7 @@ Current objective is to get a gameplay loop working.
 - Add HUD
   - Add score
   - Add health
+- Add quick restart button
 
 ### Backlog
 

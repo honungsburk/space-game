@@ -92,7 +92,7 @@ fn spawn_enemy(
         })
         .insert(GameEntityType::Enemy)
         .insert(Enemy)
-        .insert(Health::new(1))
+        .insert(Health::at_max(1))
         .insert(RigidBody::Dynamic)
         .insert(asset.collider.clone())
         .insert(CollisionGroups::new(

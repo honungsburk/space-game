@@ -10,10 +10,15 @@ impl Plugin for ScorePlugin {
             Update,
             (
                 update_score_on_deaths,
-                log_score.after(update_score_on_deaths),
+                update_score_timer,
+                // log_score.after(update_score_on_deaths),
             ),
         );
     }
+}
+
+fn update_score_timer(time: Res<Time>, mut game_score: ResMut<GameScore>) {
+    game_score.tick(&time);
 }
 
 fn update_score_on_deaths(
@@ -72,17 +77,31 @@ impl GameScore {
         self.multiplier
     }
 
+    pub fn locked_in_score(&self) -> u64 {
+        self.locked_in_score
+    }
+
+    pub fn current_multiplier_score(&self) -> u64 {
+        self.current_multiplier_score
+    }
+
     pub fn add_score(&mut self, score: u64) {
-        self.current_multiplier_score += score * self.multiplier;
+        self.current_multiplier_score += score;
     }
 
     pub fn tick(&mut self, time: &Time) {
         if let Some(timer) = &mut self.multiplier_timer {
             if timer.tick(time.delta()).just_finished() {
+                self.locked_in_score += self.current_multiplier_score * self.multiplier;
+                self.current_multiplier_score = 0;
                 self.multiplier_timer = None;
                 self.multiplier = 1;
             }
         }
+    }
+
+    pub fn multiplier_time_percent_left(&self) -> Option<f32> {
+        self.multiplier_timer.as_ref().map(|t| t.percent_left())
     }
 
     pub fn multiplier_timer(&self) -> &Option<Timer> {
@@ -94,7 +113,7 @@ impl GameScore {
     }
 
     pub fn set_multiplier(&mut self, multiplier: u64) {
-        self.multiplier = multiplier.max(self.max_multiplier);
+        self.multiplier = multiplier.min(self.max_multiplier);
         self.multiplier_timer = Some(create_timer());
     }
 

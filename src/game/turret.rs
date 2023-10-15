@@ -220,7 +220,7 @@ fn spawn_turret(
         .spawn(Turret)
         .insert(GameEntityType::Enemy)
         // Properties
-        .insert(Health::new(1))
+        .insert(Health::at_max(1))
         // Physics
         .insert(SpatialBundle::from_transform(spawn_transform))
         .insert(NoRotationParent)

@@ -3,6 +3,7 @@ use super::{actions::*, components::DirectionControl};
 use crate::game::average_velocity::AverageVelocity;
 use crate::game::game_entity::GameEntityType;
 use crate::game::trauma::Trauma;
+use crate::game::vitality::Health;
 use crate::game::{assets, assets::AssetDB, weapon::Weapon};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -72,8 +73,7 @@ pub fn spawn_player(
         .insert(asset_db.player_ship.collider.clone())
         .insert(Trauma::default())
         .insert(ActiveEvents::COLLISION_EVENTS)
-        // .insert(ActiveEvents::CONTACT_FORCE_EVENTS)
-        // .insert(ContactForceEventThreshold(1.0))
+        .insert(Health::at_max(100))
         .insert(CollisionGroups::new(
             assets::PLAYER_GROUP.into(),
             assets::PLAYER_FILTER_MASK.into(),
