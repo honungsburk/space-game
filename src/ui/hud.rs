@@ -112,7 +112,7 @@ fn build_score_tracker(
                     sections: vec![TextSection::new(
                         "0",
                         TextStyle {
-                            // font: font_future(asset_server),
+                            font: font_future(asset_server),
                             font_size: 48.0,
                             color: Color::WHITE,
                             ..default()
@@ -154,7 +154,7 @@ fn build_score_tracker(
                     sections: vec![TextSection::new(
                         "1",
                         TextStyle {
-                            // font: font_future(asset_server),
+                            font: font_future(asset_server),
                             font_size: 68.0,
                             color: Color::WHITE,
                             ..default()
@@ -199,7 +199,7 @@ fn build_score_tracker(
                     sections: vec![TextSection::new(
                         "0",
                         TextStyle {
-                            // font: font_future(asset_server),
+                            font: font_future(asset_server),
                             font_size: 32.0,
                             color: Color::WHITE,
                             ..default()
@@ -312,7 +312,7 @@ fn build_health_bar(commands: &mut Commands, asset_server: &Res<AssetServer>) ->
                     sections: vec![TextSection::new(
                         "100",
                         TextStyle {
-                            // font: font_future(asset_server),
+                            font: font_future(asset_server),
                             font_size: 48.0,
                             color: Color::WHITE,
                             ..default()
@@ -333,7 +333,7 @@ fn update_health_bar(
 ) {
     if let Ok(player_health) = player_health_query.get_single() {
         for mut text in text_query.iter_mut() {
-            text.sections[0].value = format!("{}", player_health.current().to_string());
+            text.sections[0].value = player_health.current().to_string();
             if player_health.current() < 33 {
                 text.sections[0].style.color = Color::RED;
             } else if player_health.current() < 66 {
@@ -351,10 +351,10 @@ fn update_health_bar(
 
 /// TODO: Font isn't loaded properly
 fn font_future(asset_server: &Res<AssetServer>) -> Handle<Font> {
-    asset_server.load("fonts/kenvector_future.tff")
+    asset_server.load("fonts/kenvector_future.ttf")
 }
 
 /// TODO: Font isn't loaded properly
 fn font_future_thin(asset_server: &Res<AssetServer>) -> Handle<Font> {
-    asset_server.load("fonts/kenvector_future_thin.tff")
+    asset_server.load("fonts/kenvector_future_thin.ttf")
 }
