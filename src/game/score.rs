@@ -61,7 +61,7 @@ impl Default for GameScore {
         Self {
             locked_in_score: 0,
             current_multiplier_score: 0,
-            multiplier: 1,
+            multiplier: 0,
             multiplier_timer: None,
             max_multiplier: 20,
         }
