@@ -8,8 +8,9 @@ use std::f32::consts::PI;
 
 use super::{
     assets::{self, AssetDB},
-    components::Health,
+    game_entity::GameEntityType,
     player::components::Player,
+    vitality::Health,
 };
 use bevy::{math::Vec3Swizzles, prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::{
@@ -217,6 +218,7 @@ fn spawn_turret(
 
     commands
         .spawn(Turret)
+        .insert(GameEntityType::Enemy)
         // Properties
         .insert(Health::new(1))
         // Physics

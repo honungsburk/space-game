@@ -1,6 +1,7 @@
 use super::components::Player;
 use super::{actions::*, components::DirectionControl};
 use crate::game::average_velocity::AverageVelocity;
+use crate::game::game_entity::GameEntityType;
 use crate::game::trauma::Trauma;
 use crate::game::{assets, assets::AssetDB, weapon::Weapon};
 use bevy::prelude::*;
@@ -59,6 +60,7 @@ pub fn spawn_player(
             ..default()
         })
         .insert(Player {})
+        .insert(GameEntityType::Player)
         .insert(DirectionControl::default())
         .insert(InputManagerBundle::<PlayerAction> {
             // Stores "which actions are currently pressed"

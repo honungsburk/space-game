@@ -1,6 +1,7 @@
 use super::assets;
 use super::assets::AssetDB;
-use super::components::*;
+use super::time_to_live::TimeToLive;
+use super::vitality::*;
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -13,10 +14,7 @@ pub struct ProjectilePlugin;
 
 impl Plugin for ProjectilePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (update_projectiles_on_collision, update_time_to_live),
-        );
+        app.add_systems(Update, (update_projectiles_on_collision));
     }
 }
 
@@ -120,6 +118,7 @@ fn resolve_projectile_collision(
     commands: &mut Commands,
     projectile_query: &Query<(&Projectile, Option<&Damage>), Without<Health>>,
     health_query: &mut Query<&mut Health, Without<Projectile>>,
+
     entity1: &Entity,
     entity2: &Entity,
 ) -> bool {
@@ -133,17 +132,4 @@ fn resolve_projectile_collision(
         return true;
     }
     return false;
-}
-
-pub fn update_time_to_live(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut query: Query<(Entity, &mut TimeToLive)>,
-) {
-    for (entity, mut ttl) in query.iter_mut() {
-        ttl.0.tick(time.delta());
-        if ttl.0.finished() {
-            commands.entity(entity).despawn_recursive();
-        }
-    }
 }

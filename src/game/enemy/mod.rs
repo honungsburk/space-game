@@ -2,9 +2,10 @@ use super::arena;
 use super::assets;
 
 use super::assets::AssetDB;
-use super::components::Health;
 use super::enemy;
+use super::game_entity::GameEntityType;
 use super::player::components::Player;
+use super::vitality::Health;
 use crate::misc::random;
 
 use bevy::math::Vec3Swizzles;
@@ -89,6 +90,7 @@ fn spawn_enemy(
             transform: spawn_transform,
             ..Default::default()
         })
+        .insert(GameEntityType::Enemy)
         .insert(Enemy)
         .insert(Health::new(1))
         .insert(RigidBody::Dynamic)

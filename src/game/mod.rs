@@ -2,15 +2,18 @@ mod arena;
 pub mod assets;
 pub mod average_velocity;
 mod camera;
-pub mod components;
 mod enemy;
+pub mod game_entity;
 mod gamepad;
 mod meteors;
 pub mod player;
 mod projectile;
+pub mod score;
 mod systems;
+pub mod time_to_live;
 pub mod trauma;
 pub mod turret;
+pub mod vitality;
 mod weapon;
 
 use bevy::prelude::*;
@@ -23,11 +26,12 @@ use crate::events::GameOver;
 use arena::ArenaPlugin;
 use assets::AssetPlugin;
 use camera::CameraPlugin;
-// use enemy::EnemyPlugin;
-// use gamepad::GamepadPlugin;
 use projectile::ProjectilePlugin;
 
-use self::{average_velocity::AverageVelocityPlugin, trauma::TraumaPlugin, turret::TurretPlugin};
+use self::{
+    average_velocity::AverageVelocityPlugin, score::ScorePlugin, time_to_live::TimeToLivePlugin,
+    trauma::TraumaPlugin, turret::TurretPlugin, vitality::VitalityPlugin,
+};
 
 pub struct GamePlugin {
     pub has_camera_debug: bool,
@@ -67,15 +71,13 @@ impl Plugin for GamePlugin {
             WeaponPlugin,
             TraumaPlugin,
             AverageVelocityPlugin,
+            TimeToLivePlugin,
+            VitalityPlugin,
+            ScorePlugin,
         ))
         .add_systems(
             Update,
-            (
-                pause_simulation,
-                toggle_simulation,
-                resume_simulation,
-                despawn_dead,
-            ),
+            (pause_simulation, toggle_simulation, resume_simulation),
         );
 
         if self.has_colliders_debug {
