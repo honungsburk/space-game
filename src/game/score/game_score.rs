@@ -1,50 +1,9 @@
 use bevy::prelude::*;
-
-use super::{game_entity::GameEntityType, vitality::DeathEvent};
-
-pub struct ScorePlugin;
-
-impl Plugin for ScorePlugin {
-    fn build(&self, app: &mut App) {
-        app.insert_resource(GameScore::default()).add_systems(
-            Update,
-            (
-                update_score_on_deaths,
-                update_score_timer,
-                // log_score.after(update_score_on_deaths),
-            ),
-        );
-    }
-}
-
-fn update_score_timer(time: Res<Time>, mut game_score: ResMut<GameScore>) {
-    game_score.tick(&time);
-}
-
-fn update_score_on_deaths(
-    mut game_score: ResMut<GameScore>,
-    mut death_events: EventReader<DeathEvent>,
-) {
-    for ev in death_events.iter() {
-        match ev._type() {
-            GameEntityType::Enemy => {
-                game_score.add_score(10);
-                game_score.increment_multiplier();
-            }
-            GameEntityType::Player => game_score.reset(),
-            _ => (),
-        }
-    }
-}
-
-fn log_score(game_score: Res<GameScore>) {
-    if game_score.is_changed() {
-        println!("Score: {}", game_score.total());
-    }
-}
+use std::cmp::Ordering;
+use std::collections::BTreeSet;
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Score
+/// GameScore
 ////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Resource, Debug)]
@@ -70,7 +29,7 @@ impl Default for GameScore {
 
 impl GameScore {
     pub fn total(&self) -> u64 {
-        self.locked_in_score + self.current_multiplier_score
+        self.locked_in_score + self.current_multiplier_score * self.multiplier
     }
 
     pub fn multiplier(&self) -> u64 {

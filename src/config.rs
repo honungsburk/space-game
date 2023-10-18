@@ -6,9 +6,10 @@ use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::error::Error;
-use std::fs::File;
-use std::io::Read;
 use toml::from_str;
+
+use crate::file_save;
+use crate::file_save::FileSave;
 
 /// Configurations are settings that the player is not allow to change.
 ///
@@ -29,21 +30,22 @@ pub struct Config {
     pub scene: Scene,
 }
 
-impl Config {
-    pub fn load_from_file(path: &str) -> Result<Config, Box<dyn Error>> {
-        let mut file = File::open(path)?;
-        let mut contents = String::new();
-        file.read_to_string(&mut contents)?;
+impl FileSave for Config {
+    type Item = Config;
+    fn load_from_file(path: &str) -> Result<Config, Box<dyn Error>> {
+        let contents = file_save::load_from_file(path)?;
         let config = from_str(&contents)?;
         Ok(config)
     }
 
-    pub fn save_to_file(&self, path: &str) -> Result<(), Box<dyn Error>> {
+    fn save_to_file(&self, path: &str) -> Result<(), Box<dyn Error>> {
         let contents = toml::to_string(&self)?;
-        std::fs::write(path, contents)?;
+        file_save::save_to_file(path, &contents)?;
         Ok(())
     }
+}
 
+impl Config {
     pub fn has_visual_debug(&self, visual_debug: VisualDebug) -> bool {
         self.visual_debug.contains(&visual_debug)
     }

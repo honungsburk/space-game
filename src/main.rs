@@ -2,6 +2,7 @@
 
 use clap::Parser;
 use space_game::config::Config;
+use space_game::file_save::FileSave;
 use space_game::settings::Settings;
 
 fn main() {
@@ -40,5 +41,13 @@ fn main() {
             });
     }
 
-    space_game::run(cli.override_config(&config), settings);
+    // Load High Scores
+    let mut high_scores = space_game::game::score::HighScores::load_from_file("high_scores.toml")
+        .unwrap_or_else(|err| {
+            eprintln!("Error loading high_scores.toml: {}", err);
+            eprintln!("Using default high scores.");
+            space_game::game::score::HighScores::default()
+        });
+
+    space_game::run(cli.override_config(&config), settings, high_scores);
 }

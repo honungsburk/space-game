@@ -3,6 +3,7 @@ pub mod assets;
 pub mod average_velocity;
 mod camera;
 mod enemy;
+pub mod events;
 pub mod game_entity;
 mod gamepad;
 mod meteors;
@@ -22,20 +23,21 @@ use player::PlayerPlugin;
 use systems::*;
 use weapon::WeaponPlugin;
 
-use crate::events::GameOver;
 use arena::ArenaPlugin;
 use assets::AssetPlugin;
 use camera::CameraPlugin;
 use projectile::ProjectilePlugin;
 
 use self::{
-    average_velocity::AverageVelocityPlugin, score::ScorePlugin, time_to_live::TimeToLivePlugin,
-    trauma::TraumaPlugin, turret::TurretPlugin, vitality::VitalityPlugin,
+    average_velocity::AverageVelocityPlugin, events::GameOverEvent, score::ScorePlugin,
+    time_to_live::TimeToLivePlugin, trauma::TraumaPlugin, turret::TurretPlugin,
+    vitality::VitalityPlugin,
 };
 
 pub struct GamePlugin {
     pub has_camera_debug: bool,
     pub has_colliders_debug: bool,
+    pub high_scores: score::HighScores,
 }
 
 impl Default for GamePlugin {
@@ -43,6 +45,7 @@ impl Default for GamePlugin {
         Self {
             has_camera_debug: false,
             has_colliders_debug: false,
+            high_scores: score::HighScores::default(),
         }
     }
 }
@@ -55,7 +58,7 @@ impl Plugin for GamePlugin {
         })
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         // Events
-        .add_event::<GameOver>()
+        .add_event::<GameOverEvent>()
         // States
         .add_state::<SimulationState>()
         // Systems
@@ -73,7 +76,9 @@ impl Plugin for GamePlugin {
             AverageVelocityPlugin,
             TimeToLivePlugin,
             VitalityPlugin,
-            ScorePlugin,
+            ScorePlugin {
+                high_scores: self.high_scores.clone(),
+            },
         ))
         .add_systems(
             Update,
