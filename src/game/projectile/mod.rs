@@ -40,7 +40,7 @@ pub enum ProjectileType {
 ////////////////////////////////////////////////////////////////////////////////
 
 pub fn spawn_laser_projectile(
-    mut commands: &mut Commands,
+    commands: &mut Commands,
     asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
     spawn_transform: Transform,
@@ -82,7 +82,6 @@ pub fn spawn_laser_projectile(
 fn update_projectiles_on_collision(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
-    // mut contact_force_events: EventReader<ContactForceEvent>,
     projectile_query: Query<(&Projectile, Option<&Damage>), Without<Health>>,
     mut health_query: Query<&mut Health, Without<Projectile>>,
 ) {
@@ -111,24 +110,21 @@ fn update_projectiles_on_collision(
             _ => {}
         }
     }
-    // for contact_force_event in contact_force_events.iter() {
-    //     println!("Received contact force event: {:?}", contact_force_event);
-    // }
 }
 
 fn resolve_projectile_collision(
     commands: &mut Commands,
     projectile_query: &Query<(&Projectile, Option<&Damage>), Without<Health>>,
     health_query: &mut Query<&mut Health, Without<Projectile>>,
-
     entity1: &Entity,
     entity2: &Entity,
 ) -> bool {
     if let Ok((_, damge_opt)) = projectile_query.get(*entity1) {
-        commands.entity(*entity1).despawn();
+        commands.entity(*entity1).despawn_recursive();
         if let Some(damage) = damge_opt {
             if let Ok(mut health) = health_query.get_mut(*entity2) {
-                health.take_damage(damage)
+                health.take_damage(damage);
+                println!("hit");
             }
         }
         return true;

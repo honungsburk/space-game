@@ -139,7 +139,6 @@ struct TurretRadiusOutline {}
 fn update_ai(mut query: Query<(&mut ai::TurretAI, &Targets)>, time: Res<Time>) {
     for (mut turret_ai, targets) in query.iter_mut() {
         turret_ai.state.update(&time, !targets.is_empty());
-        println!("{:?}", turret_ai.state);
     }
 }
 

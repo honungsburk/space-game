@@ -9,7 +9,10 @@ pub const ENEMY_GROUP: Group = Group::GROUP_5;
 pub const ENEMY_PROJECTILE_GROUP: Group = Group::GROUP_6;
 
 // Entity Collision Filters
-pub const PLAYER_FILTER_MASK: Group = METEOR_GROUP.union(ARENA_GROUP).union(ENEMY_GROUP);
+pub const PLAYER_FILTER_MASK: Group = METEOR_GROUP
+    .union(ARENA_GROUP)
+    .union(ENEMY_GROUP)
+    .union(ENEMY_PROJECTILE_GROUP);
 pub const METEOR_FILTER_MASK: Group = PLAYER_GROUP
     .union(METEOR_GROUP)
     .union(PLAYER_PROJECTILE_GROUP)
