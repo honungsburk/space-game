@@ -4,6 +4,7 @@ use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
 
 use super::assets;
+use super::assets::groups;
 use super::assets::AssetDB;
 use super::meteors;
 use super::meteors::MeteorSize;
@@ -63,12 +64,12 @@ pub fn spawn_random_arena(
             0.0,
         )))
         .insert(CollisionGroups::new(
-            assets::ARENA_GROUP.into(),
-            assets::ARENA_FILTER_MASK.into(),
+            groups::ARENA_GROUP.into(),
+            groups::ARENA_FILTER_MASK.into(),
         ))
         .insert(SolverGroups::new(
-            assets::ARENA_GROUP.into(),
-            assets::ARENA_FILTER_MASK.into(),
+            groups::ARENA_GROUP.into(),
+            groups::ARENA_FILTER_MASK.into(),
         ))
         .insert(hollow_circle(ARENA_RADIUS, 200))
         .insert(Arena);

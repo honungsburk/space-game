@@ -1,3 +1,5 @@
+mod ai;
+
 use crate::{
     misc::control::{PID, PID2D},
     parent_child_no_rotation::{NoRotationChild, NoRotationParent},
@@ -7,15 +9,18 @@ use bevy_prototype_lyon::prelude::*;
 use std::f32::consts::PI;
 
 use super::{
-    assets::{self, AssetDB},
+    assets::{groups, AssetDB},
     game_entity::GameEntityType,
     player::components::Player,
     vitality::Health,
+    weapon::Weapon,
 };
-use bevy::{math::Vec3Swizzles, prelude::*, window::PrimaryWindow};
+use bevy::{ecs::query, math::Vec3Swizzles, prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::{
     geometry::*,
-    prelude::{ExternalForce, ExternalImpulse, RigidBody, Velocity},
+    prelude::{
+        CollisionEvent, ExternalForce, ExternalImpulse, MassProperties, RigidBody, Velocity,
+    },
 };
 pub struct TurretPlugin;
 
@@ -26,8 +31,9 @@ impl Plugin for TurretPlugin {
             (
                 update_turret_target,
                 update_turret_rotation.before(update_stationary_control),
-                update_stationary_control,
-                update_turret_radius_outline.after(update_turret_target),
+                register_turret_target,
+                // update_stationary_control,
+                update_turret_radius_outline,
             ),
         );
     }
@@ -71,26 +77,53 @@ impl Default for StationaryControl {
 }
 
 #[derive(Component)]
-pub struct Target {
-    pub sees_target: bool,
-    pub target: Vec2,
+pub struct Targets {
+    targets: Vec<Target>,
 }
 
-impl Target {
-    pub fn new(sees_target: bool, target: Vec2) -> Self {
+#[derive(Debug, PartialEq)]
+pub struct Target {
+    entity: Entity,
+    location: Vec2,
+}
+
+impl Targets {
+    pub fn new() -> Self {
         Self {
-            sees_target,
-            target,
+            targets: Vec::new(),
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.targets.is_empty()
+    }
+
+    pub fn add(&mut self, target: Target) {
+        if !self.targets.contains(&target) {
+            self.targets.push(target);
+        }
+    }
+
+    pub fn remove(&mut self, entity: Entity) {
+        self.targets.retain(|e| e.entity != entity);
+    }
+
+    pub fn clear(&mut self) {
+        self.targets.clear();
+    }
+
+    pub fn get_selected(&self) -> Option<&Target> {
+        self.targets.first()
+    }
+
+    pub fn for_each(&mut self, f: impl Fn(&mut Target)) {
+        self.targets.iter_mut().for_each(f);
     }
 }
 
-impl Default for Target {
+impl Default for Targets {
     fn default() -> Self {
-        Self {
-            sees_target: false,
-            target: Vec2::ZERO,
-        }
+        Targets::new()
     }
 }
 
@@ -119,44 +152,114 @@ fn update_turret_rotation(
     mut query: Query<(
         &mut RotationControl,
         &Transform,
-        &Target,
+        &Targets,
         &mut ExternalImpulse,
     )>,
     time: Res<Time>,
 ) {
-    for (mut rotation_control, turret_transform, target, mut turret_impulse) in query.iter_mut() {
-        if target.target == Vec2::ZERO {
-            continue;
+    let dt = time.delta_seconds();
+    if dt == 0.0 {
+        return;
+    }
+    for (mut rotation_control, turret_global_transform, targets, mut turret_impulse) in
+        query.iter_mut()
+    {
+        if let Some(target) = targets.get_selected() {
+            let desired_angel =
+                Vec2::Y.angle_between(target.location - turret_global_transform.translation.xy());
+
+            // if target.location - turret_transform.translation().xy() == Vec2::ZERO then desired_angel is NaN
+            if desired_angel.is_nan() {
+                continue;
+            }
+
+            rotation_control.control.set_setpoint(desired_angel);
+
+            let (_, _, current_angle) = turret_global_transform.rotation.to_euler(EulerRot::XYZ);
+
+            let control_signal = rotation_control.control.update(current_angle, dt);
+
+            turret_impulse.torque_impulse = control_signal * 0.001;
         }
-
-        let dt = time.delta_seconds();
-        let desired_angel =
-            Vec2::Y.angle_between(target.target - turret_transform.translation.xy());
-
-        rotation_control.control.set_setpoint(desired_angel);
-
-        let (_, _, current_angle) = turret_transform.rotation.to_euler(EulerRot::XYZ);
-
-        let control_signal = rotation_control.control.update(current_angle, dt);
-
-        turret_impulse.torque_impulse = control_signal * 0.001;
     }
 }
 
-// TODO: Replace this with a sensor from bevy_rapier2d
 fn update_turret_target(
-    mut query: Query<(&mut Target, &Transform)>,
-    player_query: Query<&Transform, With<Player>>,
+    mut target_query: Query<&mut Targets>,
+    transform_query: Query<&GlobalTransform>,
 ) {
-    if let Ok(player_transform) = player_query.get_single() {
-        for (mut target, transform) in query.iter_mut() {
-            if transform.translation.distance(player_transform.translation) < 300.0 {
-                target.target = player_transform.translation.xy();
-                target.sees_target = true;
-            } else {
-                target.sees_target = false;
+    for mut targets in target_query.iter_mut() {
+        targets.for_each(|target| {
+            if let Ok(target_transform) = transform_query.get(target.entity) {
+                target.location = target_transform.translation().xy();
+            }
+        })
+    }
+}
+
+// TODO: Create a custom event for this CollisionEvent => CustomEvent
+// Then we only need to read through the events once, but will we be delayed one frame?
+fn register_turret_target(
+    mut collision_events: EventReader<CollisionEvent>,
+    mut targets_query: Query<&mut Targets, Without<Player>>,
+    sensor_query: Query<(&Parent, &Sensor)>,
+    player_query: Query<&GlobalTransform, With<Player>>,
+) {
+    for collision_event in collision_events.iter() {
+        match collision_event {
+            CollisionEvent::Started(entity1, entity2, _) => {
+                let sensor = sensor_query.get(*entity1).or(sensor_query.get(*entity2));
+
+                if let Ok((parent, _)) = sensor {
+                    let targets = targets_query.get_mut(parent.get());
+                    let player_entity = if player_query.contains(*entity1) {
+                        *entity1
+                    } else {
+                        *entity2
+                    };
+
+                    let player = player_query.get(player_entity);
+
+                    if let (Ok(mut targets), Ok(player_global)) = (targets, player) {
+                        let player_location = player_global.translation().xy();
+
+                        let target = Target {
+                            entity: player_entity,
+                            location: player_location,
+                        };
+
+                        targets.add(target);
+                    }
+                }
+            }
+            CollisionEvent::Stopped(entity1, entity2, _) => {
+                let sensor = sensor_query.get(*entity1).or(sensor_query.get(*entity2));
+                if let Ok((parent, _)) = sensor {
+                    let targets = targets_query.get_mut(parent.get());
+                    if let Ok(mut targets) = targets {
+                        if player_query.contains(*entity1) {
+                            targets.remove(*entity1);
+                        } else if player_query.contains(*entity2) {
+                            targets.remove(*entity2);
+                        }
+                    }
+                }
             }
         }
+    }
+}
+
+fn get_target<'a>(
+    targets_query: &'a mut Query<&mut Targets, Without<Player>>,
+    entity1: &Entity,
+    entity2: &Entity,
+) -> Option<Mut<'a, Targets>> {
+    if targets_query.contains(*entity1) {
+        return targets_query.get_mut(*entity1).ok();
+    } else if targets_query.contains(*entity2) {
+        return targets_query.get_mut(*entity2).ok();
+    } else {
+        return None;
     }
 }
 
@@ -187,17 +290,16 @@ fn update_stationary_control(
     }
 }
 
-// Use events instead???
 fn update_turret_radius_outline(
-    turret_query: Query<&Target, With<Turret>>,
+    turret_query: Query<&Targets, With<Turret>>,
     mut turret_radius_query: Query<(&Parent, &mut Stroke), With<TurretRadiusOutline>>,
 ) {
     for (parent, mut stroke) in turret_radius_query.iter_mut() {
-        if let Ok(target) = turret_query.get(parent.get()) {
-            if target.sees_target {
-                stroke.color = Color::rgba(1.0, 0.0, 0.0, 0.4);
-            } else {
+        if let Ok(targets) = turret_query.get(parent.get()) {
+            if targets.is_empty() {
                 stroke.color = Color::rgba(0.0, 0.0, 0.0, 0.2);
+            } else {
+                stroke.color = Color::rgba(1.0, 0.0, 0.0, 0.4);
             }
         }
     }
@@ -226,13 +328,13 @@ fn spawn_turret(
         .insert(NoRotationParent)
         .insert(RigidBody::Dynamic)
         .insert(CollisionGroups::new(
-            assets::ENEMY_GROUP.into(),
-            assets::ENEMY_FILTER_MASK.into(),
+            groups::ENEMY_GROUP.into(),
+            groups::ENEMY_FILTER_MASK.into(),
         ))
         .insert(turret_base.collider.clone())
         .insert(SolverGroups::new(
-            assets::ENEMY_GROUP.into(),
-            assets::ENEMY_FILTER_MASK.into(),
+            groups::ENEMY_GROUP.into(),
+            groups::ENEMY_FILTER_MASK.into(),
         ))
         .insert(Velocity { ..default() })
         .insert(ExternalForce {
@@ -245,7 +347,11 @@ fn spawn_turret(
         })
         .insert(RotationControl::default())
         .insert(StationaryControl::default())
-        .insert(Target::default())
+        .insert(Targets::default())
+        .insert(Weapon::simple_laser(
+            groups::PLAYER_PROJECTILE_GROUP,
+            groups::PLAYER_PROJECTILE_FILTER_MASK,
+        ))
         .with_children(|parent| {
             let mut gun_transform = Transform::from_translation(Vec3::new(0.0, 20.0, 0.0));
 
@@ -272,6 +378,14 @@ fn spawn_turret(
             parent
                 .spawn((dashed_circle(300.0, 10.0, 10.0), stroke))
                 .insert(NoRotationChild)
+                .insert(Collider::ball(300.0))
+                .insert(ColliderMassProperties::Density(0.0))
+                .insert(Sensor)
+                .insert(CollisionGroups::new(
+                    groups::ENEMY_GROUP.into(),
+                    groups::PLAYER_GROUP.into(),
+                ))
+                .insert(ActiveEvents::COLLISION_EVENTS)
                 .insert(TurretRadiusOutline {});
         });
 }

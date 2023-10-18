@@ -1,4 +1,4 @@
-use super::assets;
+use super::assets::groups;
 use super::assets::Asset;
 use super::assets::AssetDB;
 use bevy::prelude::*;
@@ -66,12 +66,12 @@ pub fn spawn_meteor(
         .insert(asset.collider.clone())
         .insert(ColliderMassProperties::Density(2.0))
         .insert(CollisionGroups::new(
-            assets::METEOR_GROUP.into(),
-            assets::METEOR_FILTER_MASK.into(),
+            groups::METEOR_GROUP.into(),
+            groups::METEOR_FILTER_MASK.into(),
         ))
         .insert(SolverGroups::new(
-            assets::METEOR_GROUP.into(),
-            assets::METEOR_FILTER_MASK.into(),
+            groups::METEOR_GROUP.into(),
+            groups::METEOR_FILTER_MASK.into(),
         ))
         .insert(Damping {
             linear_damping: 0.5,

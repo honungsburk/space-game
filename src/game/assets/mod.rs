@@ -1,7 +1,8 @@
-use std::f32::consts::PI;
+pub mod groups;
 
 use bevy::prelude::*;
 use bevy_rapier2d::geometry::*;
+use std::f32::consts::PI;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Asset Plugin
@@ -84,26 +85,6 @@ pub const BIG_METEOR_RADIUS: f32 = 50.0;
 pub const MEDIUM_METEOR_RADIUS: f32 = 25.0;
 pub const SMALL_METEOR_RADIUS: f32 = 12.5;
 pub const TINY_METEOR_RADIUS: f32 = 6.25;
-
-// SOLVER GROUPS
-pub const PLAYER_GROUP: Group = Group::GROUP_1;
-pub const PLAYER_PROJECTILE_GROUP: Group = Group::GROUP_2;
-pub const METEOR_GROUP: Group = Group::GROUP_3;
-pub const ARENA_GROUP: Group = Group::GROUP_4;
-pub const ENEMY_GROUP: Group = Group::GROUP_5;
-
-pub const PLAYER_FILTER_MASK: Group = METEOR_GROUP.union(ARENA_GROUP).union(ENEMY_GROUP);
-pub const METEOR_FILTER_MASK: Group = PLAYER_GROUP
-    .union(METEOR_GROUP)
-    .union(PLAYER_PROJECTILE_GROUP)
-    .union(ARENA_GROUP)
-    .union(ENEMY_GROUP);
-pub const PLAYER_PROJECTILE_FILTER_MASK: Group = METEOR_GROUP.union(ARENA_GROUP).union(ENEMY_GROUP);
-pub const ARENA_FILTER_MASK: Group = PLAYER_GROUP.union(METEOR_GROUP);
-pub const ENEMY_FILTER_MASK: Group = PLAYER_GROUP
-    .union(METEOR_GROUP)
-    .union(ENEMY_GROUP)
-    .union(PLAYER_PROJECTILE_GROUP);
 
 fn ship_collider() -> Collider {
     Collider::compound(vec![

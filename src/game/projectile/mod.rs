@@ -44,6 +44,8 @@ pub fn spawn_laser_projectile(
     asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
     spawn_transform: Transform,
+    collision_membership: &Group,
+    collision_filter: &Group,
 ) {
     let laser_projectile = &asset_db.laser_projectile;
 
@@ -56,13 +58,13 @@ pub fn spawn_laser_projectile(
         .insert(RigidBody::Dynamic)
         .insert(laser_projectile.collider.clone())
         .insert(CollisionGroups::new(
-            assets::PLAYER_PROJECTILE_GROUP.into(),
-            assets::PLAYER_PROJECTILE_FILTER_MASK.into(),
+            (*collision_membership).into(),
+            (*collision_filter).into(),
         ))
         .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(SolverGroups::new(
-            assets::PLAYER_PROJECTILE_GROUP.into(),
-            assets::PLAYER_PROJECTILE_FILTER_MASK.into(),
+            (*collision_membership).into(),
+            (*collision_filter).into(),
         ))
         .insert(Velocity {
             linvel: spawn_transform.rotation.mul_vec3(Vec3::Y).xy().normalize() * 1000.0,

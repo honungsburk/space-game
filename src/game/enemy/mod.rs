@@ -1,13 +1,13 @@
 use super::arena;
 use super::assets;
 
+use super::assets::groups;
 use super::assets::AssetDB;
 use super::enemy;
 use super::game_entity::GameEntityType;
 use super::player::components::Player;
 use super::vitality::Health;
 use crate::misc::random;
-
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -96,12 +96,12 @@ fn spawn_enemy(
         .insert(RigidBody::Dynamic)
         .insert(asset.collider.clone())
         .insert(CollisionGroups::new(
-            assets::ENEMY_GROUP.into(),
-            assets::ENEMY_FILTER_MASK.into(),
+            groups::ENEMY_GROUP.into(),
+            groups::ENEMY_FILTER_MASK.into(),
         ))
         .insert(SolverGroups::new(
-            assets::ENEMY_GROUP.into(),
-            assets::ENEMY_FILTER_MASK.into(),
+            groups::ENEMY_GROUP.into(),
+            groups::ENEMY_FILTER_MASK.into(),
         ))
         .insert(Damping {
             linear_damping: 0.5,

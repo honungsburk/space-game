@@ -4,10 +4,11 @@ use crate::game::average_velocity::AverageVelocity;
 use crate::game::game_entity::GameEntityType;
 use crate::game::trauma::Trauma;
 use crate::game::vitality::Health;
-use crate::game::{assets, assets::AssetDB, weapon::Weapon};
+use crate::game::{assets::groups, assets::AssetDB, weapon::Weapon};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
+use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use leafwing_input_manager::{prelude::*, user_input::InputKind};
 
 pub fn spawn_player(
@@ -75,12 +76,12 @@ pub fn spawn_player(
         .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(Health::at_max(100))
         .insert(CollisionGroups::new(
-            assets::PLAYER_GROUP.into(),
-            assets::PLAYER_FILTER_MASK.into(),
+            groups::PLAYER_GROUP.into(),
+            groups::PLAYER_FILTER_MASK.into(),
         ))
         .insert(SolverGroups::new(
-            assets::PLAYER_GROUP.into(),
-            assets::PLAYER_FILTER_MASK.into(),
+            groups::PLAYER_GROUP.into(),
+            groups::PLAYER_FILTER_MASK.into(),
         ))
         .insert(Damping {
             linear_damping: 0.5,
@@ -99,7 +100,10 @@ pub fn spawn_player(
             angvel: 0.0,
         })
         .insert(AverageVelocity::new(10))
-        .insert(Weapon::simple_laser());
+        .insert(Weapon::simple_laser(
+            groups::PLAYER_PROJECTILE_GROUP,
+            groups::PLAYER_PROJECTILE_FILTER_MASK,
+        ));
 }
 
 pub fn control_ship(
@@ -212,8 +216,11 @@ pub fn player_collision(
     for collision_event in collison_events.iter() {
         // TODO: Scale trauma based on force applied to the player
         match collision_event {
-            CollisionEvent::Started(entity1, entity2, _) => {
-                if player_query.contains(*entity1) || player_query.contains(*entity2) {
+            CollisionEvent::Started(entity1, entity2, flags) => {
+                // One of the entities must be the player, and the collision must not be with a sensor
+                if (player_query.contains(*entity1) || player_query.contains(*entity2))
+                    && !flags.contains(CollisionEventFlags::SENSOR)
+                {
                     if let Ok((mut player_trauma, average_velocity, velocity)) =
                         player_query.get_single_mut()
                     {
