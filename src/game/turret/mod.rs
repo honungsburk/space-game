@@ -5,8 +5,7 @@ use crate::{
     parent_child_no_rotation::{NoRotationChild, NoRotationParent},
 };
 
-use bevy_prototype_lyon::prelude::*;
-use std::f32::consts::PI;
+use self::ai::TurretAI;
 
 use super::{
     assets::{groups, AssetDB},
@@ -15,13 +14,16 @@ use super::{
     vitality::Health,
     weapon::Weapon,
 };
+
 use bevy::{ecs::query, math::Vec3Swizzles, prelude::*, window::PrimaryWindow};
+use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::{
     geometry::*,
     prelude::{
         CollisionEvent, ExternalForce, ExternalImpulse, MassProperties, RigidBody, Velocity,
     },
 };
+use std::f32::consts::PI;
 pub struct TurretPlugin;
 
 impl Plugin for TurretPlugin {
@@ -34,6 +36,8 @@ impl Plugin for TurretPlugin {
                 register_turret_target,
                 // update_stationary_control,
                 update_turret_radius_outline,
+                fire_weapon,
+                update_ai.after(fire_weapon).after(update_turret_rotation),
             ),
         );
     }
@@ -134,6 +138,26 @@ struct TurretRadiusOutline {}
 /// Systems
 ////////////////////////////////////////////////////////////////////////////////
 
+fn update_ai(mut query: Query<(&mut ai::TurretAI, &Targets)>, time: Res<Time>) {
+    for (mut turret_ai, targets) in query.iter_mut() {
+        turret_ai.state.update(&time, !targets.is_empty());
+        println!("{:?}", turret_ai.state);
+    }
+}
+
+fn fire_weapon(
+    mut query: Query<(&ai::TurretAI, &mut Weapon, &Transform)>,
+    mut commands: Commands,
+    asset_db: Res<AssetDB>,
+    asset_server: Res<AssetServer>,
+) {
+    for (turret_ai, mut weapon, transform) in query.iter_mut() {
+        if turret_ai.state.is_firing() {
+            weapon.fire(&mut commands, &asset_db, &asset_server, *transform)
+        }
+    }
+}
+
 fn spawn_test_turret(
     mut commands: Commands,
     asset_db: Res<crate::game::assets::AssetDB>,
@@ -150,6 +174,7 @@ fn spawn_test_turret(
 
 fn update_turret_rotation(
     mut query: Query<(
+        &TurretAI,
         &mut RotationControl,
         &Transform,
         &Targets,
@@ -161,9 +186,13 @@ fn update_turret_rotation(
     if dt == 0.0 {
         return;
     }
-    for (mut rotation_control, turret_global_transform, targets, mut turret_impulse) in
+    for (turret_ai, mut rotation_control, turret_global_transform, targets, mut turret_impulse) in
         query.iter_mut()
     {
+        if !turret_ai.state.is_targeting() {
+            continue;
+        }
+
         if let Some(target) = targets.get_selected() {
             let desired_angel =
                 Vec2::Y.angle_between(target.location - turret_global_transform.translation.xy());
@@ -320,6 +349,7 @@ fn spawn_turret(
 
     commands
         .spawn(Turret)
+        .insert(TurretAI::default())
         .insert(GameEntityType::Enemy)
         // Properties
         .insert(Health::at_max(1))
@@ -349,8 +379,8 @@ fn spawn_turret(
         .insert(StationaryControl::default())
         .insert(Targets::default())
         .insert(Weapon::simple_laser(
-            groups::PLAYER_PROJECTILE_GROUP,
-            groups::PLAYER_PROJECTILE_FILTER_MASK,
+            groups::ENEMY_PROJECTILE_GROUP,
+            groups::ENEMY_PROJECTILE_FILTER_MASK,
         ))
         .with_children(|parent| {
             let mut gun_transform = Transform::from_translation(Vec3::new(0.0, 20.0, 0.0));

@@ -1,17 +1,27 @@
-use bevy_rapier2d::geometry::Group;
+// use bevy_rapier2d::geometry::Group;
 
 use bevy::prelude::*;
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Component, Debug, Clone, PartialEq, Eq)]
 pub struct TurretAI {
-    state: TurretState,
-    target_group: Group,
+    pub state: TurretState,
+    // target_group: Group, //Used to allow turrets to target different groups, player, enemies, etc
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum TurretState {
+impl Default for TurretAI {
+    fn default() -> Self {
+        Self {
+            state: TurretState::default(),
+            // target_group: Group::default(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TurretState {
     Idle,
-    Targeting,
-    Firing,
+    Targeting { timer: Timer },
+    PrepareFiring { timer: Timer },
+    Fire,
 }
 
 impl Default for TurretState {
@@ -21,70 +31,72 @@ impl Default for TurretState {
 }
 
 impl TurretState {
-    // pub fn update(
-    //     &mut self,
-    //     target: Option<Entity>,
-    //     transform: &Transform,
-    //     target_transform: &Transform,
-    //     commands: &mut Commands,
-    //     asset_db: &Res<AssetDB>,
-    //     asset_server: &Res<AssetServer>,
-    //     collision_membership: &Group,
-    //     collision_filter: &Group,
-    // ) {
-    //     match self {
-    //         Self::Idle => {
-    //             if let Some(target) = target {
-    //                 *self = Self::Targeting;
-    //             }
-    //         }
-    //         Self::Targeting => {
-    //             if let Some(target) = target {
-    //                 let target_transform = target_transform.translation;
-    //                 let turret_transform = transform.translation;
+    pub fn is_firing(&self) -> bool {
+        match self {
+            Self::Fire => true,
+            _ => false,
+        }
+    }
 
-    //                 let target_direction = target_transform - turret_transform;
-    //                 let target_direction = target_direction.normalize();
+    pub fn is_targeting(&self) -> bool {
+        match self {
+            Self::Targeting { .. } => true,
+            _ => false,
+        }
+    }
 
-    //                 let turret_direction = transform.rotation.mul_vec3(Vec3::Y);
+    pub fn is_prepare_firing(&self) -> bool {
+        match self {
+            Self::PrepareFiring { .. } => true,
+            _ => false,
+        }
+    }
 
-    //                 let angle = turret_direction.angle_between(target_direction);
+    pub fn is_idle(&self) -> bool {
+        match self {
+            Self::Idle => true,
+            _ => false,
+        }
+    }
 
-    //                 if angle < turret.targeting_angle {
-    //                     *self = Self::Firing;
-    //                 }
-    //             } else {
-    //                 *self = Self::Idle;
-    //             }
-    //         }
-    //         Self::Firing => {
-    //             if let Some(target) = target {
-    //                 let target_transform = target_transform.translation;
-    //                 let turret_transform = transform.translation;
-
-    //                 let target_direction = target_transform - turret_transform;
-    //                 let target_direction = target_direction.normalize();
-
-    //                 let turret_direction = transform.rotation.mul_vec3(Vec3::Y);
-
-    //                 let angle = turret_direction.angle_between(target_direction);
-
-    //                 if angle > turret.targeting_angle {
-    //                     *self = Self::Targeting;
-    //                 } else {
-    //                     projectile_spawner.spawn_projectile(
-    //                         commands,
-    //                         asset_db,
-    //                         asset_server,
-    //                         transform.clone(),
-    //                         collision_membership,
-    //                         collision_filter,
-    //                     );
-    //                 }
-    //             } else {
-    //                 *self = Self::Idle;
-    //             }
-    //         }
-    //     }
-    // }
+    pub fn update(&mut self, time: &Time, has_target: bool) {
+        match self {
+            Self::Idle => {
+                if has_target {
+                    *self = Self::Targeting {
+                        timer: Timer::from_seconds(1.0, TimerMode::Once),
+                    };
+                }
+            }
+            Self::Targeting { timer } => {
+                if has_target {
+                    if timer.tick(time.delta()).just_finished() {
+                        *self = Self::PrepareFiring {
+                            timer: Timer::from_seconds(0.5, TimerMode::Once),
+                        };
+                    }
+                } else {
+                    *self = Self::Idle;
+                }
+            }
+            Self::PrepareFiring { timer } => {
+                if has_target {
+                    if timer.tick(time.delta()).just_finished() {
+                        *self = Self::Fire;
+                    }
+                } else {
+                    *self = Self::Idle;
+                }
+            }
+            Self::Fire => {
+                if has_target {
+                    *self = Self::Targeting {
+                        timer: Timer::from_seconds(1.0, TimerMode::Once),
+                    };
+                } else {
+                    *self = Self::Idle;
+                }
+            }
+        }
+    }
 }

@@ -192,7 +192,7 @@ pub fn update_player_rotation(
 }
 
 pub fn fire_weapon(
-    commands: Commands,
+    mut commands: Commands,
     asset_db: Res<AssetDB>,
     asset_server: Res<AssetServer>,
     mut query: Query<(&ActionState<PlayerAction>, &Transform, &mut Weapon), With<Player>>,
@@ -201,7 +201,12 @@ pub fn fire_weapon(
         if player_action_state.pressed(PlayerAction::FireWeapon) && weapon.can_fire() {
             let value = player_action_state.value(PlayerAction::FireWeapon);
             if value > 0.0 {
-                weapon.fire(commands, &asset_db, &asset_server, player_transform.clone());
+                weapon.fire(
+                    &mut commands,
+                    &asset_db,
+                    &asset_server,
+                    player_transform.clone(),
+                );
             }
         }
     }

@@ -46,7 +46,7 @@ impl Weapon {
 
     pub fn fire(
         &mut self,
-        commands: Commands,
+        commands: &mut Commands,
         asset_db: &Res<AssetDB>,
         asset_server: &Res<AssetServer>,
         spawn_transform: Transform,
