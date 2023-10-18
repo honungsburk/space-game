@@ -42,7 +42,7 @@ fn main() {
     }
 
     // Load High Scores
-    let mut high_scores = space_game::game::score::HighScores::load_from_file("high_scores.toml")
+    let high_scores = space_game::game::score::HighScores::load_from_file("high_scores.toml")
         .unwrap_or_else(|err| {
             eprintln!("Error loading high_scores.toml: {}", err);
             eprintln!("Using default high scores.");
