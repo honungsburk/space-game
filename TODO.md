@@ -5,24 +5,25 @@
 Current objective is to get a gameplay loop working.
 
 - [ ] Make a large circular arena the player can fly around in.
-- [ ] Add enemy
 - [ ] Spawn enemies in waves
-- [ ] Add player health
-- [ ] Add player death
-- [ x ] Add Score System
 - Add UI
   - [ ] Add Replay button
   - [ ] Add Game Over screen
   - [ ] Add Main Menu
   - [ ] Add Pause Menu
   - [ ] Add highscore list
-- Add HUD
-  - Add score
-  - Add health
 - Add quick restart button
 
 ### Backlog
 
+- Factions
+  - Player
+  - Enemy1, Enemy2, Enemy3
+  - Neutral
+- Add Debug scenes
+  - singel turret
+  - all colliders
+  - ...
 - Make character controller more realistic by adding thrusters
   - Rotational thrusters
   - Linear thrusters
@@ -32,7 +33,7 @@ Current objective is to get a gameplay loop working.
   - Add shield
 - Add visual player damage level.
 - Keep track of player score
-- Add 1 enemy type
+- Add more enemies
 - Add Health to player
 - Spawn enemies in waves
 - Add Background
