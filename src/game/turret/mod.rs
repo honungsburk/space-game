@@ -15,13 +15,11 @@ use super::{
     weapon::Weapon,
 };
 
-use bevy::{ecs::query, math::Vec3Swizzles, prelude::*, window::PrimaryWindow};
+use bevy::{math::Vec3Swizzles, prelude::*, window::PrimaryWindow};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::{
     geometry::*,
-    prelude::{
-        CollisionEvent, ExternalForce, ExternalImpulse, MassProperties, RigidBody, Velocity,
-    },
+    prelude::{CollisionEvent, ExternalForce, ExternalImpulse, RigidBody, Velocity},
 };
 use std::f32::consts::PI;
 pub struct TurretPlugin;
