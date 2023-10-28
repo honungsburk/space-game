@@ -39,11 +39,15 @@ pub fn spawn_background(
     let window_width = window.width();
     let window_height = window.height();
 
+    let mut transform = Transform::from_xyz(
+        0.0, 0.0, -1.0, // The z axis is used to place the background behind everything
+    );
+
+    transform.scale = Vec3::new(window_width / 256.0, window_height / 256.0, 1.0);
+
     commands
         .spawn(SpriteBundle {
-            transform: Transform::from_translation(Vec3::new(
-                0.0, 0.0, -1.0, // The z axis is used to place the background behind everything
-            )),
+            transform: transform,
             texture: asset_server.load("sprites/backgrounds/black.png"),
             ..Default::default()
         })
