@@ -130,16 +130,6 @@ pub fn spawn(mut commands: Commands, window_query: Query<&Window, With<PrimaryWi
         .insert(ShakyCamera::default());
 }
 
-// pub fn debug_camera_position(
-//     mut commands: Commands,
-//     mut query: Query<(&mut Transform, &mut CameraPID), (Without<Player>, With<Camera>)>,
-// ) {
-//     if let Ok((mut transform, mut pid)) = query.get_single_mut() {
-//         // Create a debug entity to show the camera's position
-//         commands.spawn(bundle)
-//     }
-// }
-
 pub fn update_smooth_camera(
     time: Res<Time>,
     mut camera_query: Query<
