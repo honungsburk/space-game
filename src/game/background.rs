@@ -1,10 +1,11 @@
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::prelude::*;
 
 use super::camera::ShakyCamera;
 
 const BACKGROUND_TILE_WIDTH: f32 = 256.0;
 const BACKGROUND_TILE_HEIGHT: f32 = 256.0;
-const BACKGROUND_TILES_SIZE: u32 = 3;
+const BACKGROUND_TILES_SIZE: u32 = 5;
+const BACKGROUND_TILE_SCALE: f32 = 2.0;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Plugin
@@ -18,8 +19,8 @@ impl Plugin for BackgroundPlugin {
         app.insert_resource(BackgroundGrid {
             grid: Grid::new(
                 BACKGROUND_TILES_SIZE,
-                BACKGROUND_TILE_WIDTH,
-                BACKGROUND_TILE_HEIGHT,
+                BACKGROUND_TILE_WIDTH * BACKGROUND_TILE_SCALE,
+                BACKGROUND_TILE_HEIGHT * BACKGROUND_TILE_SCALE,
             ),
         })
         .add_systems(Startup, spawn_background)
@@ -41,53 +42,19 @@ struct BackgroundTile {
 ////////////////////////////////////////////////////////////////////////////////
 
 // Spawn the background
-pub fn spawn_background(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    // window_query: Query<&Window, With<PrimaryWindow>>,
-) {
-    // let window = window_query.get_single().unwrap();
-    // let window_width = window.width();
-    // let window_height = window.height();
-
-    // let mut transform = Transform::from_xyz(
-    //     0.0, 0.0, -1.0, // The z axis is used to place the background behind everything
-    // );
-
-    // transform.scale = Vec3::new(window_width / 256.0, window_height / 256.0, 1.0);
-
-    // commands
-
-    //     .spawn(SpriteBundle {
-    //         transform: transform,
-    //         texture: asset_server.load("sprites/backgrounds/black.png"),
-    //         ..Default::default()
-    //     })
-    //     .insert(Background);
-
+pub fn spawn_background(mut commands: Commands, asset_server: Res<AssetServer>) {
     let background_handle = asset_server.load("sprites/backgrounds/black.png");
-
-    // We will spawn 9 background sprites, one for each of the 9
-    // positions on the screen. This will allow us to scroll the
-    // background in any direction.
 
     let low_bound = -1 * (BACKGROUND_TILES_SIZE as i32) / 2;
     let high_bound = (BACKGROUND_TILES_SIZE as i32) / 2;
 
-    println!("low_bound: {}", low_bound);
-    println!("high_bound: {}", high_bound);
-
     for x in low_bound..=high_bound {
         for y in low_bound..=high_bound {
-            let transform = Transform::from_xyz(
+            let mut transform = Transform::from_xyz(
                 0.0, 0.0, -1.0, // The z axis is used to place the background behind everything
             );
 
-            // transform.scale = Vec3::new(
-            //     window_width / (BACKGROUND_WIDTH * BACKGROUND_TILE_WIDTH),
-            //     window_height / (BACKGROUND_HEIGHT * BACKGROUND_TILE_HEIGHT),
-            //     1.0,
-            // );
+            transform.scale = Vec3::new(BACKGROUND_TILE_SCALE, BACKGROUND_TILE_SCALE, 1.0);
 
             commands
                 .spawn(SpriteBundle {
@@ -102,40 +69,45 @@ pub fn spawn_background(
     }
 }
 
-fn update_tile_debug(mut gizmos: Gizmos, mut query: Query<&Transform, With<BackgroundTile>>) {
+fn update_tile_debug(
+    background_grid: Res<BackgroundGrid>,
+    mut gizmos: Gizmos,
+    mut query: Query<&Transform, With<BackgroundTile>>,
+) {
     for transform in query.iter_mut() {
         gizmos.rect_2d(
             transform.translation.truncate(),
             0.,
-            Vec2::new(BACKGROUND_TILE_WIDTH, BACKGROUND_TILE_HEIGHT),
+            Vec2::new(
+                background_grid.grid.tile_width,
+                background_grid.grid.tile_height,
+            ),
             Color::WHITE,
         );
     }
 }
 
-// The background follows the camera, but at a slower rate
+// Move the background tiles to follow the camera.
+// The center background tile is always in the same tile as the camera.
 fn update_background(
-    // window_query: Query<&Window, With<PrimaryWindow>>,
     background_grid: Res<BackgroundGrid>,
     mut query_background: Query<(&mut Transform, &BackgroundTile), Without<ShakyCamera>>,
     query_camera: Query<&GlobalTransform, (Without<BackgroundTile>, With<ShakyCamera>)>,
 ) {
-    // let window = window_query.get_single().unwrap();
-    // let window_width = window.width();
-    // let window_height = window.height();
-
     if let Ok(camera_transform) = query_camera.get_single() {
-        let tile = background_grid
+        let camera_tile = background_grid
             .grid
             .tile(camera_transform.translation().truncate());
-        let tile_center = background_grid.grid.tile_position(tile);
+        let tile_center = background_grid.grid.tile_position(camera_tile);
 
         for (mut transform, background_tile) in query_background.iter_mut() {
             let relative_tile_position = background_grid.grid.tile_position(background_tile.tile);
             let absolute_tile_position = tile_center + relative_tile_position;
 
-            transform.translation.x = absolute_tile_position.x;
-            transform.translation.y = absolute_tile_position.y;
+            transform.translation.x =
+                absolute_tile_position.x + background_grid.grid.tile_width / 2.0;
+            transform.translation.y =
+                absolute_tile_position.y + background_grid.grid.tile_height / 2.0;
             transform.translation.z = -1.0;
         }
     }
@@ -229,8 +201,11 @@ mod tests {
         let camera_position = Vec2::new(0.0, 0.0);
         assert_eq!(grid.tile(camera_position), Tile::new(0, 0));
 
-        let camera_position = Vec2::new(100.0, 100.0);
-        assert_eq!(grid.tile(camera_position), Tile::new(10, 10));
+        let camera_position = Vec2::new(0.0, 30.0);
+        assert_eq!(grid.tile(camera_position), Tile::new(0, 3));
+
+        let camera_position = Vec2::new(25.0, 0.0);
+        assert_eq!(grid.tile(camera_position), Tile::new(2, 0));
 
         let camera_position = Vec2::new(-50.0, -50.0);
         assert_eq!(grid.tile(camera_position), Tile::new(-5, -5));
