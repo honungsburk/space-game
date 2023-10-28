@@ -12,7 +12,7 @@ pub struct BackgroundPlugin;
 impl Plugin for BackgroundPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_background)
-            .add_systems(Update, update_background);
+            .add_systems(Update, (update_background, update_tile_debug));
     }
 }
 
@@ -76,6 +76,9 @@ pub fn spawn_background(
     let low_bound = -1 * (BACKGROUND_TILES_SIZE as i32) / 2;
     let high_bound = (BACKGROUND_TILES_SIZE as i32) / 2;
 
+    println!("low_bound: {}", low_bound);
+    println!("high_bound: {}", high_bound);
+
     for x in low_bound..=high_bound {
         for y in low_bound..=high_bound {
             let position = background_tile_position(x, y);
@@ -99,15 +102,17 @@ pub fn spawn_background(
                 .insert(BackgroundTile { x, y });
         }
     }
+}
 
-    // commands
-    //     .spawn(Background)
-    //     .insert(TransformBundle::from_transform(Transform::from_xyz(
-    //         0.0, 0.0, -1.0, // The z axis is used to place the background behind everything
-    //     )))
-    //     .with_children(|parent| {
-    //         let background = asset_server.load("sprites/backgrounds/black.png");
-    //     });
+fn update_tile_debug(mut gizmos: Gizmos, mut query: Query<&Transform, With<BackgroundTile>>) {
+    for transform in query.iter_mut() {
+        gizmos.rect_2d(
+            transform.translation.truncate(),
+            0.,
+            Vec2::new(BACKGROUND_TILE_WIDTH, BACKGROUND_TILE_HEIGHT),
+            Color::WHITE,
+        );
+    }
 }
 
 fn background_tile_position(x: i32, y: i32) -> Vec2 {
