@@ -20,13 +20,14 @@ pub struct ScorePlugin {
 impl Plugin for ScorePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(GameScore::default())
-            // .insert_resource(self.high_scores.clone())
+            .insert_resource(self.high_scores.clone())
+            .add_event::<HighScoreEvent>()
             .add_systems(
                 Update,
                 (
                     update_score_on_deaths,
                     update_score_timer,
-                    // update_high_scores_on_game_over,
+                    update_high_scores_on_game_over,
                 ),
             );
     }
