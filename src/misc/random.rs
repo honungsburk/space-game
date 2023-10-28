@@ -16,11 +16,12 @@ use rand::prelude::*;
 ///
 /// ```
 /// use rand::prelude::*;
-/// use crate::Vec2;
+/// use bevy::math::Vec2;
+/// use space_game::misc::random::uniform_circle;
 ///
 /// let mut rng = rand::thread_rng();
 /// let point = uniform_circle(&mut rng, 5.0);
-/// assert!(point.magnitude() <= 5.0);
+/// assert!(point.length() <= 5.0);
 /// ```
 pub fn uniform_circle<R>(rng: &mut R, radius: f32) -> Vec2
 where
@@ -48,11 +49,12 @@ where
 ///
 /// ```
 /// use rand::prelude::*;
-/// use crate::Vec2;
+/// use bevy::math::Vec2;
+/// use space_game::misc::random::uniform_donut;
 ///
 /// let mut rng = rand::thread_rng();
 /// let point = uniform_donut(&mut rng, 5.0, 2.0);
-/// assert!(point.magnitude() <= 5.0 && point.magnitude() >= 2.0);
+/// assert!(point.length() <= 5.0 && point.length() >= 2.0);
 /// ```
 pub fn uniform_donut<R>(rng: &mut R, out_radius: f32, inner_radius: f32) -> Vec2
 where
