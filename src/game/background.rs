@@ -30,8 +30,8 @@ pub struct BackgroundCenterTile;
 
 #[derive(Component)]
 pub struct BackgroundTile {
-    pub x: u32,
-    pub y: u32,
+    pub x: i32,
+    pub y: i32,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,11 +46,11 @@ const BACKGROUND_TILES_SIZE: u32 = 3;
 pub fn spawn_background(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
+    // window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    let window = window_query.get_single().unwrap();
-    let window_width = window.width();
-    let window_height = window.height();
+    // let window = window_query.get_single().unwrap();
+    // let window_width = window.width();
+    // let window_height = window.height();
 
     // let mut transform = Transform::from_xyz(
     //     0.0, 0.0, -1.0, // The z axis is used to place the background behind everything
@@ -73,8 +73,11 @@ pub fn spawn_background(
     // positions on the screen. This will allow us to scroll the
     // background in any direction.
 
-    for x in 0..BACKGROUND_TILES_SIZE {
-        for y in 0..BACKGROUND_TILES_SIZE {
+    let low_bound = -1 * (BACKGROUND_TILES_SIZE as i32) / 2;
+    let high_bound = (BACKGROUND_TILES_SIZE as i32) / 2;
+
+    for x in low_bound..=high_bound {
+        for y in low_bound..=high_bound {
             let position = background_tile_position(x, y);
             let transform = Transform::from_xyz(
                 position.x, position.y,
@@ -107,19 +110,42 @@ pub fn spawn_background(
     //     });
 }
 
-fn background_tile_position(x: u32, y: u32) -> Vec2 {
+fn background_tile_position(x: i32, y: i32) -> Vec2 {
     Vec2::new(
-        (x as f32 * BACKGROUND_TILE_WIDTH) - (BACKGROUND_TILE_WIDTH * 1.5),
-        (y as f32 * BACKGROUND_TILE_HEIGHT) - (BACKGROUND_TILE_HEIGHT * 1.5),
+        x as f32 * BACKGROUND_TILE_WIDTH,
+        y as f32 * BACKGROUND_TILE_HEIGHT,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_background_tile_position() {
+        let pos = background_tile_position(0, 0);
+        assert_eq!(pos, Vec2::new(0.0, 0.0));
+
+        let pos = background_tile_position(1, 1);
+        assert_eq!(
+            pos,
+            Vec2::new(BACKGROUND_TILE_WIDTH, BACKGROUND_TILE_HEIGHT)
+        );
+
+        let pos = background_tile_position(-2, 3);
+        assert_eq!(
+            pos,
+            Vec2::new(BACKGROUND_TILE_WIDTH * -2.0, BACKGROUND_TILE_HEIGHT * 3.0)
+        );
+    }
 }
 
 // Imagine the entire world is a grid of tiles. The tile the player is
 // currently on is the center tile. This function returns the center
 // tile's position.
 fn background_center(camera_position: Vec3) -> Vec2 {
-    let x = (camera_position.x / BACKGROUND_TILE_WIDTH).floor() as u32;
-    let y = (camera_position.y / BACKGROUND_TILE_HEIGHT).floor() as u32;
+    let x = (camera_position.x / BACKGROUND_TILE_WIDTH).floor() as i32;
+    let y = (camera_position.y / BACKGROUND_TILE_HEIGHT).floor() as i32;
 
     background_tile_position(x, y)
 }
@@ -128,14 +154,14 @@ fn background_center(camera_position: Vec3) -> Vec2 {
 pub fn update_background(
     // window_query: Query<&Window, With<PrimaryWindow>>,
     mut query_background: Query<(&mut Transform, &BackgroundTile), Without<ShakyCamera>>,
-    query_camera: Query<&Transform, (Without<BackgroundTile>, With<ShakyCamera>)>,
+    query_camera: Query<&GlobalTransform, (Without<BackgroundTile>, With<ShakyCamera>)>,
 ) {
     // let window = window_query.get_single().unwrap();
     // let window_width = window.width();
     // let window_height = window.height();
 
     if let Ok(camera_transform) = query_camera.get_single() {
-        let tile_center = background_center(camera_transform.translation);
+        let tile_center = background_center(camera_transform.translation());
 
         for (mut transform, background_tile) in query_background.iter_mut() {
             let relative_tile_position =
