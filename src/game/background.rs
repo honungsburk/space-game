@@ -41,10 +41,8 @@ pub fn spawn_background(
 
     commands
         .spawn(SpriteBundle {
-            transform: Transform::from_scale(Vec3::new(
-                window_width / 16.0,
-                window_height / 16.0,
-                1.0, // The z axis is used to place the background behind everything
+            transform: Transform::from_translation(Vec3::new(
+                0.0, 0.0, -1.0, // The z axis is used to place the background behind everything
             )),
             texture: asset_server.load("sprites/backgrounds/black.png"),
             ..Default::default()
@@ -66,7 +64,6 @@ pub fn update_background(
         for mut transform in query_background.iter_mut() {
             transform.translation.x = camera_transform.translation.x;
             transform.translation.y = camera_transform.translation.y;
-            transform.translation.z = 1.0;
         }
     }
 }

@@ -124,7 +124,6 @@ fn resolve_projectile_collision(
         if let Some(damage) = damge_opt {
             if let Ok(mut health) = health_query.get_mut(*entity2) {
                 health.take_damage(damage);
-                println!("hit");
             }
         }
         return true;
