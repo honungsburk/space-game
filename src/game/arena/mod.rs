@@ -4,7 +4,6 @@ use super::meteors;
 use super::meteors::MeteorSize;
 use crate::misc::random;
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
 use rand::distributions::Uniform;
 use rand::prelude::*;
@@ -45,40 +44,7 @@ pub fn spawn_random_arena(
     let arena = Arena::new(ARENA_RADIUS, ARENA_BORDER_WIDTH);
 
     arena.spawn_asteroid_bounds(&mut commands, &asset_db, &asset_server);
-
-    // let mut rng = SmallRng::from_rng(thread_rng()).unwrap();
-
-    // First we need to generate a random arena size
-    // let arena_size = 1000.0;
-
-    // Then we need to generate a random arena shape
-    // let arena_shape = sdf::circle(arena_size);
-
-    // Walk the surface of the SDF and spawn asteroids
-
-    // Create arena entity
-
-    // commands
-    //     .spawn(RigidBody::Fixed)
-    //     .insert(TransformBundle::from(Transform::from_xyz(
-    //         window.width() / 2.0,
-    //         window.height() / 2.0,
-    //         0.0,
-    //     )))
-    //     .insert(CollisionGroups::new(
-    //         groups::ARENA_GROUP.into(),
-    //         groups::ARENA_FILTER_MASK.into(),
-    //     ))
-    //     .insert(SolverGroups::new(
-    //         groups::ARENA_GROUP.into(),
-    //         groups::ARENA_FILTER_MASK.into(),
-    //     ))
-    //     .insert(hollow_circle(ARENA_RADIUS, 200));
-    // .insert(Arena);
-
-    // spawn_random_meteors(&mut commands, &asset_db, &asset_server, window_query);
-
-    // Add rocks
+    spawn_random_meteors(&mut commands, &asset_db, &asset_server, 100);
 }
 
 fn hollow_circle(radius: f32, number_of_points: u32) -> Collider {
@@ -208,14 +174,13 @@ pub fn spawn_random_meteors(
     commands: &mut Commands,
     asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
+    number_of_meteors: usize,
 ) {
-    let window = window_query.get_single().unwrap();
-    let arena_center = Vec2::new(window.width() / 2.0, window.height() / 2.0);
+    let arena_center = Vec2::new(0.0, 0.0);
 
     let mut rng = rand::thread_rng();
 
-    for _ in 1..=20 {
+    for _ in 1..=number_of_meteors {
         let size = rng.gen_range(0..10);
 
         let (meteor_size, meteor_radius) = match size {
@@ -254,8 +219,6 @@ pub fn spawn_random_meteors(
                 commands,
                 meteor_size,
                 transform,
-                // Vec2::ZERO,
-                // 0.0,
             );
         }
     }
