@@ -24,21 +24,61 @@ impl Plugin for BackgroundPlugin {
                 BACKGROUND_TILE_HEIGHT * BACKGROUND_TILE_SCALE,
             ),
         })
+        .insert_resource(BackgroundDebug {
+            show_grid_lines: false,
+        })
         .add_systems(Startup, spawn_background)
         .add_systems(
             Update,
-            (update_background, update_tile_debug, on_window_resize),
+            (
+                update_background,
+                update_tile_debug.run_if(condition_debug_background),
+                on_window_resize,
+            ),
         );
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-/// Component
+/// Components & Resources
 ////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Resource)]
+struct BackgroundGrid {
+    grid: Grid,
+}
+
+/// A resource that controls if the background grid lines should be shown
+#[derive(Resource, Default, Debug)]
+pub struct BackgroundDebug {
+    show_grid_lines: bool,
+}
+
+impl BackgroundDebug {
+    pub fn toggle_grid_lines(&mut self) {
+        self.show_grid_lines = !self.show_grid_lines;
+    }
+
+    pub fn show_grid_lines(&self) -> bool {
+        self.show_grid_lines
+    }
+
+    pub fn hide_grid_lines(&mut self) {
+        self.show_grid_lines = false;
+    }
+}
 
 #[derive(Component)]
 struct BackgroundTile {
     pub tile: Tile,
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Run conditions
+////////////////////////////////////////////////////////////////////////////////
+
+fn condition_debug_background(background_tile_debug: Res<BackgroundDebug>) -> bool {
+    background_tile_debug.show_grid_lines
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -122,6 +162,7 @@ fn spawn_background_tiles(
 
 fn update_tile_debug(
     background_grid: Res<BackgroundGrid>,
+    background_tile_debug: Res<BackgroundDebug>,
     mut gizmos: Gizmos,
     mut query: Query<&Transform, With<BackgroundTile>>,
 ) {
@@ -164,6 +205,10 @@ fn update_background(
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+/// Helpers
+///////////////////////////////////////////////////////////////////////////////
+
 fn make_bounds(n: u32) -> (i32, i32) {
     let low_bound = -1 * (n as i32) / 2;
     let high_bound = (n as i32) / 2;
@@ -174,11 +219,6 @@ fn make_bounds(n: u32) -> (i32, i32) {
 ////////////////////////////////////////////////////////////////////////////////
 /// Background Grid
 ///////////////////////////////////////////////////////////////////////////////
-
-#[derive(Resource)]
-struct BackgroundGrid {
-    grid: Grid,
-}
 
 // A tile in the background grid
 

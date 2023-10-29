@@ -3,6 +3,7 @@ pub mod assets;
 pub mod average_velocity;
 mod background;
 pub mod camera;
+pub mod debug;
 mod enemy;
 pub mod events;
 pub mod game_entity;
@@ -30,9 +31,9 @@ use camera::CameraPlugin;
 use projectile::ProjectilePlugin;
 
 use self::{
-    average_velocity::AverageVelocityPlugin, background::BackgroundPlugin, events::GameOverEvent,
-    score::ScorePlugin, time_to_live::TimeToLivePlugin, trauma::TraumaPlugin, turret::TurretPlugin,
-    vitality::VitalityPlugin,
+    average_velocity::AverageVelocityPlugin, background::BackgroundPlugin, debug::DebugPlugin,
+    events::GameOverEvent, score::ScorePlugin, time_to_live::TimeToLivePlugin,
+    trauma::TraumaPlugin, turret::TurretPlugin, vitality::VitalityPlugin,
 };
 
 pub struct GamePlugin {
@@ -65,6 +66,7 @@ impl Plugin for GamePlugin {
         // Systems
         .add_plugins((
             // EnemyPlugin,
+            DebugPlugin,
             BackgroundPlugin,
             ArenaPlugin,
             CameraPlugin::new(self.has_camera_debug),
