@@ -233,7 +233,8 @@ impl Grid {
             number_of_tiles_y
         };
 
-        (number_of_tiles_x, number_of_tiles_y)
+        // To avoid seeing the edge of the background, we add one tile on each side
+        (number_of_tiles_x + 2, number_of_tiles_y + 2)
     }
 
     fn tile_position(&self, tile: Tile) -> Vec2 {
