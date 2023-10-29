@@ -10,6 +10,7 @@
 use bevy::prelude::*;
 
 use super::background;
+use super::camera;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Plugin
@@ -30,10 +31,26 @@ impl Plugin for DebugPlugin {
 
 fn debug_keyboard_input(
     keyboard_input: ResMut<Input<KeyCode>>,
-    mut background_debug: ResMut<background::BackgroundDebug>,
+    mut background_debug: Option<ResMut<background::BackgroundDebug>>,
+    mut camera_position_debug: Option<ResMut<camera::CameraPositionDebugFlag>>,
+    mut camera_setpoint_debug: Option<ResMut<camera::CameraSetpointDebugFlag>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::F1) {
-        background_debug.toggle_grid_lines();
+        if let Some(background_debug) = background_debug.as_mut() {
+            background_debug.toggle_grid_lines();
+        }
+    }
+
+    if keyboard_input.just_pressed(KeyCode::F2) {
+        if let Some(camera_position_debug) = camera_position_debug.as_mut() {
+            camera_position_debug.flag.flip();
+        }
+    }
+
+    if keyboard_input.just_pressed(KeyCode::F3) {
+        if let Some(camera_setpoint_debug) = camera_setpoint_debug.as_mut() {
+            camera_setpoint_debug.flag.flip();
+        }
     }
 }
 
@@ -43,4 +60,6 @@ fn debug_keyboard_input(
 
 pub mod config {
     pub use crate::game::background::BackgroundDebug;
+    pub use crate::game::camera::CameraPositionDebugFlag;
+    pub use crate::game::camera::CameraSetpointDebugFlag;
 }
