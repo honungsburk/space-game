@@ -4,6 +4,7 @@ use bevy::{
 };
 
 use super::camera::ShakyCamera;
+use super::config::Flag;
 
 const BACKGROUND_TILE_WIDTH: f32 = 256.0;
 const BACKGROUND_TILE_HEIGHT: f32 = 256.0;
@@ -24,16 +25,14 @@ impl Plugin for BackgroundPlugin {
                 BACKGROUND_TILE_HEIGHT * BACKGROUND_TILE_SCALE,
             ),
         })
-        .insert_resource(BackgroundDebug {
-            show_grid_lines: false,
-        })
+        .init_resource::<BackgroundGridDebugFlag>()
         .add_systems(Startup, spawn_background)
         .add_systems(
             Update,
             (
                 update_background,
-                update_tile_debug.run_if(condition_debug_background),
                 on_window_resize,
+                update_background_grid_debug.run_if(condition_debug_background),
             ),
         );
     }
@@ -49,25 +48,18 @@ struct BackgroundGrid {
 }
 
 /// A resource that controls if the background grid lines should be shown
-#[derive(Resource, Default, Debug)]
-pub struct BackgroundDebug {
-    show_grid_lines: bool,
+#[derive(Resource, Debug)]
+pub struct BackgroundGridDebugFlag {
+    pub flag: Flag,
 }
 
-impl BackgroundDebug {
-    pub fn toggle_grid_lines(&mut self) {
-        self.show_grid_lines = !self.show_grid_lines;
-    }
-
-    pub fn show_grid_lines(&self) -> bool {
-        self.show_grid_lines
-    }
-
-    pub fn hide_grid_lines(&mut self) {
-        self.show_grid_lines = false;
+impl Default for BackgroundGridDebugFlag {
+    fn default() -> Self {
+        Self {
+            flag: Flag::new("Background Grid", "Display the background grid", false),
+        }
     }
 }
-
 #[derive(Component)]
 struct BackgroundTile {
     pub tile: Tile,
@@ -77,8 +69,8 @@ struct BackgroundTile {
 /// Run conditions
 ////////////////////////////////////////////////////////////////////////////////
 
-fn condition_debug_background(background_tile_debug: Res<BackgroundDebug>) -> bool {
-    background_tile_debug.show_grid_lines
+fn condition_debug_background(background_grid_debug: Res<BackgroundGridDebugFlag>) -> bool {
+    background_grid_debug.flag.is_on()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -160,9 +152,9 @@ fn spawn_background_tiles(
     }
 }
 
-fn update_tile_debug(
+fn update_background_grid_debug(
     background_grid: Res<BackgroundGrid>,
-    background_tile_debug: Res<BackgroundDebug>,
+    background_tile_debug: Res<BackgroundGridDebugFlag>,
     mut gizmos: Gizmos,
     mut query: Query<&Transform, With<BackgroundTile>>,
 ) {

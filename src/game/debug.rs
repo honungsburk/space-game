@@ -31,13 +31,13 @@ impl Plugin for DebugPlugin {
 
 fn debug_keyboard_input(
     keyboard_input: ResMut<Input<KeyCode>>,
-    mut background_debug: Option<ResMut<background::BackgroundDebug>>,
+    mut background_debug: Option<ResMut<background::BackgroundGridDebugFlag>>,
     mut camera_position_debug: Option<ResMut<camera::CameraPositionDebugFlag>>,
     mut camera_setpoint_debug: Option<ResMut<camera::CameraSetpointDebugFlag>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::F1) {
         if let Some(background_debug) = background_debug.as_mut() {
-            background_debug.toggle_grid_lines();
+            background_debug.flag.flip();
         }
     }
 
@@ -59,7 +59,7 @@ fn debug_keyboard_input(
 ////////////////////////////////////////////////////////////////////////////////
 
 pub mod config {
-    pub use crate::game::background::BackgroundDebug;
+    pub use crate::game::background::BackgroundGridDebugFlag;
     pub use crate::game::camera::CameraPositionDebugFlag;
     pub use crate::game::camera::CameraSetpointDebugFlag;
 }

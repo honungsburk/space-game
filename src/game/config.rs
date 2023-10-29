@@ -1,6 +1,7 @@
 //! Contains code to create configurations for the game.
 
 /// A configuration for the game that is either true or false.
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Flag {
     name: String,
     description: String,
