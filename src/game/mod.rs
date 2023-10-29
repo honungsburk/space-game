@@ -90,9 +90,7 @@ impl Plugin for GamePlugin {
             (pause_simulation, toggle_simulation, resume_simulation),
         );
 
-        if self.has_colliders_debug {
-            app.add_plugins(RapierDebugRenderPlugin::default());
-        }
+        app.add_plugins(RapierDebugRenderPlugin::default());
     }
 }
 
