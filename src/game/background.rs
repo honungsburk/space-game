@@ -43,7 +43,7 @@ struct BackgroundTile {
 
 // Spawn the background
 pub fn spawn_background(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let background_handle = asset_server.load("sprites/backgrounds/black.png");
+    let background_handle = asset_server.load("sprites/backgrounds/blue.png");
 
     let low_bound = -1 * (BACKGROUND_TILES_SIZE as i32) / 2;
     let high_bound = (BACKGROUND_TILES_SIZE as i32) / 2;
