@@ -7,7 +7,6 @@ use super::camera::ShakyCamera;
 
 const BACKGROUND_TILE_WIDTH: f32 = 256.0;
 const BACKGROUND_TILE_HEIGHT: f32 = 256.0;
-const BACKGROUND_TILES_SIZE: u32 = 5;
 const BACKGROUND_TILE_SCALE: f32 = 2.0;
 
 ////////////////////////////////////////////////////////////////////////////////
