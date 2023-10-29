@@ -9,7 +9,7 @@ mod enemy;
 pub mod events;
 pub mod game_entity;
 mod gamepad;
-mod meteors;
+pub mod meteors;
 pub mod player;
 mod projectile;
 pub mod score;

@@ -159,12 +159,8 @@ fn spawn_test_turret(
     mut commands: Commands,
     asset_db: Res<crate::game::assets::AssetDB>,
     asset_server: Res<AssetServer>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    let window = window_query.get_single().unwrap();
-    let arena_center = Vec3::new(window.width() / 2.0, window.height() / 2.0, 0.0);
-
-    let spawn_transform = Transform::from_translation(arena_center + Vec3::new(0.0, 300.0, 0.0));
+    let spawn_transform = Transform::from_translation(Vec3::new(0.0, 300.0, 0.0));
 
     spawn_turret(&mut commands, &asset_db, &asset_server, spawn_transform);
 }

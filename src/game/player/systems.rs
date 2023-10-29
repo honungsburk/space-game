@@ -13,11 +13,9 @@ use leafwing_input_manager::{prelude::*, user_input::InputKind};
 
 pub fn spawn_player(
     mut commands: Commands,
-    window_query: Query<&Window, With<PrimaryWindow>>,
     asset_db: Res<AssetDB>,
     asset_server: Res<AssetServer>,
 ) {
-    let window = window_query.get_single().unwrap();
     // Create an `InputMap` to add default inputs to
     let mut input_map = InputMap::default()
         .insert(
@@ -57,7 +55,7 @@ pub fn spawn_player(
 
     commands
         .spawn(SpriteBundle {
-            transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
             texture: asset_server.load(asset_db.player_ship.sprite_path),
             ..default()
         })

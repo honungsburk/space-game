@@ -4,7 +4,6 @@ use super::{config::Flag, player::actions::PlayerAction};
 use crate::misc::control::PID;
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::Velocity;
 use leafwing_input_manager::prelude::ActionState;
 use noise::{Fbm, NoiseFn, Perlin, Seedable};
@@ -116,17 +115,14 @@ impl CameraPID {
 // Systems
 ////////////////////////////////////////////////////////////////////////////////
 
-pub fn spawn(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
-    let window = window_query.get_single().unwrap();
-    let x = window.width() / 2.0;
-    let y = window.height() / 2.0;
-    let transform = Transform::from_xyz(x, y, 0.0);
+pub fn spawn(mut commands: Commands) {
+    let transform = Transform::from_xyz(0.0, 0.0, 0.0);
 
     // Smooth camera
     commands
         .spawn(TransformBundle::from(transform))
         .insert(SmoothCamera)
-        .insert(CameraPID::from_xy(x, y));
+        .insert(CameraPID::from_xy(0.0, 0.0));
 
     // Shaky camera (What the player sees)
     commands
