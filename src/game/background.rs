@@ -1,4 +1,7 @@
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    window::{PrimaryWindow, WindowResized},
+};
 
 use super::camera::ShakyCamera;
 
@@ -18,13 +21,15 @@ impl Plugin for BackgroundPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(BackgroundGrid {
             grid: Grid::new(
-                BACKGROUND_TILES_SIZE,
                 BACKGROUND_TILE_WIDTH * BACKGROUND_TILE_SCALE,
                 BACKGROUND_TILE_HEIGHT * BACKGROUND_TILE_SCALE,
             ),
         })
         .add_systems(Startup, spawn_background)
-        .add_systems(Update, (update_background, update_tile_debug));
+        .add_systems(
+            Update,
+            (update_background, update_tile_debug, on_window_resize),
+        );
     }
 }
 
@@ -42,14 +47,61 @@ struct BackgroundTile {
 ////////////////////////////////////////////////////////////////////////////////
 
 // Spawn the background
-pub fn spawn_background(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_background(
+    mut commands: Commands,
+    background_grid: Res<BackgroundGrid>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+    let window = window_query.get_single().unwrap();
+
+    spawn_background_tiles(
+        &mut commands,
+        &background_grid,
+        (window.width(), window.height()),
+        &asset_server,
+    )
+}
+
+fn on_window_resize(
+    mut commands: Commands,
+    background_grid: Res<BackgroundGrid>,
+    mut resize_reader: EventReader<WindowResized>,
+    background_tile_query: Query<Entity, With<BackgroundTile>>,
+    asset_server: Res<AssetServer>,
+) {
+    if let Some(e) = resize_reader.iter().last() {
+        // Remove all background tiles
+        for entity in background_tile_query.iter() {
+            commands.entity(entity).despawn_recursive();
+        }
+
+        spawn_background_tiles(
+            &mut commands,
+            &background_grid,
+            (e.width, e.height),
+            &asset_server,
+        );
+    }
+}
+
+fn spawn_background_tiles(
+    commands: &mut Commands,
+    background_grid: &Res<BackgroundGrid>,
+    window_resolution: (f32, f32),
+    asset_server: &Res<AssetServer>,
+) {
     let background_handle = asset_server.load("sprites/backgrounds/blue.png");
 
-    let low_bound = -1 * (BACKGROUND_TILES_SIZE as i32) / 2;
-    let high_bound = (BACKGROUND_TILES_SIZE as i32) / 2;
+    let (x_res, y_res) = window_resolution;
 
-    for x in low_bound..=high_bound {
-        for y in low_bound..=high_bound {
+    let (x_tiles, y_tiles) = background_grid.grid.number_of_tiles(x_res, y_res);
+
+    let (low_bound_x, high_bound_x) = make_bounds(x_tiles);
+    let (low_bound_y, high_bound_y) = make_bounds(y_tiles);
+
+    for x in low_bound_x..=high_bound_x {
+        for y in low_bound_y..=high_bound_y {
             let mut transform = Transform::from_xyz(
                 0.0, 0.0, -1.0, // The z axis is used to place the background behind everything
             );
@@ -112,6 +164,14 @@ fn update_background(
         }
     }
 }
+
+fn make_bounds(n: u32) -> (i32, i32) {
+    let low_bound = -1 * (n as i32) / 2;
+    let high_bound = (n as i32) / 2;
+
+    (low_bound, high_bound)
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Background Grid
 ///////////////////////////////////////////////////////////////////////////////
@@ -138,16 +198,13 @@ impl Tile {
 // The background grid
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub struct Grid {
-    size: u32, // number of tiles in each direction, so a size of 3 means 3x3 tiles. Must be odd.
     tile_width: f32,
     tile_height: f32,
 }
 
 impl Grid {
-    fn new(size: u32, tile_width: f32, tile_height: f32) -> Self {
-        assert!(size % 2 == 1);
+    fn new(tile_width: f32, tile_height: f32) -> Self {
         Self {
-            size,
             tile_width,
             tile_height,
         }
@@ -155,6 +212,28 @@ impl Grid {
 
     fn center(&self) -> Tile {
         Tile::default()
+    }
+
+    /// Return the number of tiles in x and y directions that are needed to cover the screen.
+    /// The numbers are allways odd.
+    fn number_of_tiles(&self, screen_width: f32, screen_height: f32) -> (u32, u32) {
+        let number_of_tiles_x = (screen_width / self.tile_width).ceil() as u32;
+        let number_of_tiles_y = (screen_height / self.tile_height).ceil() as u32;
+
+        // Make sure the number of tiles is odd
+        let number_of_tiles_x = if number_of_tiles_x % 2 == 0 {
+            number_of_tiles_x + 1
+        } else {
+            number_of_tiles_x
+        };
+
+        let number_of_tiles_y = if number_of_tiles_y % 2 == 0 {
+            number_of_tiles_y + 1
+        } else {
+            number_of_tiles_y
+        };
+
+        (number_of_tiles_x, number_of_tiles_y)
     }
 
     fn tile_position(&self, tile: Tile) -> Vec2 {
@@ -184,7 +263,7 @@ mod tests {
 
     #[test]
     fn test_tile_position() {
-        let grid = Grid::new(3, 10.0, 10.0);
+        let grid = Grid::new(10.0, 10.0);
         let pos = grid.tile_position_xy(0, 0);
         assert_eq!(pos, Vec2::new(0.0, 0.0));
 
@@ -197,7 +276,7 @@ mod tests {
 
     #[test]
     fn test_background_tile() {
-        let grid = Grid::new(3, 10.0, 10.0);
+        let grid = Grid::new(10.0, 10.0);
         let camera_position = Vec2::new(0.0, 0.0);
         assert_eq!(grid.tile(camera_position), Tile::new(0, 0));
 
