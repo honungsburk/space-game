@@ -90,7 +90,9 @@ impl Plugin for GamePlugin {
             (pause_simulation, toggle_simulation, resume_simulation),
         );
 
-        app.add_plugins(RapierDebugRenderPlugin::default());
+        let rapier_debug_plugin = RapierDebugRenderPlugin::default().disabled();
+
+        app.add_plugins(rapier_debug_plugin);
     }
 }
 
