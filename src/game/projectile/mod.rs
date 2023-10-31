@@ -1,4 +1,3 @@
-use super::assets;
 use super::assets::AssetDB;
 use super::time_to_live::TimeToLive;
 use super::vitality::*;

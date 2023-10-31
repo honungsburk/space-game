@@ -1,6 +1,4 @@
 use super::arena;
-use super::assets;
-
 use super::assets::groups;
 use super::assets::AssetDB;
 use super::enemy;

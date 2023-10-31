@@ -154,7 +154,6 @@ fn spawn_background_tiles(
 
 fn update_background_grid_debug(
     background_grid: Res<BackgroundGrid>,
-    background_tile_debug: Res<BackgroundGridDebugFlag>,
     mut gizmos: Gizmos,
     mut query: Query<&Transform, With<BackgroundTile>>,
 ) {

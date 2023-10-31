@@ -6,7 +6,6 @@ use crate::game::trauma::Trauma;
 use crate::game::vitality::Health;
 use crate::game::{assets::groups, assets::AssetDB, weapon::Weapon};
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use leafwing_input_manager::{prelude::*, user_input::InputKind};

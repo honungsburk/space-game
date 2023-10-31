@@ -15,7 +15,7 @@ use super::{
     weapon::Weapon,
 };
 
-use bevy::{math::Vec3Swizzles, prelude::*, window::PrimaryWindow};
+use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::{
     geometry::*,
