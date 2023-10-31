@@ -6,7 +6,7 @@ use crate::{
 };
 
 use self::ai::TurretAI;
-
+use super::game_entity::Enemy;
 use super::{
     assets::{groups, AssetDB},
     game_entity::GameEntityType,
@@ -331,7 +331,7 @@ fn update_turret_radius_outline(
 /// Spawn
 ////////////////////////////////////////////////////////////////////////////////
 
-fn spawn_turret(
+pub fn spawn_turret(
     commands: &mut Commands,
     asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
@@ -342,6 +342,7 @@ fn spawn_turret(
 
     commands
         .spawn(Turret)
+        .insert(Enemy)
         .insert(TurretAI::default())
         .insert(GameEntityType::Enemy)
         // Properties

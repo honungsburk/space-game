@@ -1,9 +1,13 @@
 use super::assets;
 use super::assets::AssetDB;
+use super::camera::ScreenBounds;
+use super::game_entity::Enemy;
 use super::meteors;
 use super::meteors::MeteorSize;
+use super::turret;
 use crate::misc::random;
 use bevy::prelude::*;
+use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
 use rand::distributions::Uniform;
 use rand::prelude::*;
@@ -17,34 +21,89 @@ pub struct ArenaPlugin;
 
 impl Plugin for ArenaPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_random_arena);
+        app.insert_resource(EnemySpawnTimer::from_seconds(10.0))
+            .insert_resource(Arena::new(2000.0, 400.0))
+            .add_systems(Startup, spawn_random_arena)
+            .add_systems(
+                Update,
+                (
+                    tick_enemy_spawn_timer,
+                    update_spawn_enemy.after(tick_enemy_spawn_timer),
+                ),
+            );
     }
 }
-
-pub const ARENA_RADIUS: f32 = 2000.0;
-pub const ARENA_BORDER_WIDTH: f32 = 400.0;
 pub const PLAYER_SPAWN_RADIUS: f32 = 100.0;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Components
 ////////////////////////////////////////////////////////////////////////////////
 
-// #[derive(Component)]
-// pub struct Arena;
+#[derive(Resource)]
+pub struct EnemySpawnTimer {
+    pub timer: Timer,
+}
+
+impl Default for EnemySpawnTimer {
+    fn default() -> EnemySpawnTimer {
+        EnemySpawnTimer {
+            timer: Timer::from_seconds(10.0, TimerMode::Once),
+        }
+    }
+}
+
+impl EnemySpawnTimer {
+    pub fn from_seconds(secs: f32) -> Self {
+        Self {
+            timer: Timer::from_seconds(secs, TimerMode::Once),
+        }
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Systems
 ////////////////////////////////////////////////////////////////////////////////
 
-pub fn spawn_random_arena(
+fn tick_enemy_spawn_timer(mut enemy_spawn_timer: ResMut<EnemySpawnTimer>, time: Res<Time>) {
+    enemy_spawn_timer.timer.tick(time.delta());
+}
+
+fn update_spawn_enemy(
+    screen_bounds: Res<ScreenBounds>,
+    enemy_query: Query<&Enemy>,
+    mut enemy_spawn_timer: ResMut<EnemySpawnTimer>,
+    arena: Res<Arena>,
     mut commands: Commands,
+    asset_db: Res<crate::game::assets::AssetDB>,
+    asset_server: Res<AssetServer>,
+    rapier_context: Res<RapierContext>,
+) {
+    if enemy_spawn_timer.timer.finished() && enemy_query.iter().count() < 100 {
+        // Reduce the duration of the timer by 10% each time it finishes
+        let duration = enemy_spawn_timer.timer.duration();
+        enemy_spawn_timer.timer.set_duration(duration.mul_f32(0.9));
+        enemy_spawn_timer.timer.reset();
+
+        // Spawn a new enemy
+        spawn_enemy(
+            &screen_bounds,
+            &arena,
+            &mut commands,
+            &asset_db,
+            &asset_server,
+            rapier_context,
+        );
+    }
+}
+
+fn spawn_random_arena(
+    mut commands: Commands,
+    arena: Res<Arena>,
     asset_db: Res<AssetDB>,
     asset_server: Res<AssetServer>,
 ) {
-    let arena = Arena::new(ARENA_RADIUS, ARENA_BORDER_WIDTH);
-
     arena.spawn_asteroid_bounds(&mut commands, &asset_db, &asset_server);
-    spawn_random_meteors(&mut commands, &asset_db, &asset_server, 100);
+    spawn_random_meteors(&arena, &mut commands, &asset_db, &asset_server, 100);
 }
 
 fn hollow_circle(radius: f32, number_of_points: u32) -> Collider {
@@ -66,9 +125,9 @@ fn hollow_circle(radius: f32, number_of_points: u32) -> Collider {
 ////////////////////////////////////////////////////////////////////////////////
 
 struct PlayerSpawnLocation {
-    position: Vec2,
-    rotation: f32,
-    protcted_radius: f32,
+    pub position: Vec2,
+    pub rotation: f32,
+    pub protcted_radius: f32,
 }
 
 /// At the edges of the arena, we want to spawn immovable asteroids to confine
@@ -80,6 +139,17 @@ struct AsteroidArenaBounds {
     width: f32,
 }
 
+impl AsteroidArenaBounds {
+    pub fn radius(&self) -> f32 {
+        self.radius
+    }
+
+    pub fn width(&self) -> f32 {
+        self.width
+    }
+}
+
+#[derive(Resource)]
 struct Arena {
     asteroid_bounds: AsteroidArenaBounds,
     player_spawn_locations: PlayerSpawnLocation,
@@ -95,6 +165,14 @@ impl Arena {
                 protcted_radius: 100.0,
             },
         }
+    }
+
+    fn asteroid_bounds(&self) -> &AsteroidArenaBounds {
+        &self.asteroid_bounds
+    }
+
+    fn player_spawn_locations(&self) -> &PlayerSpawnLocation {
+        &self.player_spawn_locations
     }
 
     fn spawn_asteroid_bounds(
@@ -170,7 +248,8 @@ fn circle_area(radius: f32) -> f32 {
     radius * radius * std::f32::consts::PI
 }
 
-pub fn spawn_random_meteors(
+fn spawn_random_meteors(
+    arena: &Res<Arena>,
     commands: &mut Commands,
     asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
@@ -194,7 +273,11 @@ pub fn spawn_random_meteors(
         // within the arena
 
         let candidate = arena_center
-            + random::uniform_donut(&mut rng, ARENA_RADIUS - meteor_radius, PLAYER_SPAWN_RADIUS);
+            + random::uniform_donut(
+                &mut rng,
+                arena.asteroid_bounds.radius() - meteor_radius,
+                arena.player_spawn_locations.protcted_radius,
+            );
         let transform = Transform::from_xyz(candidate.x, candidate.y, 0.0);
         let is_movable = match meteor_size {
             MeteorSize::Tiny => true,
@@ -221,5 +304,60 @@ pub fn spawn_random_meteors(
                 transform,
             );
         }
+    }
+}
+
+fn spawn_enemy(
+    screen_bounds: &Res<ScreenBounds>,
+    arena: &Res<Arena>,
+    commands: &mut Commands,
+    asset_db: &Res<crate::game::assets::AssetDB>,
+    asset_server: &Res<AssetServer>,
+    rapier_context: Res<RapierContext>,
+) {
+    let mut has_spawn_location = false;
+
+    let turret_asset = &asset_db.turret_base_big;
+    let mut candidate_spawn_location = Vec2::new(0.0, 0.0);
+    let filter = QueryFilter::default();
+
+    // If we can't find a spawn location after 100 attempts, give up. The arena is probably full.
+    let mut attempts = 0;
+    let max_attempts = 100;
+
+    // Try to find a valid spawn location
+    while !has_spawn_location && attempts < max_attempts {
+        attempts += 1;
+        // Generate a candidate spawn location
+        let mut rng = rand::thread_rng();
+        candidate_spawn_location = random::uniform_circle(&mut rng, arena.asteroid_bounds.radius);
+
+        // Spawn the turret outside of the screen
+        if screen_bounds.contains(candidate_spawn_location) {
+            continue;
+        }
+
+        has_spawn_location = true;
+
+        // Check if the candidate spawn location is valid
+        rapier_context.intersections_with_shape(
+            candidate_spawn_location,
+            0.0,
+            &turret_asset.collider,
+            filter,
+            |entity| {
+                has_spawn_location = false;
+                false // Return `false` to stop the query.
+            },
+        );
+    }
+
+    if attempts < max_attempts {
+        turret::spawn_turret(
+            commands,
+            asset_db,
+            asset_server,
+            Transform::from_xyz(candidate_spawn_location.x, candidate_spawn_location.y, 0.0),
+        );
     }
 }

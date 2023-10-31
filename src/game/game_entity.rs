@@ -10,3 +10,7 @@ pub enum GameEntityType {
     Enemy,
     Other,
 }
+
+// Enemy tag
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Enemy;

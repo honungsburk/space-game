@@ -4,6 +4,7 @@ use super::{config::Flag, player::actions::PlayerAction};
 use crate::misc::control::PID;
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
+use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::Velocity;
 use leafwing_input_manager::prelude::ActionState;
 use noise::{Fbm, NoiseFn, Perlin, Seedable};
@@ -32,12 +33,14 @@ impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<CameraPositionDebugFlag>()
             .init_resource::<CameraSetpointDebugFlag>()
+            .init_resource::<ScreenBounds>()
             .add_systems(Startup, spawn)
             .add_systems(
                 Update,
                 (
                     update_smooth_camera,
                     update_shaky_camera,
+                    update_screen_bounds,
                     // Debug
                     debug_camera_position.run_if(run_debug_camera_position),
                     debug_camera_setpoint.run_if(run_debug_camera_setpoint),
@@ -111,9 +114,80 @@ impl CameraPID {
     }
 }
 
+#[derive(Resource)]
+pub struct ScreenBounds {
+    center: Vec2,
+    left: f32,
+    right: f32,
+    top: f32,
+    bottom: f32,
+}
+
+impl Default for ScreenBounds {
+    fn default() -> Self {
+        Self {
+            center: Vec2::ZERO,
+            left: 0.0,
+            right: 0.0,
+            top: 0.0,
+            bottom: 0.0,
+        }
+    }
+}
+
+impl ScreenBounds {
+    fn new(width: f32, height: f32, position: Vec2) -> Self {
+        let left = position.x - width / 2.0;
+        let right = position.x + width / 2.0;
+        let top = position.y + height / 2.0;
+        let bottom = position.y - height / 2.0;
+
+        Self {
+            center: position,
+            left,
+            right,
+            top,
+            bottom,
+        }
+    }
+
+    fn update(&mut self, width: f32, height: f32, position: Vec2) -> &mut Self {
+        self.left = position.x - width / 2.0;
+        self.right = position.x + width / 2.0;
+        self.top = position.y + height / 2.0;
+        self.bottom = position.y - height / 2.0;
+        self.center = position;
+
+        self
+    }
+
+    pub fn contains(&self, position: Vec2) -> bool {
+        position.x > self.left
+            && position.x < self.right
+            && position.y > self.bottom
+            && position.y < self.top
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Systems
 ////////////////////////////////////////////////////////////////////////////////
+
+fn update_screen_bounds(
+    mut screen_bounds: ResMut<ScreenBounds>,
+    window_query: Query<&Window, (With<PrimaryWindow>, Without<ShakyCamera>)>,
+    camera_query: Query<&Transform, (Without<PrimaryWindow>, With<ShakyCamera>)>,
+) {
+    if let Ok(window) = window_query.get_single() {
+        if let Ok(transform) = camera_query.get_single() {
+            let width = window.width();
+            let height = window.height();
+            let position = transform.translation.xy();
+
+            screen_bounds.update(width, height, position);
+        }
+    }
+}
 
 pub fn spawn(mut commands: Commands) {
     let transform = Transform::from_xyz(0.0, 0.0, 0.0);

@@ -1,22 +1,23 @@
-use super::arena;
 use super::assets::groups;
 use super::assets::AssetDB;
-use super::enemy;
+use super::game_entity::Enemy;
 use super::game_entity::GameEntityType;
 use super::player::components::Player;
 use super::vitality::Health;
-use crate::misc::random;
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use bevy_rapier2d::geometry::*;
 use bevy_rapier2d::prelude::*;
+
+////////////////////////////////////////////////////////////////////////////////
+// Plugin
+////////////////////////////////////////////////////////////////////////////////
+
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_enemy)
-            .add_systems(Startup, spawn_enemies);
+        app.add_systems(Update, update_enemy);
         // Systems
         // On Exit State
         // .add_system(despawn_player.in_schedule(OnExit(AppState::Game)));
@@ -26,9 +27,6 @@ impl Plugin for EnemyPlugin {
 ////////////////////////////////////////////////////////////////////////////////
 // Components
 ////////////////////////////////////////////////////////////////////////////////
-
-#[derive(Component)]
-pub struct Enemy;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Systems
@@ -113,28 +111,4 @@ fn spawn_enemy(
             impulse: Vec2::new(0.0, 0.0),
             torque_impulse: 0.0,
         });
-}
-
-pub fn spawn_enemies(
-    commands: Commands,
-    asset_db: Res<crate::game::assets::AssetDB>,
-    asset_server: Res<AssetServer>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
-) {
-    let window = window_query.get_single().unwrap();
-    let arena_center = Vec3::new(window.width() / 2.0, window.height() / 2.0, 0.0);
-
-    let mut rng = rand::thread_rng();
-
-    // TODO: Optimize this
-    let spawn_location = arena_center.xy()
-        + random::uniform_donut(
-            &mut rng,
-            arena::ARENA_RADIUS - 400.0,
-            arena::ARENA_RADIUS - 500.0,
-        );
-
-    let spawn_transform = Transform::from_xyz(spawn_location.x, spawn_location.y, 0.0);
-
-    enemy::spawn_enemy(commands, &asset_db, &asset_server, spawn_transform)
 }
