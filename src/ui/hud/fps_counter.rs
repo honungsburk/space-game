@@ -13,7 +13,7 @@ pub struct FPSCounterPlugin;
 impl Plugin for FPSCounterPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(FPSCounterDebugFlag {
-            flag: Flag::new("FPS Counter", "Show fps count in the hud", true),
+            flag: Flag::new("FPS Counter", "Show fps count in the hud", false),
         })
         .insert_resource(UpdateFPSTimer(Timer::from_seconds(
             0.5,

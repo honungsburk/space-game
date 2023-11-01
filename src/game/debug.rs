@@ -7,6 +7,8 @@
 //!       the different debug tools. These should be saved to a config and loaded
 //!       on startup..
 
+use crate::ui::hud;
+
 use super::background;
 use super::camera;
 use bevy::prelude::*;
@@ -35,6 +37,7 @@ fn debug_keyboard_input(
     mut camera_position_debug: Option<ResMut<camera::CameraPositionDebugFlag>>,
     mut camera_setpoint_debug: Option<ResMut<camera::CameraSetpointDebugFlag>>,
     mut render_debug: Option<ResMut<DebugRenderContext>>,
+    mut fps_debug: Option<ResMut<hud::FPSCounterDebugFlag>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::F1) {
         if let Some(background_debug) = background_debug.as_mut() {
@@ -57,6 +60,12 @@ fn debug_keyboard_input(
     if keyboard_input.just_pressed(KeyCode::F4) {
         if let Some(render_debug) = render_debug.as_mut() {
             render_debug.enabled = !render_debug.enabled;
+        }
+    }
+
+    if keyboard_input.just_pressed(KeyCode::F5) {
+        if let Some(fps_debug) = fps_debug.as_mut() {
+            fps_debug.flag.flip();
         }
     }
 }
