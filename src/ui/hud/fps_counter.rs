@@ -2,7 +2,6 @@ use crate::{game::config::Flag, ui::assets::GameFonts};
 use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
-    render::view::visibility,
 };
 
 ////////////////////////////////////////////////////////////////////////////////
