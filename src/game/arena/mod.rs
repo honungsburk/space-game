@@ -79,7 +79,7 @@ fn update_spawn_enemy(
     asset_server: Res<AssetServer>,
     rapier_context: Res<RapierContext>,
 ) {
-    if enemy_spawn_timer.timer.finished() && enemy_query.iter().count() < 100 {
+    if enemy_spawn_timer.timer.finished() && enemy_query.iter().len() < 100 {
         // Reduce the duration of the timer by 10% each time it finishes
         let duration = enemy_spawn_timer.timer.duration();
         enemy_spawn_timer
