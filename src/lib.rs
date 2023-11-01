@@ -9,7 +9,7 @@ mod parent_child_no_rotation;
 pub mod settings;
 mod systems;
 mod ui;
-
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use config::{Config, VisualDebug};
@@ -37,6 +37,7 @@ pub fn run(config: Config, _settings: Settings, high_scores: high_score::HighSco
     })
     .add_plugins(NoRotationPlugin)
     .add_plugins(HudPlugin)
+    .add_plugins(FrameTimeDiagnosticsPlugin::default())
     // Systems
     .add_systems(Update, exit_game);
 
