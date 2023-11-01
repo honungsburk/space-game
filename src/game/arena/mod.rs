@@ -13,6 +13,7 @@ use rand::distributions::Uniform;
 use rand::prelude::*;
 use std::collections::VecDeque;
 use std::f32::consts::PI;
+use std::time::Duration;
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,7 +82,9 @@ fn update_spawn_enemy(
     if enemy_spawn_timer.timer.finished() && enemy_query.iter().count() < 100 {
         // Reduce the duration of the timer by 10% each time it finishes
         let duration = enemy_spawn_timer.timer.duration();
-        enemy_spawn_timer.timer.set_duration(duration.mul_f32(0.9));
+        enemy_spawn_timer
+            .timer
+            .set_duration(duration.mul_f32(0.9).max(Duration::from_secs_f32(1.0)));
         enemy_spawn_timer.timer.reset();
 
         // Spawn a new enemy
