@@ -20,7 +20,6 @@ impl Default for TurretAI {
 pub enum TurretState {
     Idle,
     Targeting { timer: Timer },
-    PrepareFiring { timer: Timer },
     Fire,
 }
 
@@ -44,14 +43,6 @@ impl TurretState {
             _ => false,
         }
     }
-
-    pub fn is_prepare_firing(&self) -> bool {
-        match self {
-            Self::PrepareFiring { .. } => true,
-            _ => false,
-        }
-    }
-
     pub fn is_idle(&self) -> bool {
         match self {
             Self::Idle => true,
@@ -69,17 +60,6 @@ impl TurretState {
                 }
             }
             Self::Targeting { timer } => {
-                if has_target {
-                    if timer.tick(time.delta()).just_finished() {
-                        *self = Self::PrepareFiring {
-                            timer: Timer::from_seconds(0.5, TimerMode::Once),
-                        };
-                    }
-                } else {
-                    *self = Self::Idle;
-                }
-            }
-            Self::PrepareFiring { timer } => {
                 if has_target {
                     if timer.tick(time.delta()).just_finished() {
                         *self = Self::Fire;
