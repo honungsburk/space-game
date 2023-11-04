@@ -2,6 +2,7 @@ use super::components::Player;
 use super::{actions::*, components::DirectionControl};
 use crate::game::average_velocity::AverageVelocity;
 use crate::game::trauma::Trauma;
+use crate::game::vitality::Health;
 use crate::game::{assets::AssetDB, weapon::Weapon};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -118,7 +119,7 @@ pub fn fire_weapon(
 
 pub fn player_collision(
     mut collison_events: EventReader<CollisionEvent>,
-    mut player_query: Query<(&mut Trauma, &AverageVelocity, &Velocity), With<Player>>,
+    mut player_query: Query<(&mut Trauma, &mut Health, &AverageVelocity, &Velocity), With<Player>>,
 ) {
     for collision_event in collison_events.iter() {
         // TODO: Scale trauma based on force applied to the player
@@ -128,23 +129,26 @@ pub fn player_collision(
                 if (player_query.contains(*entity1) || player_query.contains(*entity2))
                     && !flags.contains(CollisionEventFlags::SENSOR)
                 {
-                    if let Ok((mut player_trauma, average_velocity, velocity)) =
+                    if let Ok((mut player_trauma, mut player_health, average_velocity, velocity)) =
                         player_query.get_single_mut()
                     {
                         // TODO: We need a MAX_VELOCITY to scale this by
+
                         player_trauma.add_trauma(
                             (average_velocity.get_linvel() - velocity.linvel).length() / 200.0,
                         );
+
+                        let damage = ((average_velocity.get_linvel() - velocity.linvel).length()
+                            / 200.0)
+                            .max(1.0);
+
+                        if damage > 0.2 {
+                            player_health.take_damage_u32((damage * 10.0) as u32);
+                        }
                     }
                 }
             }
             _ => {}
         }
-    }
-}
-
-pub fn despawn_player(mut commands: Commands, player_query: Query<Entity, With<Player>>) {
-    if let Ok(player_entity) = player_query.get_single() {
-        commands.entity(player_entity).despawn();
     }
 }

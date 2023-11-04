@@ -45,6 +45,7 @@ pub fn spawn_laser_projectile(
     spawn_transform: Transform,
     collision_membership: &Group,
     collision_filter: &Group,
+    damage: u32,
 ) {
     let laser_projectile = &asset_db.laser_projectile;
 
@@ -70,7 +71,7 @@ pub fn spawn_laser_projectile(
             angvel: 0.0,
         })
         .insert(Projectile::new(ProjectileType::Laser))
-        .insert(Damage(1))
+        .insert(Damage(damage))
         .insert(TimeToLive::from_seconds(3.0));
 }
 

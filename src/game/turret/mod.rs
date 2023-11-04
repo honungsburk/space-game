@@ -387,7 +387,11 @@ pub fn spawn_turret(
         .insert(RotationControl::default())
         .insert(StationaryControl::default())
         .insert(Targets::default())
-        .insert(Weapon::simple_laser(
+        .insert(Weapon::laser(
+            10,
+            1000.0,
+            Timer::from_seconds(1.0, TimerMode::Once),
+            Timer::from_seconds(0.1, TimerMode::Repeating),
             groups::ENEMY_PROJECTILE_GROUP,
             groups::ENEMY_PROJECTILE_FILTER_MASK,
         ))
@@ -414,10 +418,12 @@ pub fn spawn_turret(
             stroke.options.start_cap = LineCap::Round;
             stroke.options.end_cap = LineCap::Round;
 
+            let sensor_range = 500.0;
+
             parent
-                .spawn((dashed_circle(300.0, 10.0, 10.0), stroke))
+                .spawn((dashed_circle(sensor_range, 10.0, 10.0), stroke))
                 .insert(NoRotationChild)
-                .insert(Collider::ball(300.0))
+                .insert(Collider::ball(sensor_range))
                 .insert(ColliderMassProperties::Density(0.0))
                 .insert(Sensor)
                 .insert(CollisionGroups::new(

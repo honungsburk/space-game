@@ -35,8 +35,8 @@ impl Plugin for GameModePlugin {
 pub enum GameMode {
     // Real Game Modes
     None, // No mode
-    MainGame,
     #[default]
+    MainGame,
     // Debug Game Modes
     TurretPerformance, // Performance testing mode with a lot of turrets
 }

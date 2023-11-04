@@ -24,7 +24,7 @@ pub struct Weapon(WeaponType);
 
 pub enum WeaponType {
     Laser {
-        projectile_damage: f32,
+        projectile_damage: u32,
         projectile_speed: f32,
         projectile_time_to_live: Timer,
         projectile_collision_membership: Group,
@@ -56,6 +56,7 @@ impl Weapon {
                 cooldown,
                 projectile_collision_membership,
                 projectile_collision_filter,
+                projectile_damage,
                 ..
             } => {
                 Projectile::spawn_laser_projectile(
@@ -65,6 +66,7 @@ impl Weapon {
                     spawn_transform,
                     projectile_collision_membership,
                     projectile_collision_filter,
+                    *projectile_damage,
                 );
 
                 cooldown.reset()
@@ -73,7 +75,7 @@ impl Weapon {
     }
 
     pub fn laser(
-        projectile_damage: f32,
+        projectile_damage: u32,
         projectile_speed: f32,
         projectile_time_to_live: Timer,
         cooldown: Timer,
@@ -95,7 +97,7 @@ impl Weapon {
         projectile_collision_filter: Group,
     ) -> Self {
         Self(WeaponType::Laser {
-            projectile_damage: 1.0,
+            projectile_damage: 1,
             projectile_speed: 1000.0,
             projectile_time_to_live: Timer::from_seconds(1.0, TimerMode::Once),
             cooldown: Timer::from_seconds(0.1, TimerMode::Repeating),

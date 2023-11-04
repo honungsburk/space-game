@@ -61,6 +61,10 @@ impl Health {
         self.current -= damage.0;
     }
 
+    pub fn take_damage_u32(&mut self, damage: u32) {
+        self.current -= damage;
+    }
+
     pub fn heal(&mut self, amount: u32) {
         self.current += amount;
         self.current = self.current.min(self.max);
