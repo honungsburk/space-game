@@ -361,7 +361,7 @@ pub fn spawn_turret(
         .insert(TurretAI::default())
         .insert(GameEntityType::Enemy)
         // Properties
-        .insert(Health::at_max(1))
+        .insert(Health::at_max(30))
         // Physics
         .insert(SpatialBundle::from_transform(spawn_transform))
         .insert(NoRotationParent)

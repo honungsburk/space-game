@@ -157,7 +157,11 @@ pub fn spawn_player(
             angvel: 0.0,
         })
         .insert(AverageVelocity::new(0.5))
-        .insert(Weapon::simple_laser(
+        .insert(Weapon::laser(
+            10,
+            1000.0,
+            Timer::from_seconds(1.0, TimerMode::Once),
+            Timer::from_seconds(0.1, TimerMode::Repeating),
             groups::PLAYER_PROJECTILE_GROUP,
             groups::PLAYER_PROJECTILE_FILTER_MASK,
         ));
