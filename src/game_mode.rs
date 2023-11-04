@@ -34,9 +34,9 @@ impl Plugin for GameModePlugin {
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
 pub enum GameMode {
     // Real Game Modes
-    #[default]
     None, // No mode
     MainGame,
+    #[default]
     // Debug Game Modes
     TurretPerformance, // Performance testing mode with a lot of turrets
 }

@@ -81,6 +81,7 @@ impl Default for StationaryControl {
 
 #[derive(Component)]
 pub struct Targets {
+    has_changed: bool,
     targets: Vec<Target>,
 }
 
@@ -93,6 +94,7 @@ pub struct Target {
 impl Targets {
     pub fn new() -> Self {
         Self {
+            has_changed: true,
             targets: Vec::new(),
         }
     }
@@ -104,15 +106,18 @@ impl Targets {
     pub fn add(&mut self, target: Target) {
         if !self.targets.contains(&target) {
             self.targets.push(target);
+            self.has_changed = true;
         }
     }
 
     pub fn remove(&mut self, entity: Entity) {
         self.targets.retain(|e| e.entity != entity);
+        self.has_changed = true;
     }
 
     pub fn clear(&mut self) {
         self.targets.clear();
+        self.has_changed = true;
     }
 
     pub fn get_selected(&self) -> Option<&Target> {
@@ -121,6 +126,12 @@ impl Targets {
 
     pub fn for_each(&mut self, f: impl Fn(&mut Target)) {
         self.targets.iter_mut().for_each(f);
+    }
+
+    pub fn has_changed(&mut self) -> bool {
+        let state = self.has_changed;
+        self.has_changed = false;
+        state
     }
 }
 
@@ -311,16 +322,21 @@ fn update_stationary_control(
     }
 }
 
+// WARNING: You must perform change detection if you are going to use this system
+// the lyon plugin will check if a shape has changed, and if it has it will update the mesh
+// This is very expensive, so we only want to do it when we need to.
 fn update_turret_radius_outline(
-    turret_query: Query<&Targets, With<Turret>>,
+    mut turret_query: Query<&mut Targets, With<Turret>>,
     mut turret_radius_query: Query<(&Parent, &mut Stroke), With<TurretRadiusOutline>>,
 ) {
     for (parent, mut stroke) in turret_radius_query.iter_mut() {
-        if let Ok(targets) = turret_query.get(parent.get()) {
-            if targets.is_empty() {
-                stroke.color = Color::rgba(0.0, 0.0, 0.0, 0.2);
-            } else {
-                stroke.color = Color::rgba(1.0, 0.0, 0.0, 0.4);
+        if let Ok(mut targets) = turret_query.get_mut(parent.get()) {
+            if targets.has_changed() {
+                if targets.is_empty() {
+                    stroke.color = Color::rgba(0.0, 0.0, 0.0, 0.2);
+                } else {
+                    stroke.color = Color::rgba(1.0, 0.0, 0.0, 0.4);
+                }
             }
         }
     }

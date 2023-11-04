@@ -34,7 +34,7 @@ impl Plugin for TurretPerformancePlugin {
 fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<AssetServer>) {
     // Spawn turrets in a grid north of the player
 
-    let turret_count = 100;
+    let turret_count = 1000;
 
     let turret_spacing = 100.0;
 

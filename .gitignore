@@ -1,5 +1,7 @@
 /target
 /asset-packs
+/bin
+/traces
 .DS_Store
 
 config.toml
