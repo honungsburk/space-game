@@ -19,4 +19,3 @@ impl Plugin for MainGamePlugin {
         );
     }
 }
-//
