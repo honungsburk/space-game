@@ -12,7 +12,6 @@ Current objective is to get a gameplay loop working.
   - [ ] Add highscore list
 - Add quick restart button
 - Fix game crashing when player dies
-- Add tests
 
 ### Backlog
 
@@ -63,6 +62,8 @@ Current objective is to get a gameplay loop working.
 
 ## Release
 
+- [ ] Add full documentation of code
+- [ ] Add excellent test suit
 - [ ] Playtesting
 - [ ] Test on multiple screens/resolutions
 - [ ] Accessability
