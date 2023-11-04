@@ -1,14 +1,10 @@
-use std::collections::HashSet;
-
 use super::components::{ContactForceInvulnerability, Player};
 use super::{actions::*, components::DirectionControl};
-use crate::game::average_velocity::AverageVelocity;
 use crate::game::trauma::Trauma;
 use crate::game::vitality::Health;
 use crate::game::{assets::AssetDB, weapon::Weapon};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 use leafwing_input_manager::prelude::*;
 
 pub fn control_ship(
