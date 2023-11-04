@@ -14,6 +14,7 @@ pub mod player;
 mod projectile;
 pub mod score;
 mod systems;
+pub mod targets;
 pub mod time_to_live;
 pub mod trauma;
 pub mod turret;

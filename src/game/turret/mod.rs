@@ -7,14 +7,15 @@ use crate::{
 };
 
 use self::ai::TurretAI;
-use super::game_entity::Enemy;
 use super::{
     assets::{groups, AssetDB},
     game_entity::GameEntityType,
     player::components::Player,
+    targets::Target,
     vitality::Health,
     weapon::Weapon,
 };
+use super::{game_entity::Enemy, targets::Targets};
 
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_prototype_lyon::prelude::*;
@@ -23,6 +24,19 @@ use bevy_rapier2d::{
     prelude::{CollisionEvent, ExternalForce, ExternalImpulse, RigidBody, Velocity},
 };
 use std::f32::consts::PI;
+
+////////////////////////////////////////////////////////////////////////////////
+/// Config
+////////////////////////////////////////////////////////////////////////////////
+
+struct TurretConfig {
+    pub health: Health,
+    pub weapon: Weapon,
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Plugin
+////////////////////////////////////////////////////////////////////////////////
 pub struct TurretPlugin;
 
 impl Plugin for TurretPlugin {
@@ -47,7 +61,7 @@ impl Plugin for TurretPlugin {
 ////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Component)]
-pub struct Turret;
+pub struct TurretLabel;
 
 // Used to control the player's rotation.
 #[derive(Component)]
@@ -80,75 +94,13 @@ impl Default for StationaryControl {
 }
 
 #[derive(Component)]
-pub struct Targets {
-    has_changed: bool,
-    targets: Vec<Target>,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Target {
-    entity: Entity,
-    location: Vec2,
-}
-
-impl Targets {
-    pub fn new() -> Self {
-        Self {
-            has_changed: true,
-            targets: Vec::new(),
-        }
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.targets.is_empty()
-    }
-
-    pub fn add(&mut self, target: Target) {
-        if !self.targets.contains(&target) {
-            self.targets.push(target);
-            self.has_changed = true;
-        }
-    }
-
-    pub fn remove(&mut self, entity: Entity) {
-        self.targets.retain(|e| e.entity != entity);
-        self.has_changed = true;
-    }
-
-    pub fn clear(&mut self) {
-        self.targets.clear();
-        self.has_changed = true;
-    }
-
-    pub fn get_selected(&self) -> Option<&Target> {
-        self.targets.first()
-    }
-
-    pub fn for_each(&mut self, f: impl Fn(&mut Target)) {
-        self.targets.iter_mut().for_each(f);
-    }
-
-    pub fn has_changed(&mut self) -> bool {
-        let state = self.has_changed;
-        self.has_changed = false;
-        state
-    }
-}
-
-impl Default for Targets {
-    fn default() -> Self {
-        Targets::new()
-    }
-}
-
-#[derive(Component)]
 struct TurretRadiusOutline {}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Spawn & Despawn
 ////////////////////////////////////////////////////////////////////////////////
 
-pub fn despawn(mut commands: Commands, query: Query<Entity, With<Turret>>) {
+pub fn despawn(mut commands: Commands, query: Query<Entity, With<TurretLabel>>) {
     commands.despawn_all(&query);
 }
 
@@ -196,7 +148,7 @@ fn update_turret_rotation(
             continue;
         }
 
-        if let Some(target) = targets.get_selected() {
+        if let Some(target) = targets.current_target() {
             let desired_angel =
                 Vec2::Y.angle_between(target.location - turret_global_transform.translation.xy());
 
@@ -326,7 +278,7 @@ fn update_stationary_control(
 // the lyon plugin will check if a shape has changed, and if it has it will update the mesh
 // This is very expensive, so we only want to do it when we need to.
 fn update_turret_radius_outline(
-    mut turret_query: Query<&mut Targets, With<Turret>>,
+    mut turret_query: Query<&mut Targets, With<TurretLabel>>,
     mut turret_radius_query: Query<(&Parent, &mut Stroke), With<TurretRadiusOutline>>,
 ) {
     for (parent, mut stroke) in turret_radius_query.iter_mut() {
@@ -356,7 +308,7 @@ pub fn spawn_turret(
     let gun = &asset_db.gun_8;
 
     commands
-        .spawn(Turret)
+        .spawn(TurretLabel)
         .insert(Enemy)
         .insert(TurretAI::default())
         .insert(GameEntityType::Enemy)
@@ -436,8 +388,6 @@ pub fn spawn_turret(
 }
 
 fn dashed_circle(radius: f32, dash_length: f32, gap_length: f32) -> ShapeBundle {
-    // Build a Path.
-
     let mut path_builder = PathBuilder::new();
     let (dash_radians, gap_radians) = calculate_dash_gap_radians(radius, dash_length, gap_length);
 

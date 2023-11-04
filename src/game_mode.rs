@@ -6,6 +6,7 @@
 //! is the state that is active when the player is playing the game. The `Paused`
 //! state is the state that is active when the player pauses the game.
 mod main_game;
+mod player_death;
 mod turret_performance;
 
 use bevy::prelude::*;
