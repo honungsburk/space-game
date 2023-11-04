@@ -1,7 +1,7 @@
 pub mod arena;
 pub mod assets;
 pub mod average_velocity;
-mod background;
+pub mod background;
 pub mod camera;
 pub mod config;
 pub mod debug;

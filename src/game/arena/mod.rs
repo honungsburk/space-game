@@ -34,6 +34,32 @@ impl Plugin for ArenaPlugin {
 pub const PLAYER_SPAWN_RADIUS: f32 = 100.0;
 
 ////////////////////////////////////////////////////////////////////////////////
+// Spawn & Despawn
+////////////////////////////////////////////////////////////////////////////////
+
+pub fn despawn(
+    mut commands: Commands,
+    query: Query<Entity, With<Meteor>>,
+    player_query: Query<Entity, With<player::Player>>,
+) {
+    commands.remove_resource::<Arena>();
+    commands.remove_resource::<EnemySpawnTimer>();
+    meteors::despawn_all(&mut commands, &query);
+    player::despawn_all(&mut commands, &player_query);
+}
+
+pub fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<AssetServer>) {
+    let arena = Arena::new(2000.0, 400.0);
+
+    arena.spawn_asteroid_bounds(&mut commands, &asset_db, &asset_server);
+    spawn_random_meteors(&arena, &mut commands, &asset_db, &asset_server, 100);
+    arena.spawn_player(&mut commands, &asset_db, &asset_server);
+
+    commands.insert_resource(arena);
+    commands.insert_resource(EnemySpawnTimer::from_seconds(10.0));
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Components
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -96,22 +122,6 @@ fn update_spawn_enemy(
     }
 }
 
-pub fn spawn_arena(
-    mut commands: Commands,
-    arena: Res<Arena>,
-    asset_db: Res<AssetDB>,
-    asset_server: Res<AssetServer>,
-) {
-    arena.spawn_asteroid_bounds(&mut commands, &asset_db, &asset_server);
-    spawn_random_meteors(&arena, &mut commands, &asset_db, &asset_server, 100);
-}
-
-pub fn despawn_arena(mut commands: Commands, arena_query: Query<Entity, With<Meteor>>) {
-    for entity in arena_query.iter() {
-        commands.entity(entity).despawn_recursive();
-    }
-}
-
 fn hollow_circle(radius: f32, number_of_points: u32) -> Collider {
     // Generate
     let mut vertices: Vec<Vect> = Vec::new();
@@ -129,7 +139,8 @@ fn hollow_circle(radius: f32, number_of_points: u32) -> Collider {
 ////////////////////////////////////////////////////////////////////////////////
 // Arena System
 ////////////////////////////////////////////////////////////////////////////////
-
+///
+#[derive(Clone)]
 struct PlayerSpawnLocation {
     pub position: Vec2,
     pub rotation: f32,
@@ -140,6 +151,7 @@ struct PlayerSpawnLocation {
 /// the player to the arena. This struct describes the bounds of the arena.
 /// The radius is the radius of the arena, and the width is the width of the
 /// boundary.
+#[derive(Clone)]
 struct AsteroidArenaBounds {
     radius: f32,
     width: f32,
@@ -155,7 +167,7 @@ impl AsteroidArenaBounds {
     }
 }
 
-#[derive(Resource)]
+#[derive(Resource, Clone)]
 pub struct Arena {
     asteroid_bounds: AsteroidArenaBounds,
     player_spawn_locations: PlayerSpawnLocation,
@@ -270,7 +282,7 @@ fn circle_area(radius: f32) -> f32 {
 }
 
 fn spawn_random_meteors(
-    arena: &Res<Arena>,
+    arena: &Arena,
     commands: &mut Commands,
     asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,

@@ -109,3 +109,9 @@ pub fn spawn_immovable_meteor(
         .insert(RigidBody::Fixed)
         .insert(asset.collider.clone());
 }
+
+pub fn despawn_all(commands: &mut Commands, arena_query: &Query<Entity, With<Meteor>>) {
+    for entity in arena_query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+}

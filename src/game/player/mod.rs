@@ -11,9 +11,10 @@ use actions::*;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use components::DirectionControl;
-use components::Player;
 use leafwing_input_manager::{prelude::*, user_input::InputKind};
 use systems::*;
+
+pub use components::Player;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -141,7 +142,11 @@ pub fn spawn_player(
         ));
 }
 
-pub fn despawn_player(commands: &mut Commands, player_query: &Query<Entity, With<Player>>) {
+pub fn despawn(mut commands: Commands, player_query: Query<Entity, With<Player>>) {
+    despawn_all(&mut commands, &player_query)
+}
+
+pub fn despawn_all(commands: &mut Commands, player_query: &Query<Entity, With<Player>>) {
     if let Ok(player_entity) = player_query.get_single() {
         commands.entity(player_entity).despawn();
     }

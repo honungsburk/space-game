@@ -5,7 +5,7 @@ use bevy::prelude::*;
 use crate::misc::control::PID;
 
 #[derive(Component)]
-pub struct Player {}
+pub struct Player;
 
 // Used to control the player's rotation.
 #[derive(Component)]

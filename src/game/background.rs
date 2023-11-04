@@ -26,7 +26,6 @@ impl Plugin for BackgroundPlugin {
             ),
         })
         .init_resource::<BackgroundGridDebugFlag>()
-        .add_systems(Startup, spawn_background)
         .add_systems(
             Update,
             (
@@ -39,11 +38,38 @@ impl Plugin for BackgroundPlugin {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+/// Spawn & Despawn
+///////////////////////////////////////////////////////////////////////////////
+
+// Spawn the background
+pub fn spawn(
+    mut commands: Commands,
+    background_grid: Res<BackgroundGrid>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+    let window = window_query.get_single().unwrap();
+
+    spawn_background_tiles(
+        &mut commands,
+        &background_grid,
+        (window.width(), window.height()),
+        &asset_server,
+    )
+}
+
+pub fn despawn(mut commands: Commands, query: Query<Entity, With<BackgroundTile>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /// Components & Resources
 ////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Resource)]
-struct BackgroundGrid {
+pub struct BackgroundGrid {
     grid: Grid,
 }
 
@@ -61,7 +87,7 @@ impl Default for BackgroundGridDebugFlag {
     }
 }
 #[derive(Component)]
-struct BackgroundTile {
+pub struct BackgroundTile {
     pub tile: Tile,
 }
 
@@ -76,23 +102,6 @@ fn condition_debug_background(background_grid_debug: Res<BackgroundGridDebugFlag
 ////////////////////////////////////////////////////////////////////////////////
 /// System
 ////////////////////////////////////////////////////////////////////////////////
-
-// Spawn the background
-fn spawn_background(
-    mut commands: Commands,
-    background_grid: Res<BackgroundGrid>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
-    asset_server: Res<AssetServer>,
-) {
-    let window = window_query.get_single().unwrap();
-
-    spawn_background_tiles(
-        &mut commands,
-        &background_grid,
-        (window.width(), window.height()),
-        &asset_server,
-    )
-}
 
 fn on_window_resize(
     mut commands: Commands,
