@@ -4,6 +4,7 @@ use super::vitality::*;
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -88,7 +89,11 @@ fn update_projectiles_on_collision(
     for collision_event in collision_events.iter() {
         match collision_event {
             // Will be removed before collision is resolved
-            CollisionEvent::Started(entity1, entity2, _) => {
+            CollisionEvent::Started(entity1, entity2, flags) => {
+                if flags.contains(CollisionEventFlags::REMOVED) {
+                    continue;
+                }
+
                 let did_resolve = resolve_projectile_collision(
                     &mut commands,
                     &projectile_query,
