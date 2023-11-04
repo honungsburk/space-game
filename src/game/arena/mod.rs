@@ -391,10 +391,11 @@ fn spawn_enemy(
     }
 
     if attempts < max_attempts {
-        turret::spawn_turret(
+        turret::spawn(
             commands,
             asset_db,
             asset_server,
+            &turret::TurretConfig::default(),
             Transform::from_xyz(candidate_spawn_location.x, candidate_spawn_location.y, 0.0),
         );
     }

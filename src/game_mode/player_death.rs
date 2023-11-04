@@ -35,5 +35,11 @@ fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<Asset
     let turret_location = Vec2::new(200.0, 0.0);
     let spawn_transform = Transform::from_translation(turret_location.extend(0.0));
 
-    turret::spawn_turret(&mut commands, &asset_db, &asset_server, spawn_transform)
+    turret::spawn(
+        &mut commands,
+        &asset_db,
+        &asset_server,
+        &turret::TurretConfig::new(100, 1000),
+        spawn_transform,
+    )
 }

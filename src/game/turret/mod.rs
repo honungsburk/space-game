@@ -1,37 +1,54 @@
 mod ai;
-
-use crate::{
-    misc::control::{PID, PID2D},
-    parent_child_no_rotation::{NoRotationChild, NoRotationParent},
-    prelude::*,
-};
+mod components;
+mod draw;
+mod systems;
 
 use self::ai::TurretAI;
 use super::{
     assets::{groups, AssetDB},
     game_entity::GameEntityType,
-    player::components::Player,
-    targets::Target,
     vitality::Health,
     weapon::Weapon,
 };
 use super::{game_entity::Enemy, targets::Targets};
-
-use bevy::{math::Vec3Swizzles, prelude::*};
+use crate::{
+    parent_child_no_rotation::{NoRotationChild, NoRotationParent},
+    prelude::*,
+};
+use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use bevy_rapier2d::{
     geometry::*,
-    prelude::{CollisionEvent, ExternalForce, ExternalImpulse, RigidBody, Velocity},
+    prelude::{ExternalForce, ExternalImpulse, RigidBody, Velocity},
 };
+use components::*;
 use std::f32::consts::PI;
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Config
 ////////////////////////////////////////////////////////////////////////////////
 
-struct TurretConfig {
-    pub health: Health,
-    pub weapon: Weapon,
+pub struct TurretConfig {
+    pub max_health: u32,
+    pub weapon_damage: u32,
+}
+
+impl Default for TurretConfig {
+    fn default() -> Self {
+        Self {
+            max_health: 30,
+            weapon_damage: 10,
+        }
+    }
+}
+
+impl TurretConfig {
+    pub fn new(max_health: u32, weapon_damage: u32) -> Self {
+        Self {
+            max_health,
+            weapon_damage,
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,57 +61,19 @@ impl Plugin for TurretPlugin {
         app.add_systems(
             Update,
             (
-                update_turret_target,
-                update_turret_rotation.before(update_stationary_control),
-                register_turret_target,
+                systems::update_turret_target,
+                systems::update_turret_rotation.before(systems::update_stationary_control),
+                systems::register_turret_target,
                 // update_stationary_control,
-                update_turret_radius_outline,
-                fire_weapon,
-                update_ai.after(fire_weapon).after(update_turret_rotation),
+                systems::update_turret_radius_outline,
+                systems::fire_weapon,
+                systems::update_ai
+                    .after(systems::fire_weapon)
+                    .after(systems::update_turret_rotation),
             ),
         );
     }
 }
-
-////////////////////////////////////////////////////////////////////////////////
-/// Components
-////////////////////////////////////////////////////////////////////////////////
-
-#[derive(Component)]
-pub struct TurretLabel;
-
-// Used to control the player's rotation.
-#[derive(Component)]
-pub struct RotationControl {
-    pub control: PID,
-}
-
-impl Default for RotationControl {
-    fn default() -> Self {
-        Self {
-            control: PID::rotation(0.05, 0.0, 0.05, 0.0),
-        }
-    }
-}
-
-#[derive(Component)]
-pub struct StationaryControl {
-    pub control: PID2D,
-}
-
-impl Default for StationaryControl {
-    fn default() -> Self {
-        Self {
-            control: PID2D::new(
-                PID::basic(0.1, 0.0, 0.0, 0.0),
-                PID::basic(0.1, 0.0, 0.0, 0.0),
-            ),
-        }
-    }
-}
-
-#[derive(Component)]
-struct TurretRadiusOutline {}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Spawn & Despawn
@@ -104,204 +83,11 @@ pub fn despawn(mut commands: Commands, query: Query<Entity, With<TurretLabel>>) 
     commands.despawn_all(&query);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-/// Systems
-////////////////////////////////////////////////////////////////////////////////
-
-fn update_ai(mut query: Query<(&mut ai::TurretAI, &Targets)>, time: Res<Time>) {
-    for (mut turret_ai, targets) in query.iter_mut() {
-        turret_ai.state.update(&time, !targets.is_empty());
-    }
-}
-
-fn fire_weapon(
-    mut query: Query<(&ai::TurretAI, &mut Weapon, &Transform)>,
-    mut commands: Commands,
-    asset_db: Res<AssetDB>,
-    asset_server: Res<AssetServer>,
-) {
-    for (turret_ai, mut weapon, transform) in query.iter_mut() {
-        if turret_ai.state.is_firing() {
-            weapon.fire(&mut commands, &asset_db, &asset_server, *transform)
-        }
-    }
-}
-
-fn update_turret_rotation(
-    mut query: Query<(
-        &TurretAI,
-        &mut RotationControl,
-        &Transform,
-        &Targets,
-        &mut ExternalImpulse,
-    )>,
-    time: Res<Time>,
-) {
-    let dt = time.delta_seconds();
-    if dt == 0.0 {
-        return;
-    }
-    for (turret_ai, mut rotation_control, turret_global_transform, targets, mut turret_impulse) in
-        query.iter_mut()
-    {
-        if !turret_ai.state.is_targeting() {
-            continue;
-        }
-
-        if let Some(target) = targets.current_target() {
-            let desired_angel =
-                Vec2::Y.angle_between(target.location - turret_global_transform.translation.xy());
-
-            // if target.location - turret_transform.translation().xy() == Vec2::ZERO then desired_angel is NaN
-            if desired_angel.is_nan() {
-                continue;
-            }
-
-            rotation_control.control.set_setpoint(desired_angel);
-
-            let (_, _, current_angle) = turret_global_transform.rotation.to_euler(EulerRot::XYZ);
-
-            let control_signal = rotation_control.control.update(current_angle, dt);
-
-            turret_impulse.torque_impulse = control_signal * 0.001;
-        }
-    }
-}
-
-fn update_turret_target(
-    mut target_query: Query<&mut Targets>,
-    transform_query: Query<&GlobalTransform>,
-) {
-    for mut targets in target_query.iter_mut() {
-        targets.for_each(|target| {
-            if let Ok(target_transform) = transform_query.get(target.entity) {
-                target.location = target_transform.translation().xy();
-            }
-        })
-    }
-}
-
-// TODO: Create a custom event for this CollisionEvent => CustomEvent
-// Then we only need to read through the events once, but will we be delayed one frame?
-fn register_turret_target(
-    mut collision_events: EventReader<CollisionEvent>,
-    mut targets_query: Query<&mut Targets, Without<Player>>,
-    sensor_query: Query<(&Parent, &Sensor)>,
-    player_query: Query<&GlobalTransform, With<Player>>,
-) {
-    for collision_event in collision_events.iter() {
-        match collision_event {
-            CollisionEvent::Started(entity1, entity2, _) => {
-                let sensor = sensor_query.get(*entity1).or(sensor_query.get(*entity2));
-
-                if let Ok((parent, _)) = sensor {
-                    let targets = targets_query.get_mut(parent.get());
-                    let player_entity = if player_query.contains(*entity1) {
-                        *entity1
-                    } else {
-                        *entity2
-                    };
-
-                    let player = player_query.get(player_entity);
-
-                    if let (Ok(mut targets), Ok(player_global)) = (targets, player) {
-                        let player_location = player_global.translation().xy();
-
-                        let target = Target {
-                            entity: player_entity,
-                            location: player_location,
-                        };
-
-                        targets.add(target);
-                    }
-                }
-            }
-            CollisionEvent::Stopped(entity1, entity2, _) => {
-                let sensor = sensor_query.get(*entity1).or(sensor_query.get(*entity2));
-                if let Ok((parent, _)) = sensor {
-                    let targets = targets_query.get_mut(parent.get());
-                    if let Ok(mut targets) = targets {
-                        if player_query.contains(*entity1) {
-                            targets.remove(*entity1);
-                        } else if player_query.contains(*entity2) {
-                            targets.remove(*entity2);
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-fn get_target<'a>(
-    targets_query: &'a mut Query<&mut Targets, Without<Player>>,
-    entity1: &Entity,
-    entity2: &Entity,
-) -> Option<Mut<'a, Targets>> {
-    if targets_query.contains(*entity1) {
-        return targets_query.get_mut(*entity1).ok();
-    } else if targets_query.contains(*entity2) {
-        return targets_query.get_mut(*entity2).ok();
-    } else {
-        return None;
-    }
-}
-
-fn update_stationary_control(
-    mut query: Query<(&mut StationaryControl, &Velocity, &mut ExternalImpulse)>,
-    time: Res<Time>,
-) {
-    let dt = time.delta_seconds();
-
-    if dt == 0.0 {
-        return;
-    }
-
-    for (mut stationary_control, turret_velocity, mut turret_impulse) in query.iter_mut() {
-        if turret_velocity.linvel.length() == 0.0 {
-            continue;
-        }
-
-        let control_signal = stationary_control
-            .control
-            .update(turret_velocity.linvel, dt);
-
-        let new_impulse = (control_signal * 1.0).clamp_length_max(0.4);
-        if new_impulse.length() > 0.0 {
-            turret_impulse.impulse = new_impulse
-            //TODO: add max impulse
-        }
-    }
-}
-
-// WARNING: You must perform change detection if you are going to use this system
-// the lyon plugin will check if a shape has changed, and if it has it will update the mesh
-// This is very expensive, so we only want to do it when we need to.
-fn update_turret_radius_outline(
-    mut turret_query: Query<&mut Targets, With<TurretLabel>>,
-    mut turret_radius_query: Query<(&Parent, &mut Stroke), With<TurretRadiusOutline>>,
-) {
-    for (parent, mut stroke) in turret_radius_query.iter_mut() {
-        if let Ok(mut targets) = turret_query.get_mut(parent.get()) {
-            if targets.has_changed() {
-                if targets.is_empty() {
-                    stroke.color = Color::rgba(0.0, 0.0, 0.0, 0.2);
-                } else {
-                    stroke.color = Color::rgba(1.0, 0.0, 0.0, 0.4);
-                }
-            }
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Spawn
-////////////////////////////////////////////////////////////////////////////////
-
-pub fn spawn_turret(
+pub fn spawn(
     commands: &mut Commands,
     asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
+    turret_config: &TurretConfig,
     spawn_transform: Transform,
 ) {
     let turret_base = &asset_db.turret_base_big;
@@ -313,7 +99,7 @@ pub fn spawn_turret(
         .insert(TurretAI::default())
         .insert(GameEntityType::Enemy)
         // Properties
-        .insert(Health::at_max(30))
+        .insert(Health::at_max(turret_config.max_health))
         // Physics
         .insert(SpatialBundle::from_transform(spawn_transform))
         .insert(NoRotationParent)
@@ -340,7 +126,7 @@ pub fn spawn_turret(
         .insert(StationaryControl::default())
         .insert(Targets::default())
         .insert(Weapon::laser(
-            10,
+            turret_config.weapon_damage,
             1000.0,
             Timer::from_seconds(1.0, TimerMode::Once),
             Timer::from_seconds(0.1, TimerMode::Repeating),
@@ -373,7 +159,7 @@ pub fn spawn_turret(
             let sensor_range = 500.0;
 
             parent
-                .spawn((dashed_circle(sensor_range, 10.0, 10.0), stroke))
+                .spawn((draw::dashed_circle(sensor_range, 10.0, 10.0), stroke))
                 .insert(NoRotationChild)
                 .insert(Collider::ball(sensor_range))
                 .insert(ColliderMassProperties::Density(0.0))
@@ -383,71 +169,6 @@ pub fn spawn_turret(
                     groups::PLAYER_GROUP.into(),
                 ))
                 .insert(ActiveEvents::COLLISION_EVENTS)
-                .insert(TurretRadiusOutline {});
+                .insert(TurretSensorLabel);
         });
-}
-
-fn dashed_circle(radius: f32, dash_length: f32, gap_length: f32) -> ShapeBundle {
-    let mut path_builder = PathBuilder::new();
-    let (dash_radians, gap_radians) = calculate_dash_gap_radians(radius, dash_length, gap_length);
-
-    let mut total_radians = 0.0;
-
-    while (total_radians + dash_radians) < (2.0 * PI) {
-        path_builder.move_to(rotate_vec2(Vec2::new(0., radius), total_radians));
-        path_builder.arc(
-            Vec2::ZERO,
-            Vec2::new(radius, radius),
-            dash_radians,
-            total_radians,
-        );
-        total_radians += dash_radians + gap_radians;
-    }
-
-    let path = path_builder.build();
-
-    ShapeBundle { path, ..default() }
-}
-
-fn calculate_dash_gap_radians(radius: f32, dash_length: f32, gap_length: f32) -> (f32, f32) {
-    let circumference = 2.0 * std::f32::consts::PI * radius;
-    let dash_radians = (dash_length / circumference) * 2.0 * std::f32::consts::PI;
-    let gap_radians = (gap_length / circumference) * 2.0 * std::f32::consts::PI;
-    (dash_radians, gap_radians)
-}
-
-fn rotate_vec2(vec: Vec2, radians: f32) -> Vec2 {
-    let cos_theta = radians.cos();
-    let sin_theta = radians.sin();
-    Vec2::new(
-        vec.x * cos_theta - vec.y * sin_theta,
-        vec.x * sin_theta + vec.y * cos_theta,
-    )
-}
-
-#[cfg(test)]
-mod tests {
-    use approx::assert_relative_eq;
-
-    use super::*;
-
-    #[test]
-    fn test_rotate_vec2() {
-        let vec = Vec2::new(1.0, 0.0);
-
-        // Test rotating by 90 degrees
-        let rotated_vec1 = rotate_vec2(vec, std::f32::consts::FRAC_PI_2);
-        assert_relative_eq!(rotated_vec1.x, 0.0);
-        assert_relative_eq!(rotated_vec1.y, 1.0);
-
-        // Test rotating by 180 degrees
-        let rotated_vec2 = rotate_vec2(vec, std::f32::consts::PI);
-        assert_relative_eq!(rotated_vec2.x, -1.0);
-        assert_relative_eq!(rotated_vec2.y, 0.0);
-
-        // Test rotating by 270 degrees
-        let rotated_vec3 = rotate_vec2(vec, 3.0 * std::f32::consts::FRAC_PI_2);
-        assert_relative_eq!(rotated_vec3.x, 0.0);
-        assert_relative_eq!(rotated_vec3.y, -1.0);
-    }
 }
