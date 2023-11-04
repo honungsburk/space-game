@@ -26,7 +26,7 @@ pub struct TurretPlugin;
 
 impl Plugin for TurretPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_test_turret).add_systems(
+        app.add_systems(
             Update,
             (
                 update_turret_target,
@@ -153,16 +153,6 @@ fn fire_weapon(
             weapon.fire(&mut commands, &asset_db, &asset_server, *transform)
         }
     }
-}
-
-fn spawn_test_turret(
-    mut commands: Commands,
-    asset_db: Res<crate::game::assets::AssetDB>,
-    asset_server: Res<AssetServer>,
-) {
-    let spawn_transform = Transform::from_translation(Vec3::new(0.0, 300.0, 0.0));
-
-    spawn_turret(&mut commands, &asset_db, &asset_server, spawn_transform);
 }
 
 fn update_turret_rotation(

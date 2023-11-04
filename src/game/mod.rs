@@ -1,4 +1,4 @@
-mod arena;
+pub mod arena;
 pub mod assets;
 pub mod average_velocity;
 mod background;

@@ -34,7 +34,6 @@ impl Plugin for CameraPlugin {
         app.init_resource::<CameraPositionDebugFlag>()
             .init_resource::<CameraSetpointDebugFlag>()
             .init_resource::<ScreenBounds>()
-            .add_systems(Startup, spawn)
             .add_systems(
                 Update,
                 (
@@ -205,6 +204,15 @@ pub fn spawn(mut commands: Commands) {
             ..default()
         })
         .insert(ShakyCamera::default());
+}
+
+pub fn despawn(
+    mut commands: Commands,
+    query: Query<Entity, Or<(With<SmoothCamera>, With<ShakyCamera>)>>,
+) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn();
+    }
 }
 
 pub fn update_smooth_camera(

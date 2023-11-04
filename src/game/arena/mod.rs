@@ -1,19 +1,19 @@
-use super::assets;
 use super::assets::AssetDB;
 use super::camera::ScreenBounds;
 use super::game_entity::Enemy;
-use super::meteors;
 use super::meteors::MeteorSize;
+use super::meteors::{self, Meteor};
 use super::turret;
+use super::{assets, player};
 use crate::misc::random;
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
 use rand::distributions::Uniform;
 use rand::prelude::*;
 use std::collections::VecDeque;
 use std::f32::consts::PI;
 use std::time::Duration;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
 ////////////////////////////////////////////////////////////////////////////////
@@ -22,16 +22,13 @@ pub struct ArenaPlugin;
 
 impl Plugin for ArenaPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(EnemySpawnTimer::from_seconds(10.0))
-            .insert_resource(Arena::new(2000.0, 400.0))
-            .add_systems(Startup, spawn_random_arena)
-            .add_systems(
-                Update,
-                (
-                    tick_enemy_spawn_timer,
-                    update_spawn_enemy.after(tick_enemy_spawn_timer),
-                ),
-            );
+        app.add_systems(
+            Update,
+            (
+                tick_enemy_spawn_timer,
+                update_spawn_enemy.after(tick_enemy_spawn_timer),
+            ),
+        );
     }
 }
 pub const PLAYER_SPAWN_RADIUS: f32 = 100.0;
@@ -99,7 +96,7 @@ fn update_spawn_enemy(
     }
 }
 
-fn spawn_random_arena(
+pub fn spawn_arena(
     mut commands: Commands,
     arena: Res<Arena>,
     asset_db: Res<AssetDB>,
@@ -107,6 +104,12 @@ fn spawn_random_arena(
 ) {
     arena.spawn_asteroid_bounds(&mut commands, &asset_db, &asset_server);
     spawn_random_meteors(&arena, &mut commands, &asset_db, &asset_server, 100);
+}
+
+pub fn despawn_arena(mut commands: Commands, arena_query: Query<Entity, With<Meteor>>) {
+    for entity in arena_query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
 }
 
 fn hollow_circle(radius: f32, number_of_points: u32) -> Collider {
@@ -153,13 +156,13 @@ impl AsteroidArenaBounds {
 }
 
 #[derive(Resource)]
-struct Arena {
+pub struct Arena {
     asteroid_bounds: AsteroidArenaBounds,
     player_spawn_locations: PlayerSpawnLocation,
 }
 
 impl Arena {
-    fn new(radius: f32, width: f32) -> Self {
+    pub fn new(radius: f32, width: f32) -> Self {
         Self {
             asteroid_bounds: AsteroidArenaBounds { radius, width },
             player_spawn_locations: PlayerSpawnLocation {
@@ -244,6 +247,21 @@ impl Arena {
                 }
             }
         }
+    }
+
+    pub fn spawn_player(
+        &self,
+        commands: &mut Commands,
+        asset_db: &Res<AssetDB>,
+        asset_server: &Res<AssetServer>,
+    ) {
+        player::spawn_player(
+            commands,
+            asset_db,
+            asset_server,
+            self.player_spawn_locations.position,
+            self.player_spawn_locations.rotation,
+        );
     }
 }
 

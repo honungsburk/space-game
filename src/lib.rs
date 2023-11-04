@@ -4,16 +4,19 @@ pub mod cli;
 pub mod config;
 pub mod file_save;
 pub mod game;
+pub mod game_mode;
 pub mod misc;
 mod parent_child_no_rotation;
 pub mod settings;
 mod systems;
 mod ui;
+
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
 use config::{Config, VisualDebug};
 use game::{score::high_score, GamePlugin};
+use game_mode::GameModePlugin;
 use parent_child_no_rotation::NoRotationPlugin;
 use settings::Settings;
 use systems::*;
@@ -38,6 +41,7 @@ pub fn run(config: Config, _settings: Settings, high_scores: high_score::HighSco
     .add_plugins(NoRotationPlugin)
     .add_plugins(HudPlugin)
     .add_plugins(FrameTimeDiagnosticsPlugin::default())
+    .add_plugins(GameModePlugin)
     // Systems
     .add_systems(Update, exit_game);
 

@@ -1,107 +1,12 @@
 use super::components::Player;
 use super::{actions::*, components::DirectionControl};
 use crate::game::average_velocity::AverageVelocity;
-use crate::game::game_entity::GameEntityType;
 use crate::game::trauma::Trauma;
-use crate::game::vitality::Health;
-use crate::game::{assets::groups, assets::AssetDB, weapon::Weapon};
+use crate::game::{assets::AssetDB, weapon::Weapon};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::prelude::CollisionEventFlags;
-use leafwing_input_manager::{prelude::*, user_input::InputKind};
-
-pub fn spawn_player(
-    mut commands: Commands,
-    asset_db: Res<AssetDB>,
-    asset_server: Res<AssetServer>,
-) {
-    // Create an `InputMap` to add default inputs to
-    let mut input_map = InputMap::default()
-        .insert(
-            InputKind::Keyboard(KeyCode::W),
-            PlayerAction::ThrottleForward,
-        )
-        .insert(
-            InputKind::Keyboard(KeyCode::S),
-            PlayerAction::ThrottleBackwards,
-        )
-        .insert(
-            InputKind::Keyboard(KeyCode::A),
-            PlayerAction::RotateShipLeft,
-        )
-        .insert(
-            InputKind::Keyboard(KeyCode::D),
-            PlayerAction::RotateShipRight,
-        )
-        .insert(InputKind::Keyboard(KeyCode::L), PlayerAction::FireWeapon)
-        .insert(
-            InputKind::GamepadButton(GamepadButtonType::RightTrigger2),
-            PlayerAction::ThrottleForward,
-        )
-        .insert(
-            InputKind::GamepadButton(GamepadButtonType::LeftTrigger2),
-            PlayerAction::ThrottleBackwards,
-        )
-        .insert(
-            InputKind::GamepadButton(GamepadButtonType::South),
-            PlayerAction::FireWeapon,
-        )
-        .insert(
-            InputKind::DualAxis(DualAxis::left_stick()),
-            PlayerAction::RotateShip,
-        )
-        .build();
-
-    commands
-        .spawn(SpriteBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
-            texture: asset_server.load(asset_db.player_ship.sprite_path),
-            ..default()
-        })
-        .insert(Player {})
-        .insert(GameEntityType::Player)
-        .insert(DirectionControl::default())
-        .insert(InputManagerBundle::<PlayerAction> {
-            // Stores "which actions are currently pressed"
-            action_state: ActionState::default(),
-            // Describes how to convert from player inputs into those actions
-            input_map: input_map.build(),
-        })
-        .insert(RigidBody::Dynamic)
-        .insert(asset_db.player_ship.collider.clone())
-        .insert(Trauma::default())
-        .insert(ActiveEvents::COLLISION_EVENTS)
-        .insert(Health::at_max(100))
-        .insert(CollisionGroups::new(
-            groups::PLAYER_GROUP.into(),
-            groups::PLAYER_FILTER_MASK.into(),
-        ))
-        .insert(SolverGroups::new(
-            groups::PLAYER_GROUP.into(),
-            groups::PLAYER_FILTER_MASK.into(),
-        ))
-        .insert(Damping {
-            linear_damping: 0.5,
-            angular_damping: 1.0,
-        })
-        .insert(ExternalForce {
-            force: Vec2::ZERO,
-            torque: 0.0,
-        })
-        .insert(ExternalImpulse {
-            impulse: Vec2::ZERO,
-            torque_impulse: 0.0,
-        })
-        .insert(Velocity {
-            linvel: Vec2::ZERO,
-            angvel: 0.0,
-        })
-        .insert(AverageVelocity::new(10))
-        .insert(Weapon::simple_laser(
-            groups::PLAYER_PROJECTILE_GROUP,
-            groups::PLAYER_PROJECTILE_FILTER_MASK,
-        ));
-}
+use leafwing_input_manager::prelude::*;
 
 pub fn control_ship(
     mut query: Query<
