@@ -4,8 +4,6 @@
 
 Current objective is to get a gameplay loop working.
 
-- [ ] Make a large circular arena the player can fly around in.
-- [ ] Spawn enemies in waves
 - Add UI
   - [ ] Add Replay button
   - [ ] Add Game Over screen
@@ -13,6 +11,8 @@ Current objective is to get a gameplay loop working.
   - [ ] Add Pause Menu
   - [ ] Add highscore list
 - Add quick restart button
+- Fix game crashing when player dies
+- Add tests
 
 ### Backlog
 
@@ -54,3 +54,20 @@ Current objective is to get a gameplay loop working.
 - Add mine powerup
 - Add examples for different developing scenarios
 - Add visual debugging for camera
+- Add extended asset pack
+- Add projectile hit effects
+- Load assets from SVG files and convert to meshes
+  - [ ] Add SVG loader
+  - [ ] Add SVG to mesh converter
+  - [ ] Dynamically set colors
+
+## Release
+
+- [ ] Playtesting
+- [ ] Test on multiple screens/resolutions
+- [ ] Accessability
+- [ ] Key bindings
+- [ ] Gamepad support
+- [ ] Release on itch.io
+- [ ] Release on Steam
+- [ ] Release on GOG
