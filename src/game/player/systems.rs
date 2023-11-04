@@ -1,4 +1,6 @@
-use super::components::Player;
+use std::collections::HashSet;
+
+use super::components::{ContactForceInvulnerability, Player};
 use super::{actions::*, components::DirectionControl};
 use crate::game::average_velocity::AverageVelocity;
 use crate::game::trauma::Trauma;
@@ -115,40 +117,51 @@ pub fn fire_weapon(
     }
 }
 
-// CollisionEvent::Started(entity1, entity2, _) => {
-
 pub fn player_collision(
-    mut collison_events: EventReader<CollisionEvent>,
-    mut player_query: Query<(&mut Trauma, &mut Health, &AverageVelocity, &Velocity), With<Player>>,
+    mut contact_force_events: EventReader<ContactForceEvent>,
+    mut player_query: Query<
+        (
+            &mut Trauma,
+            &mut Health,
+            &ReadMassProperties,
+            &mut ContactForceInvulnerability,
+        ),
+        With<Player>,
+    >,
 ) {
-    for collision_event in collison_events.iter() {
-        // TODO: Scale trauma based on force applied to the player
-        match collision_event {
-            CollisionEvent::Started(entity1, entity2, flags) => {
-                // One of the entities must be the player, and the collision must not be with a sensor
-                if (player_query.contains(*entity1) || player_query.contains(*entity2))
-                    && !flags.contains(CollisionEventFlags::SENSOR)
-                {
-                    if let Ok((mut player_trauma, mut player_health, average_velocity, velocity)) =
-                        player_query.get_single_mut()
-                    {
-                        // TODO: We need a MAX_VELOCITY to scale this by
-
-                        player_trauma.add_trauma(
-                            (average_velocity.get_linvel() - velocity.linvel).length() / 200.0,
-                        );
-
-                        let damage = ((average_velocity.get_linvel() - velocity.linvel).length()
-                            / 200.0)
-                            .max(1.0);
-
-                        if damage > 0.2 {
-                            player_health.take_damage_u32((damage * 10.0) as u32);
-                        }
-                    }
+    for contact_force_event in contact_force_events.iter() {
+        if player_query.contains(contact_force_event.collider1)
+            || player_query.contains(contact_force_event.collider2)
+        {
+            if let Ok((
+                mut player_trauma,
+                mut player_health,
+                mass_properties,
+                mut contact_force_invulnerability,
+            )) = player_query.get_single_mut()
+            {
+                if !contact_force_invulnerability.is_invulnerable() {
+                    // in the range 0-400
+                    let adjusted_force =
+                        contact_force_event.total_force_magnitude / mass_properties.0.mass;
+                    let effect = (adjusted_force / 400.0).min(1.0);
+                    // Take damage
+                    player_health.take_damage_u32((effect * 10.0) as u32);
+                    println!("effect: {}", effect);
+                    // Trauma
+                    player_trauma.add_trauma(effect);
                 }
+                contact_force_invulnerability.reset();
             }
-            _ => {}
         }
+    }
+}
+
+pub fn update_contact_force_invulnerability(
+    time: Res<Time>,
+    mut player_query: Query<&mut ContactForceInvulnerability, With<Player>>,
+) {
+    for mut contact_force_invulnerability in player_query.iter_mut() {
+        contact_force_invulnerability.tick(time.delta());
     }
 }

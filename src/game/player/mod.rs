@@ -16,6 +16,8 @@ use systems::*;
 
 pub use components::Player;
 
+use self::components::ContactForceInvulnerability;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
 ////////////////////////////////////////////////////////////////////////////////
@@ -32,6 +34,7 @@ impl Plugin for PlayerPlugin {
                     fire_weapon,
                     update_player_rotation,
                     player_collision,
+                    update_contact_force_invulnerability,
                 ),
             );
     }
@@ -124,6 +127,10 @@ pub fn spawn_player(
         .insert(asset_db.player_ship.collider.clone())
         .insert(Trauma::default())
         .insert(ActiveEvents::COLLISION_EVENTS)
+        .insert(ActiveEvents::CONTACT_FORCE_EVENTS)
+        .insert(ContactForceInvulnerability::new(0.1))
+        .insert(ReadMassProperties::default())
+        .insert(ContactForceEventThreshold(0.0)) // TODO: increase this to some reasonable value
         .insert(Health::at_max(100))
         .insert(CollisionGroups::new(
             groups::PLAYER_GROUP.into(),
@@ -149,7 +156,7 @@ pub fn spawn_player(
             linvel: Vec2::ZERO,
             angvel: 0.0,
         })
-        .insert(AverageVelocity::new(10))
+        .insert(AverageVelocity::new(0.5))
         .insert(Weapon::simple_laser(
             groups::PLAYER_PROJECTILE_GROUP,
             groups::PLAYER_PROJECTILE_FILTER_MASK,
