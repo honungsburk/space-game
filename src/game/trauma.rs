@@ -15,18 +15,20 @@ pub struct Trauma {
     trauma_decay: f32,
 }
 
+impl Default for Trauma {
+    fn default() -> Self {
+        Self {
+            trauma: 0.0,
+            trauma_decay: 1.0,
+        }
+    }
+}
+
 impl Trauma {
     pub fn new(trauma: f32, trauma_decay: f32) -> Self {
         Self {
             trauma,
             trauma_decay,
-        }
-    }
-
-    pub fn default() -> Self {
-        Self {
-            trauma: 0.0,
-            trauma_decay: 4.0,
         }
     }
 

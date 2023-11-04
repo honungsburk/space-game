@@ -147,7 +147,6 @@ pub fn player_collision(
                     let effect = (adjusted_force / 400.0).min(1.0);
                     // Take damage
                     player_health.take_damage_u32((effect * 10.0) as u32);
-                    println!("effect: {}", effect);
                     // Trauma
                     player_trauma.add_trauma(effect);
                 }
