@@ -7,6 +7,7 @@ pub mod game;
 pub mod game_mode;
 pub mod misc;
 mod parent_child_no_rotation;
+pub mod prelude;
 pub mod settings;
 mod systems;
 mod ui;

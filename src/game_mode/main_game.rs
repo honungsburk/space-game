@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::GameMode;
-use crate::game::{arena, assets::AssetDB, background, camera, player};
+use crate::game::{arena, background, camera};
 
 pub struct MainGamePlugin;
 

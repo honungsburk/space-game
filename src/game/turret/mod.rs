@@ -3,6 +3,7 @@ mod ai;
 use crate::{
     misc::control::{PID, PID2D},
     parent_child_no_rotation::{NoRotationChild, NoRotationParent},
+    prelude::*,
 };
 
 use self::ai::TurretAI;
@@ -131,6 +132,14 @@ impl Default for Targets {
 
 #[derive(Component)]
 struct TurretRadiusOutline {}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Spawn & Despawn
+////////////////////////////////////////////////////////////////////////////////
+
+pub fn despawn(mut commands: Commands, query: Query<Entity, With<Turret>>) {
+    commands.despawn_all(&query);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Systems

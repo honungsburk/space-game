@@ -6,6 +6,7 @@ use super::meteors::{self, Meteor};
 use super::turret;
 use super::{assets, player};
 use crate::misc::random;
+use crate::prelude::*;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use rand::distributions::Uniform;
@@ -39,13 +40,11 @@ pub const PLAYER_SPAWN_RADIUS: f32 = 100.0;
 
 pub fn despawn(
     mut commands: Commands,
-    query: Query<Entity, With<Meteor>>,
-    player_query: Query<Entity, With<player::Player>>,
+    query: Query<Entity, Or<(With<Meteor>, With<player::Player>, With<Enemy>)>>,
 ) {
     commands.remove_resource::<Arena>();
     commands.remove_resource::<EnemySpawnTimer>();
-    meteors::despawn_all(&mut commands, &query);
-    player::despawn_all(&mut commands, &player_query);
+    commands.despawn_all(&query);
 }
 
 pub fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<AssetServer>) {
@@ -88,37 +87,43 @@ impl EnemySpawnTimer {
 // Systems
 ////////////////////////////////////////////////////////////////////////////////
 
-fn tick_enemy_spawn_timer(mut enemy_spawn_timer: ResMut<EnemySpawnTimer>, time: Res<Time>) {
-    enemy_spawn_timer.timer.tick(time.delta());
+fn tick_enemy_spawn_timer(mut enemy_spawn_timer: Option<ResMut<EnemySpawnTimer>>, time: Res<Time>) {
+    if let Some(enemy_spawn_timer) = enemy_spawn_timer.as_mut() {
+        enemy_spawn_timer.timer.tick(time.delta());
+    }
 }
 
 fn update_spawn_enemy(
-    screen_bounds: Res<ScreenBounds>,
+    screen_bounds_opt: Option<Res<ScreenBounds>>,
     enemy_query: Query<&Enemy>,
-    mut enemy_spawn_timer: ResMut<EnemySpawnTimer>,
-    arena: Res<Arena>,
+    mut enemy_spawn_timer_opt: Option<ResMut<EnemySpawnTimer>>,
+    arena_opt: Option<Res<Arena>>,
     mut commands: Commands,
     asset_db: Res<crate::game::assets::AssetDB>,
     asset_server: Res<AssetServer>,
     rapier_context: Res<RapierContext>,
 ) {
-    if enemy_spawn_timer.timer.finished() && enemy_query.iter().len() < 100 {
-        // Reduce the duration of the timer by 10% each time it finishes
-        let duration = enemy_spawn_timer.timer.duration();
-        enemy_spawn_timer
-            .timer
-            .set_duration(duration.mul_f32(0.9).max(Duration::from_secs_f32(1.0)));
-        enemy_spawn_timer.timer.reset();
+    if let (Some(enemy_spawn_timer), Some(screen_bounds), Some(arena)) =
+        (enemy_spawn_timer_opt.as_mut(), screen_bounds_opt, arena_opt)
+    {
+        if enemy_spawn_timer.timer.finished() && enemy_query.iter().len() < 100 {
+            // Reduce the duration of the timer by 10% each time it finishes
+            let duration = enemy_spawn_timer.timer.duration();
+            enemy_spawn_timer
+                .timer
+                .set_duration(duration.mul_f32(0.9).max(Duration::from_secs_f32(1.0)));
+            enemy_spawn_timer.timer.reset();
 
-        // Spawn a new enemy
-        spawn_enemy(
-            &screen_bounds,
-            &arena,
-            &mut commands,
-            &asset_db,
-            &asset_server,
-            rapier_context,
-        );
+            // Spawn a new enemy
+            spawn_enemy(
+                &screen_bounds,
+                &arena,
+                &mut commands,
+                &asset_db,
+                &asset_server,
+                rapier_context,
+            );
+        }
     }
 }
 
@@ -378,7 +383,7 @@ fn spawn_enemy(
             0.0,
             &turret_asset.collider,
             filter,
-            |entity| {
+            |_| {
                 has_spawn_location = false;
                 false // Return `false` to stop the query.
             },

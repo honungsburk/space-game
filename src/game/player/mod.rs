@@ -41,6 +41,20 @@ impl Plugin for PlayerPlugin {
 // Spawning
 ////////////////////////////////////////////////////////////////////////////////
 
+pub fn spawn_player_at_center(
+    commands: Commands,
+    asset_db: Res<AssetDB>,
+    asset_server: Res<AssetServer>,
+) {
+    spawn(Vec2::new(0.0, 0.0), std::f32::consts::PI / 2.0)(commands, asset_db, asset_server);
+}
+
+pub fn spawn(location: Vec2, rotation: f32) -> impl Fn(Commands, Res<AssetDB>, Res<AssetServer>) {
+    move |mut commands, asset_db, asset_server| {
+        spawn_player(&mut commands, &asset_db, &asset_server, location, rotation)
+    }
+}
+
 pub fn spawn_player(
     commands: &mut Commands,
     asset_db: &Res<AssetDB>,
