@@ -13,11 +13,11 @@ pub struct Health {
 impl Health {
     /// Creates a new `Vitality` component with the current and maximum health set to the same value.
     ///
-    /// ## Arguments
+    /// # Arguments
     ///
     /// * `max` - The maximum health value for the `Vitality` component.
     ///
-    /// ## Examples
+    /// # Examples
     ///
     /// ```
     /// use space_game::game::vitality::Health;
@@ -33,12 +33,12 @@ impl Health {
 
     /// Create a new health component with the given maximum health.
     ///
-    /// ## Arguments
+    /// # Arguments
     ///
     /// * `current` - The current health value for the component.
     /// * `max` - The maximum health value for the component.
     ///
-    /// ## Example
+    /// # Example
     ///
     /// ```
     /// use space_game::game::vitality::Health;
