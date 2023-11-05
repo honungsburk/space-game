@@ -39,6 +39,12 @@ pub enum ProjectileType {
 // Helpers
 ////////////////////////////////////////////////////////////////////////////////
 
+pub fn despawn_projectiles(commands: &mut Commands, query: Query<Entity, With<Projectile>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+}
+
 pub fn spawn_laser_projectile(
     commands: &mut Commands,
     asset_db: &Res<AssetDB>,
@@ -93,7 +99,7 @@ fn update_projectiles_on_collision(
                 if flags.contains(CollisionEventFlags::REMOVED) {
                     continue;
                 }
-                println!("CollisionEvent::Started");
+
                 let did_resolve = resolve_projectile_collision(
                     &mut commands,
                     &projectile_query,

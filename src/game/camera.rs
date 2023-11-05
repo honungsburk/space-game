@@ -1,6 +1,6 @@
 use super::player::components::Player;
 use super::trauma::Trauma;
-use super::{config::Flag, player::actions::PlayerAction};
+use super::{config::Flag, input::InputAction};
 use crate::misc::control::PID;
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
@@ -221,21 +221,21 @@ pub fn update_smooth_camera(
         (&mut Transform, &mut CameraPID),
         (Without<Player>, With<SmoothCamera>),
     >,
-    player_query: Query<
-        (&Transform, &Velocity, &ActionState<PlayerAction>),
-        (With<Player>, Without<Camera>),
-    >,
+    input_query: Query<&ActionState<InputAction>, Without<Player>>,
+    player_query: Query<(&Transform, &Velocity), (With<Player>, Without<Camera>)>,
 ) {
     if time.delta_seconds() == 0.0 {
         return;
     }
 
-    if let Ok((player_transform, player_velocity, player_action)) = player_query.get_single() {
+    if let (Ok((player_transform, player_velocity)), Ok(input_action)) =
+        (player_query.get_single(), input_query.get_single())
+    {
         if let Ok((mut camera_transform, mut camera_pid)) = camera_query.get_single_mut() {
             // Determine desired camera placement
 
             let player_rotation = if let Some(axis_data) =
-                player_action.clamped_axis_pair(PlayerAction::RotateShip)
+                input_action.clamped_axis_pair(InputAction::PlayerRotateShip)
             {
                 100.0 * axis_data.xy()
             } else {

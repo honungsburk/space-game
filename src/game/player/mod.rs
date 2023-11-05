@@ -1,4 +1,3 @@
-pub mod actions;
 pub mod components;
 mod systems;
 
@@ -7,11 +6,9 @@ use crate::game::game_entity::GameEntityType;
 use crate::game::trauma::Trauma;
 use crate::game::vitality::Health;
 use crate::game::{assets::groups, assets::AssetDB, weapon::Weapon};
-use actions::*;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use components::DirectionControl;
-use leafwing_input_manager::{prelude::*, user_input::InputKind};
 use systems::*;
 
 pub use components::Player;
@@ -26,17 +23,16 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(InputManagerPlugin::<PlayerAction>::default())
-            .add_systems(
-                Update,
-                (
-                    control_ship,
-                    fire_weapon,
-                    update_player_rotation,
-                    player_collision,
-                    update_contact_force_invulnerability,
-                ),
-            );
+        app.add_systems(
+            Update,
+            (
+                control_ship,
+                fire_weapon,
+                update_player_rotation,
+                player_collision,
+                update_contact_force_invulnerability,
+            ),
+        );
     }
 }
 
@@ -65,43 +61,6 @@ pub fn spawn_player(
     location: Vec2,
     rotation: f32,
 ) {
-    // Create an `InputMap` to add default inputs to
-    let mut input_map = InputMap::default()
-        .insert(
-            InputKind::Keyboard(KeyCode::W),
-            PlayerAction::ThrottleForward,
-        )
-        .insert(
-            InputKind::Keyboard(KeyCode::S),
-            PlayerAction::ThrottleBackwards,
-        )
-        .insert(
-            InputKind::Keyboard(KeyCode::A),
-            PlayerAction::RotateShipLeft,
-        )
-        .insert(
-            InputKind::Keyboard(KeyCode::D),
-            PlayerAction::RotateShipRight,
-        )
-        .insert(InputKind::Keyboard(KeyCode::L), PlayerAction::FireWeapon)
-        .insert(
-            InputKind::GamepadButton(GamepadButtonType::RightTrigger2),
-            PlayerAction::ThrottleForward,
-        )
-        .insert(
-            InputKind::GamepadButton(GamepadButtonType::LeftTrigger2),
-            PlayerAction::ThrottleBackwards,
-        )
-        .insert(
-            InputKind::GamepadButton(GamepadButtonType::South),
-            PlayerAction::FireWeapon,
-        )
-        .insert(
-            InputKind::DualAxis(DualAxis::left_stick()),
-            PlayerAction::RotateShip,
-        )
-        .build();
-
     // Spawn transform
     let spawn_transform = Transform::from_xyz(location.x, location.y, 0.0)
         .with_rotation(Quat::from_rotation_z(rotation));
@@ -117,12 +76,12 @@ pub fn spawn_player(
         .insert(Player {})
         .insert(GameEntityType::Player)
         .insert(DirectionControl::default())
-        .insert(InputManagerBundle::<PlayerAction> {
-            // Stores "which actions are currently pressed"
-            action_state: ActionState::default(),
-            // Describes how to convert from player inputs into those actions
-            input_map: input_map.build(),
-        })
+        // .insert(InputManagerBundle::<PlayerAction> {
+        //     // Stores "which actions are currently pressed"
+        //     action_state: ActionState::default(),
+        //     // Describes how to convert from player inputs into those actions
+        //     input_map: input_map.build(),
+        // })
         .insert(RigidBody::Dynamic)
         .insert(asset_db.player_ship.collider.clone())
         .insert(Trauma::default())

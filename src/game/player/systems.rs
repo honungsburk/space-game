@@ -1,5 +1,6 @@
+use super::components::DirectionControl;
 use super::components::{ContactForceInvulnerability, Player};
-use super::{actions::*, components::DirectionControl};
+use crate::game::input::InputAction;
 use crate::game::trauma::Trauma;
 use crate::game::vitality::Health;
 use crate::game::{assets::AssetDB, weapon::Weapon};
@@ -8,27 +9,20 @@ use bevy_rapier2d::prelude::*;
 use leafwing_input_manager::prelude::*;
 
 pub fn control_ship(
-    mut query: Query<
-        (
-            &mut ExternalImpulse,
-            &ActionState<PlayerAction>,
-            &Transform,
-            &mut DirectionControl,
-        ),
-        With<Player>,
-    >,
+    input_query: Query<&ActionState<InputAction>, Without<Player>>,
+    mut query: Query<(&mut ExternalImpulse, &Transform, &mut DirectionControl), With<Player>>,
 ) {
-    if let Ok((mut player_impulse, player_action_state, player_transform, mut direction_control)) =
-        query.get_single_mut()
+    if let (Ok(input_action), Ok((mut player_impulse, player_transform, mut direction_control))) =
+        (input_query.get_single(), query.get_single_mut())
     {
         // player_impulse.impulse = Vec2::new(0.0, 0.0);
         // player_impulse.torque_impulse = 0.0;
 
-        if player_action_state.pressed(PlayerAction::ThrottleForward) {
+        if input_action.pressed(InputAction::PlayerThrottleForward) {
             // Note that some gamepad buttons are also tied to axes, so even though we used a
             // GamepadbuttonType::RightTrigger2 binding to trigger the throttle action, we can get a
             // variable value here if you have a variable right trigger on your gamepad.
-            let value = player_action_state.value(PlayerAction::ThrottleForward);
+            let value = input_action.value(InputAction::PlayerThrottleForward);
 
             let impulse = player_transform
                 .rotation
@@ -37,11 +31,11 @@ pub fn control_ship(
             // player_transform.rotation.into::<Vec2>() * Vec2::new(0.0, value * 0.001);
         }
 
-        if player_action_state.pressed(PlayerAction::ThrottleBackwards) {
+        if input_action.pressed(InputAction::PlayerThrottleBackwards) {
             // Note that some gamepad buttons are also tied to axes, so even though we used a
             // GamepadbuttonType::RightTrigger2 binding to trigger the throttle action, we can get a
             // variable value here if you have a variable right trigger on your gamepad.
-            let value = player_action_state.value(PlayerAction::ThrottleBackwards);
+            let value = input_action.value(InputAction::PlayerThrottleBackwards);
 
             let impulse = player_transform
                 .rotation
@@ -49,8 +43,8 @@ pub fn control_ship(
             player_impulse.impulse = Vec2::new(impulse.x, impulse.y);
         }
 
-        if player_action_state.pressed(PlayerAction::RotateShip) {
-            if let Some(value) = player_action_state.clamped_axis_pair(PlayerAction::RotateShip) {
+        if input_action.pressed(InputAction::PlayerRotateShip) {
+            if let Some(value) = input_action.clamped_axis_pair(InputAction::PlayerRotateShip) {
                 let desired_direction = value.xy();
 
                 if desired_direction.length() > 0.5 {
@@ -63,14 +57,14 @@ pub fn control_ship(
             }
         }
 
-        if player_action_state.pressed(PlayerAction::RotateShipLeft) {
-            let value = player_action_state.value(PlayerAction::RotateShipLeft);
+        if input_action.pressed(InputAction::PlayerRotateShipLeft) {
+            let value = input_action.value(InputAction::PlayerRotateShipLeft);
 
             player_impulse.torque_impulse = value * 0.005;
             direction_control.turn_off();
         }
-        if player_action_state.pressed(PlayerAction::RotateShipRight) {
-            let value = player_action_state.value(PlayerAction::RotateShipRight);
+        if input_action.pressed(InputAction::PlayerRotateShipRight) {
+            let value = input_action.value(InputAction::PlayerRotateShipRight);
 
             player_impulse.torque_impulse = value * -0.005;
             direction_control.turn_off();
@@ -96,11 +90,14 @@ pub fn fire_weapon(
     mut commands: Commands,
     asset_db: Res<AssetDB>,
     asset_server: Res<AssetServer>,
-    mut query: Query<(&ActionState<PlayerAction>, &Transform, &mut Weapon), With<Player>>,
+    input_query: Query<&ActionState<InputAction>, Without<Player>>,
+    mut query: Query<(&Transform, &mut Weapon), With<Player>>,
 ) {
-    if let Ok((player_action_state, player_transform, mut weapon)) = query.get_single_mut() {
-        if player_action_state.pressed(PlayerAction::FireWeapon) && weapon.can_fire() {
-            let value = player_action_state.value(PlayerAction::FireWeapon);
+    if let (Ok(action), Ok((player_transform, mut weapon))) =
+        (input_query.get_single(), query.get_single_mut())
+    {
+        if action.pressed(InputAction::PlayerFireWeapon) && weapon.can_fire() {
+            let value = action.value(InputAction::PlayerFireWeapon);
             if value > 0.0 {
                 weapon.fire(
                     &mut commands,

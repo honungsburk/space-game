@@ -10,12 +10,16 @@ mod player_death;
 mod turret_performance;
 
 use bevy::prelude::*;
+use leafwing_input_manager::prelude::ActionState;
+use std::fmt;
 
+use crate::game::input::InputAction;
 pub struct GameModePlugin;
 
 impl Plugin for GameModePlugin {
     fn build(&self, app: &mut App) {
         app.add_state::<GameMode>()
+            .init_resource::<Reload>()
             .add_plugins((
                 main_game::MainGamePlugin,
                 turret_performance::TurretPerformancePlugin,
@@ -44,17 +48,47 @@ pub enum GameMode {
     PlayerDeath, // Player death testing mode
 }
 
+impl fmt::Display for GameMode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            GameMode::None => write!(f, "None"),
+            GameMode::MainGame => write!(f, "Main Game"),
+            GameMode::TurretPerformance => write!(f, "Turret Performance"),
+            GameMode::PlayerDeath => write!(f, "Player Death"),
+        }
+    }
+}
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Default, Resource)]
+pub struct Reload(Option<GameMode>);
+
 fn update_game_mode(
+    mut reload_game_mode: ResMut<Reload>,
+    current_game_mode: Res<State<GameMode>>,
     mut next_game_mode: ResMut<NextState<GameMode>>,
-    keyboard_input: Res<Input<KeyCode>>,
+    input_query: Query<&ActionState<InputAction>>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::Numpad0) {
-        next_game_mode.set(GameMode::None);
-    } else if keyboard_input.just_pressed(KeyCode::Numpad1) {
-        next_game_mode.set(GameMode::MainGame); // TODO: we are accidentally closing the window!
-    } else if keyboard_input.just_pressed(KeyCode::Numpad2) {
-        next_game_mode.set(GameMode::TurretPerformance);
-    } else if keyboard_input.just_pressed(KeyCode::Numpad3) {
-        next_game_mode.set(GameMode::PlayerDeath);
+    if let Ok(input_action) = input_query.get_single() {
+        if let Some(mode) = reload_game_mode.0.take() {
+            println!("Reloading from: {}", current_game_mode.get());
+            println!("Reloading to: {}", mode);
+            next_game_mode.set(mode);
+            reload_game_mode.set_if_neq(Reload(None));
+            println!("Reloading started");
+        } else if input_action.just_pressed(InputAction::GameModeNone) {
+            println!("None");
+            next_game_mode.set(GameMode::None);
+        } else if input_action.just_pressed(InputAction::GameModeMainGame) {
+            println!("MainGame");
+            next_game_mode.set(GameMode::MainGame); // TODO: we are accidentally closing the window!
+        } else if input_action.just_pressed(InputAction::GameModeTurretPerformance) {
+            println!("TurretPerformance");
+            next_game_mode.set(GameMode::TurretPerformance);
+        } else if input_action.just_pressed(InputAction::GameModePlayerDeath) {
+            println!("PlayerDeath");
+            next_game_mode.set(GameMode::PlayerDeath);
+        } else if input_action.just_pressed(InputAction::GameModeReload) {
+            reload_game_mode.set_if_neq(Reload(Some(current_game_mode.get().clone())));
+            next_game_mode.set(GameMode::None);
+        }
     }
 }

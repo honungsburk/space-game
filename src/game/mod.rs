@@ -8,7 +8,7 @@ pub mod debug;
 mod enemy;
 pub mod events;
 pub mod game_entity;
-mod gamepad;
+pub mod input;
 pub mod meteors;
 pub mod player;
 mod projectile;
@@ -34,7 +34,7 @@ use projectile::ProjectilePlugin;
 
 use self::{
     average_velocity::AverageVelocityPlugin, background::BackgroundPlugin, debug::DebugPlugin,
-    events::GameOverEvent, score::ScorePlugin, time_to_live::TimeToLivePlugin,
+    events::GameOverEvent, input::InputPlugin, score::ScorePlugin, time_to_live::TimeToLivePlugin,
     trauma::TraumaPlugin, turret::TurretPlugin, vitality::VitalityPlugin,
 };
 
@@ -68,6 +68,7 @@ impl Plugin for GamePlugin {
         // Systems
         .add_plugins((
             // EnemyPlugin,
+            InputPlugin,
             DebugPlugin,
             BackgroundPlugin,
             ArenaPlugin,
@@ -75,7 +76,6 @@ impl Plugin for GamePlugin {
             AssetPlugin,
             PlayerPlugin,
             TurretPlugin,
-            // GamepadPlugin,
             ProjectilePlugin,
             WeaponPlugin,
             TraumaPlugin,
