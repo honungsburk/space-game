@@ -1,4 +1,8 @@
+pub mod health;
+
 use bevy::prelude::*;
+
+pub use health::*;
 
 /// Set enum for the systems relating to vitality
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
@@ -30,62 +34,6 @@ impl Damage {
 
     pub fn damage(&self) -> u32 {
         return self.0;
-    }
-}
-
-// Health
-
-#[derive(Component)]
-pub struct Health {
-    current: u32,
-    max: u32,
-}
-
-impl Health {
-    pub fn at_max(max: u32) -> Self {
-        Self { current: max, max }
-    }
-
-    pub fn new(current: u32, max: u32) -> Self {
-        Self {
-            current: current.min(max),
-            max,
-        }
-    }
-
-    pub fn current(&self) -> u32 {
-        return self.current;
-    }
-
-    pub fn take_damage(&mut self, damage: &Damage) {
-        self.current -= damage.0;
-    }
-
-    pub fn take_damage_u32(&mut self, damage: u32) {
-        self.current -= damage;
-    }
-
-    pub fn heal(&mut self, amount: u32) {
-        self.current += amount;
-        self.current = self.current.min(self.max);
-    }
-
-    pub fn max(&self) -> u32 {
-        return self.max;
-    }
-
-    /// Heal the entity by a percentage of its max health
-    /// the percentage is clamped between 0 and 1
-    pub fn heal_pct(&mut self, pct: f32) {
-        self.heal((self.max as f32 * pct.clamp(0.0, 1.0)) as u32);
-    }
-
-    pub fn is_alive(&self) -> bool {
-        return self.current > 0;
-    }
-
-    pub fn is_dead(&self) -> bool {
-        return self.current <= 0;
     }
 }
 

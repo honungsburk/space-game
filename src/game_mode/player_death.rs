@@ -3,15 +3,13 @@ use bevy::prelude::*;
 use super::GameMode;
 use crate::game::{assets::AssetDB, background, camera, player, turret};
 
-pub struct TurretPerformancePlugin;
+pub struct PlayerDeathPlugin;
 
-// TODO: Move the Arena code to the main_game.rs file
-
-impl Plugin for TurretPerformancePlugin {
+impl Plugin for PlayerDeathPlugin {
     fn build(&self, app: &mut App) {
         app // Runs even when the game is paused
             .add_systems(
-                OnEnter(GameMode::TurretPerformance),
+                OnEnter(GameMode::PlayerDeath),
                 (
                     player::spawn(Vec2::new(0.0, 0.0), 0.0),
                     background::spawn,
@@ -20,7 +18,7 @@ impl Plugin for TurretPerformancePlugin {
                 ),
             )
             .add_systems(
-                OnExit(GameMode::TurretPerformance),
+                OnExit(GameMode::PlayerDeath),
                 (
                     player::despawn,
                     background::despawn,

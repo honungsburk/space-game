@@ -19,6 +19,7 @@ impl Plugin for GameModePlugin {
             .add_plugins((
                 main_game::MainGamePlugin,
                 turret_performance::TurretPerformancePlugin,
+                player_death::PlayerDeathPlugin,
             ))
             .add_systems(Update, update_game_mode);
     }
@@ -36,21 +37,24 @@ impl Plugin for GameModePlugin {
 pub enum GameMode {
     // Real Game Modes
     None, // No mode
-    #[default]
     MainGame,
     // Debug Game Modes
     TurretPerformance, // Performance testing mode with a lot of turrets
+    #[default]
+    PlayerDeath, // Player death testing mode
 }
 
 fn update_game_mode(
     mut next_game_mode: ResMut<NextState<GameMode>>,
     keyboard_input: Res<Input<KeyCode>>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::F8) {
+    if keyboard_input.just_pressed(KeyCode::Numpad0) {
         next_game_mode.set(GameMode::None);
-    } else if keyboard_input.just_pressed(KeyCode::F9) {
+    } else if keyboard_input.just_pressed(KeyCode::Numpad1) {
         next_game_mode.set(GameMode::MainGame); // TODO: we are accidentally closing the window!
-    } else if keyboard_input.just_pressed(KeyCode::F10) {
+    } else if keyboard_input.just_pressed(KeyCode::Numpad2) {
         next_game_mode.set(GameMode::TurretPerformance);
+    } else if keyboard_input.just_pressed(KeyCode::Numpad3) {
+        next_game_mode.set(GameMode::PlayerDeath);
     }
 }

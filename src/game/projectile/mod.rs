@@ -93,7 +93,7 @@ fn update_projectiles_on_collision(
                 if flags.contains(CollisionEventFlags::REMOVED) {
                     continue;
                 }
-
+                println!("CollisionEvent::Started");
                 let did_resolve = resolve_projectile_collision(
                     &mut commands,
                     &projectile_query,
