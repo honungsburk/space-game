@@ -29,23 +29,15 @@ impl AcceleratorThrustor {
         })
     }
 
+    /// Returns the thrust that should be applied to the entity.
     fn thrust(&self, current_speed: f32) -> f32 {
-        if current_speed < 0.0 {
-            panic!("current_speed must be positive");
-        }
-
         let relative_speed = (current_speed / self.max_speed).clamp(0.0, 1.0);
 
-        let acceleration = self.acceleration_curve.evaluate(speed);
-        let acceleration = acceleration.min(self.max_acceleration);
-        let acceleration = acceleration.max(-self.max_acceleration);
-        let acceleration = acceleration * self.weight;
+        let acceleration = self.max_acceleration * self.acceleration_curve.evaluate(relative_speed);
 
-        let speed = speed + acceleration * dt;
-        let speed = speed.min(self.max_speed);
-        let speed = speed.max(-self.max_speed);
+        let thrust = acceleration * self.weight;
 
-        speed
+        thrust
     }
 }
 
