@@ -66,9 +66,10 @@ Current objective is to get a gameplay loop working.
 - [ ] Add excellent test suit
 - [ ] Playtesting
 - [ ] Test on multiple screens/resolutions
-- [ ] Accessability
+- [ ] Accessibility
 - [ ] Key bindings
 - [ ] Gamepad support
 - [ ] Release on itch.io
 - [ ] Release on Steam
 - [ ] Release on GOG
+- [ ] Citations
