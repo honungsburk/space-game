@@ -1,20 +1,20 @@
 use bevy::prelude::*;
 
-use super::GameMode;
+use super::Scene;
 use crate::game::{arena, assets::AssetDB, background, camera, enemy};
 
-pub struct EnemyShipAIPlugin;
+pub struct EnemyShipAIScenePlugin;
 
 // TODO: Move the Arena code to the main_game.rs file
 
-impl Plugin for EnemyShipAIPlugin {
+impl Plugin for EnemyShipAIScenePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            OnEnter(GameMode::EnemyShipAI),
+            OnEnter(Scene::EnemyShipAI),
             (background::spawn, camera::spawn, spawn),
         )
         .add_systems(
-            OnExit(GameMode::EnemyShipAI),
+            OnExit(Scene::EnemyShipAI),
             (
                 background::despawn,
                 camera::despawn,

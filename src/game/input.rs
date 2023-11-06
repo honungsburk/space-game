@@ -51,12 +51,12 @@ pub enum InputAction {
     DebugRender,
     DebugFPSCounter,
     // Game State Actions
-    GameModeReload,
-    GameModeNone,
-    GameModeMainGame,
-    GameModeTurretPerformance,
-    GameModePlayerDeath,
-    GameModeEnemyShipAI,
+    SceneReload,
+    SceneNone,
+    SceneMainGame,
+    SceneTurretPerformance,
+    ScenePlayerDeath,
+    SceneEnemyShipAI,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -128,27 +128,21 @@ pub fn create_input_map() -> InputMap<InputAction> {
     ]);
 
     // Add GameMode inputs
-    input_map.insert_chord(
-        [KeyCode::ControlLeft, KeyCode::R],
-        InputAction::GameModeReload,
-    );
+    input_map.insert_chord([KeyCode::ControlLeft, KeyCode::R], InputAction::SceneReload);
 
     input_map.insert_multiple(vec![
-        (
-            InputKind::Keyboard(KeyCode::Key0),
-            InputAction::GameModeNone,
-        ),
+        (InputKind::Keyboard(KeyCode::Key0), InputAction::SceneNone),
         (
             InputKind::Keyboard(KeyCode::Key1),
-            InputAction::GameModeMainGame,
+            InputAction::SceneMainGame,
         ),
         (
             InputKind::Keyboard(KeyCode::Key2),
-            InputAction::GameModeTurretPerformance,
+            InputAction::SceneTurretPerformance,
         ),
         (
             InputKind::Keyboard(KeyCode::Key3),
-            InputAction::GameModePlayerDeath,
+            InputAction::ScenePlayerDeath,
         ),
     ]);
 

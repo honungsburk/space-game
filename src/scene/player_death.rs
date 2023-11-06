@@ -1,15 +1,15 @@
 use bevy::prelude::*;
 
-use super::GameMode;
+use super::Scene;
 use crate::game::{assets::AssetDB, background, camera, player, turret};
 
-pub struct PlayerDeathPlugin;
+pub struct PlayerDeathScenePlugin;
 
-impl Plugin for PlayerDeathPlugin {
+impl Plugin for PlayerDeathScenePlugin {
     fn build(&self, app: &mut App) {
         app // Runs even when the game is paused
             .add_systems(
-                OnEnter(GameMode::PlayerDeath),
+                OnEnter(Scene::PlayerDeath),
                 (
                     player::spawn(Vec2::new(0.0, 0.0), 0.0),
                     background::spawn,
@@ -18,7 +18,7 @@ impl Plugin for PlayerDeathPlugin {
                 ),
             )
             .add_systems(
-                OnExit(GameMode::PlayerDeath),
+                OnExit(Scene::PlayerDeath),
                 (
                     player::despawn,
                     background::despawn,
