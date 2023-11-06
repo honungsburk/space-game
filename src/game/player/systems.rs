@@ -22,11 +22,14 @@ pub fn control_ship(
             // Note that some gamepad buttons are also tied to axes, so even though we used a
             // GamepadbuttonType::RightTrigger2 binding to trigger the throttle action, we can get a
             // variable value here if you have a variable right trigger on your gamepad.
-            let value = input_action.value(InputAction::PlayerThrottleForward);
+            // we expect a value between 0.0 and 1.0
+            let value: f32 = input_action
+                .value(InputAction::PlayerThrottleForward)
+                .clamp(0.0, 1.0);
 
             let impulse = player_transform
                 .rotation
-                .mul_vec3(Vec3::new(0.0, value * 1.0, 0.0));
+                .mul_vec3(Vec3::new(0.0, value, 0.0));
             player_impulse.impulse = Vec2::new(impulse.x, impulse.y);
             // player_transform.rotation.into::<Vec2>() * Vec2::new(0.0, value * 0.001);
         }

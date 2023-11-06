@@ -4,6 +4,7 @@ pub mod average_velocity;
 pub mod background;
 pub mod camera;
 pub mod config;
+pub mod control_system;
 pub mod debug;
 pub mod enemy;
 pub mod events;

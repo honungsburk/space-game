@@ -15,6 +15,8 @@ Current objective is to get a gameplay loop working.
 
 ### Backlog
 
+- fix bug where targets are not being removed from the target list when they die.
+
 - Factions
   - Player
   - Enemy1, Enemy2, Enemy3

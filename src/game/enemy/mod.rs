@@ -1,3 +1,21 @@
+//! # Enemy Ship
+//!
+//! ## Behavior
+//!
+//! The movement works with attraction and repulsion forces. The enemy ship is
+//! attracted to the player ship and repulsed non-player entities. The enemy sees in a cone
+//! in front of it. If the player is in the cone, the enemy will move towards the player.
+//!
+//! **Rules:**
+//! - Moves forward
+//! - If there are more then one enemy entity, move towards the first one that was seen (the influence is constant).
+//! - If an entity is in the view cone (includes enemies), move away from it (the influence: -1 / distance^2).
+//! - If there is an enemy entity in the view cone, shoot.
+//!
+//!
+
+mod ai;
+
 use super::assets::groups;
 use super::assets::AssetDB;
 use super::game_entity::Enemy;
