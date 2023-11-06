@@ -17,10 +17,7 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_enemy);
-        // Systems
-        // On Exit State
-        // .add_system(despawn_player.in_schedule(OnExit(AppState::Game)));
+        // app.add_systems(Update, update_enemy);
     }
 }
 
@@ -65,15 +62,25 @@ fn update_enemy(
 // Spawn
 ////////////////////////////////////////////////////////////////////////////////
 
-fn spawn_enemy(
-    mut commands: Commands,
+pub fn despawn(mut commands: Commands, query: Query<Entity, With<Enemy>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+}
+
+pub fn spawn(
+    commands: &mut Commands,
     asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
-    spawn_transform: Transform,
-) {
+    spawn_location: Vec2,
+    rotation: f32,
+) -> Entity {
     let asset = &asset_db.enemy_ship_1;
 
-    commands
+    let mut spawn_transform = Transform::from_translation(spawn_location.extend(0.0));
+    spawn_transform.rotate_local_z(rotation);
+
+    let entity = commands
         .spawn(SpriteBundle {
             texture: asset_server.load(asset.sprite_path),
             sprite: Sprite {
@@ -110,5 +117,8 @@ fn spawn_enemy(
         .insert(ExternalImpulse {
             impulse: Vec2::new(0.0, 0.0),
             torque_impulse: 0.0,
-        });
+        })
+        .id();
+
+    return entity;
 }

@@ -51,7 +51,7 @@ pub fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<A
     let arena = Arena::new(2000.0, 400.0);
 
     arena.spawn_asteroid_bounds(&mut commands, &asset_db, &asset_server);
-    spawn_random_meteors(&arena, &mut commands, &asset_db, &asset_server, 100);
+    arena.spawn_random_asteroids(&mut commands, &asset_db, &asset_server, 100);
     arena.spawn_player(&mut commands, &asset_db, &asset_server);
 
     commands.insert_resource(arena);
@@ -198,7 +198,7 @@ impl Arena {
         &self.player_spawn_locations
     }
 
-    fn spawn_asteroid_bounds(
+    pub fn spawn_asteroid_bounds(
         &self,
         commands: &mut Commands,
         asset_db: &Res<AssetDB>,
@@ -280,69 +280,69 @@ impl Arena {
             self.player_spawn_locations.rotation,
         );
     }
+
+    pub fn spawn_random_asteroids(
+        &self,
+        commands: &mut Commands,
+        asset_db: &Res<AssetDB>,
+        asset_server: &Res<AssetServer>,
+        number_of_meteors: usize,
+    ) {
+        let arena_center = Vec2::new(0.0, 0.0);
+
+        let mut rng = rand::thread_rng();
+
+        for _ in 1..=number_of_meteors {
+            let size = rng.gen_range(0..10);
+
+            let (meteor_size, meteor_radius) = match size {
+                1..=2 => (MeteorSize::Tiny, assets::TINY_METEOR_RADIUS),
+                3..=5 => (MeteorSize::Small, assets::SMALL_METEOR_RADIUS),
+                6..=8 => (MeteorSize::Medium, assets::MEDIUM_METEOR_RADIUS),
+                _ => (MeteorSize::Big, assets::BIG_METEOR_RADIUS),
+            };
+
+            // Subtract the meteor radius from the arena radius to ensure that the meteor is spawned
+            // within the arena
+
+            let candidate = arena_center
+                + random::uniform_donut(
+                    &mut rng,
+                    self.asteroid_bounds.radius() - meteor_radius,
+                    self.player_spawn_locations.protcted_radius,
+                );
+            let transform = Transform::from_xyz(candidate.x, candidate.y, 0.0);
+            let is_movable = match meteor_size {
+                MeteorSize::Tiny => true,
+                MeteorSize::Small => true,
+                MeteorSize::Medium => rng.gen_bool(0.7),
+                MeteorSize::Big => rng.gen_bool(0.5),
+            };
+            if is_movable {
+                meteors::spawn_meteor(
+                    asset_db,
+                    asset_server,
+                    commands,
+                    meteor_size,
+                    transform,
+                    Vec2::ZERO,
+                    0.0,
+                );
+            } else {
+                meteors::spawn_immovable_meteor(
+                    asset_db,
+                    asset_server,
+                    commands,
+                    meteor_size,
+                    transform,
+                );
+            }
+        }
+    }
 }
 
 fn circle_area(radius: f32) -> f32 {
     radius * radius * std::f32::consts::PI
-}
-
-fn spawn_random_meteors(
-    arena: &Arena,
-    commands: &mut Commands,
-    asset_db: &Res<AssetDB>,
-    asset_server: &Res<AssetServer>,
-    number_of_meteors: usize,
-) {
-    let arena_center = Vec2::new(0.0, 0.0);
-
-    let mut rng = rand::thread_rng();
-
-    for _ in 1..=number_of_meteors {
-        let size = rng.gen_range(0..10);
-
-        let (meteor_size, meteor_radius) = match size {
-            1..=2 => (MeteorSize::Tiny, assets::TINY_METEOR_RADIUS),
-            3..=5 => (MeteorSize::Small, assets::SMALL_METEOR_RADIUS),
-            6..=8 => (MeteorSize::Medium, assets::MEDIUM_METEOR_RADIUS),
-            _ => (MeteorSize::Big, assets::BIG_METEOR_RADIUS),
-        };
-
-        // Subtract the meteor radius from the arena radius to ensure that the meteor is spawned
-        // within the arena
-
-        let candidate = arena_center
-            + random::uniform_donut(
-                &mut rng,
-                arena.asteroid_bounds.radius() - meteor_radius,
-                arena.player_spawn_locations.protcted_radius,
-            );
-        let transform = Transform::from_xyz(candidate.x, candidate.y, 0.0);
-        let is_movable = match meteor_size {
-            MeteorSize::Tiny => true,
-            MeteorSize::Small => true,
-            MeteorSize::Medium => rng.gen_bool(0.7),
-            MeteorSize::Big => rng.gen_bool(0.5),
-        };
-        if is_movable {
-            meteors::spawn_meteor(
-                asset_db,
-                asset_server,
-                commands,
-                meteor_size,
-                transform,
-                Vec2::ZERO,
-                0.0,
-            );
-        } else {
-            meteors::spawn_immovable_meteor(
-                asset_db,
-                asset_server,
-                commands,
-                meteor_size,
-                transform,
-            );
-        }
-    }
 }
 
 fn spawn_enemy(

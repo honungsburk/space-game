@@ -56,6 +56,7 @@ pub enum InputAction {
     GameModeMainGame,
     GameModeTurretPerformance,
     GameModePlayerDeath,
+    GameModeEnemyShipAI,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
