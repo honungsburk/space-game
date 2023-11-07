@@ -1,5 +1,5 @@
-use super::components::DirectionControl;
 use super::components::{ContactForceInvulnerability, Player};
+use crate::game::control_system::DirectionControl;
 use crate::game::input::InputAction;
 use crate::game::trauma::Trauma;
 use crate::game::vitality::Health;
@@ -71,20 +71,6 @@ pub fn control_ship(
 
             player_impulse.torque_impulse = value * -0.005;
             direction_control.turn_off();
-        }
-    }
-}
-
-pub fn update_player_rotation(
-    time: Res<Time>,
-    mut query: Query<(&mut ExternalImpulse, &Transform, &mut DirectionControl), With<Player>>,
-) {
-    for (mut player_impulse, player_transform, mut direction_control) in query.iter_mut() {
-        let (_, _, current_angle) = player_transform.rotation.to_euler(EulerRot::XYZ);
-
-        if let Some(control_signal) = direction_control.update(current_angle, time.delta_seconds())
-        {
-            player_impulse.torque_impulse = control_signal * 0.005;
         }
     }
 }

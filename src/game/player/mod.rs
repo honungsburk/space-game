@@ -2,13 +2,13 @@ pub mod components;
 mod systems;
 
 use crate::game::average_velocity::AverageVelocity;
+use crate::game::control_system::DirectionControl;
 use crate::game::game_entity::GameEntityType;
 use crate::game::trauma::Trauma;
 use crate::game::vitality::Health;
 use crate::game::{assets::groups, assets::AssetDB, weapon::Weapon};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use components::DirectionControl;
 use systems::*;
 
 pub use components::Player;
@@ -30,7 +30,6 @@ impl Plugin for PlayerPlugin {
             (
                 control_ship,
                 fire_weapon,
-                update_player_rotation,
                 player_collision,
                 update_contact_force_invulnerability,
             ),
@@ -77,7 +76,10 @@ pub fn spawn_player(
         })
         .insert(Player {})
         .insert(GameEntityType::Player)
-        .insert(DirectionControl::default())
+        .insert(DirectionControl {
+            torque_impulse_magnitude: 0.005,
+            ..Default::default()
+        })
         .insert(CameraTargetLabel)
         .insert(RigidBody::Dynamic)
         .insert(asset_db.player_ship.collider.clone())

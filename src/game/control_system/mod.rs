@@ -13,6 +13,23 @@
 //!
 //!
 
+mod direction_control;
 mod thrustor;
+
+pub use direction_control::DirectionControl;
+
+use bevy::prelude::*;
+
+////////////////////////////////////////////////////////////////////////////////
+/// Plugin
+////////////////////////////////////////////////////////////////////////////////
+
+pub struct ControlSystemPlugin;
+
+impl Plugin for ControlSystemPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, direction_control::update_direction_control);
+    }
+}
 
 // mut query: Query<(&mut ExternalImpulse, &Transform, &mut DirectionControl), With<Player>>,

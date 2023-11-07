@@ -23,6 +23,7 @@ use super::assets::groups;
 use super::assets::AssetDB;
 use super::camera::CameraTargetLabel;
 use super::config::Flag;
+use super::control_system::DirectionControl;
 use super::game_entity::Enemy;
 use super::game_entity::GameEntityType;
 use super::player::components::Player;
@@ -164,7 +165,12 @@ fn update_enemy(
     vision_cone_debug: Res<VisionDonutConeDebugFlag>,
     gizmos: Gizmos, // TODO: expensive to pass this around?
     mut ship_query: Query<
-        (&mut ExternalImpulse, &mut Transform, &VisionDonutSegment),
+        (
+            &mut ExternalImpulse,
+            &mut Transform,
+            &VisionDonutSegment,
+            &mut DirectionControl,
+        ),
         (With<EnemyShipLabel>, Without<Player>),
     >,
     player_query: Query<&Player>,
@@ -176,7 +182,9 @@ fn update_enemy(
         None
     };
 
-    for (mut enemy_impulse, mut enemy_transform, vision_donut_segment) in ship_query.iter_mut() {
+    for (mut enemy_impulse, mut enemy_transform, vision_donut_segment, mut direction_control) in
+        ship_query.iter_mut()
+    {
         // Bias the influence vector towards the direction the enemy is facing
         // let (_, _, current_angle) = enemy_transform.rotation.to_euler(EulerRot::XYZ);
         let mut influence_vector = (enemy_transform.rotation * Vec3::Y).truncate();
@@ -200,8 +208,8 @@ fn update_enemy(
 
             let vel = direction * influence;
 
-            println!("distance: {:?}", visible_position.length());
-            println!("vel: {:?}", vel);
+            // println!("distance: {:?}", visible_position.length());
+            // println!("vel: {:?}", vel);
 
             if player_query.contains(visible_entity) {
                 influence_vector -= vel;
@@ -214,7 +222,8 @@ fn update_enemy(
 
         // turn the influence vector into an angle
         let new_angle = Vec2::Y.angle_between(influence_vector);
-        enemy_transform.rotation = Quat::from_rotation_z(new_angle);
+        direction_control.set_setpoint(new_angle);
+        // enemy_transform.rotation = Quat::from_rotation_z(new_angle);
 
         enemy_impulse.impulse = influence_vector;
     }
@@ -264,6 +273,10 @@ pub fn spawn(
             inner_distance: 60.0,
             outer_distance: 300.0,
             angle: PI / 2.0,
+        })
+        .insert(DirectionControl {
+            torque_impulse_magnitude: 0.005,
+            ..Default::default()
         })
         .insert(Health::at_max(50))
         .insert(RigidBody::Dynamic)
