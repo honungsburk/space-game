@@ -196,7 +196,7 @@ fn update_enemy(
             let ship_position = enemy_transform.translation.truncate();
             let distance = visible_position.distance(ship_position);
             let direction = (ship_position - visible_position).normalize();
-            let influence = 300.0 / distance;
+            let influence = 100.0 / distance;
 
             let vel = direction * influence;
 
@@ -213,7 +213,7 @@ fn update_enemy(
         // println!("influence_vector: {:?}", influence_vector);
 
         // turn the influence vector into an angle
-        let new_angle = influence_vector.angle_between(Vec2::Y);
+        let new_angle = Vec2::Y.angle_between(influence_vector);
         enemy_transform.rotation = Quat::from_rotation_z(new_angle);
 
         enemy_impulse.impulse = influence_vector;
