@@ -38,7 +38,7 @@ impl Plugin for CameraPlugin {
                 Update,
                 (
                     update_smooth_camera,
-                    update_shaky_camera,
+                    update_shaky_camera.after(update_smooth_camera),
                     update_screen_bounds,
                     // Debug
                     debug_camera_position.run_if(run_debug_camera_position),

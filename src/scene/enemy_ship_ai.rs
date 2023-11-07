@@ -33,9 +33,9 @@ impl Plugin for EnemyShipAIScenePlugin {
 
 fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<AssetServer>) {
     // Spawn the arena and player
-    let arena = arena::Arena::new(500.0, 200.0);
+    let arena = arena::Arena::new(1000.0, 200.0);
     arena.spawn_asteroid_bounds(&mut commands, &asset_db, &asset_server);
-    // arena.spawn_random_asteroids(&mut commands, &asset_db, &asset_server, 100);
+    arena.spawn_random_asteroids(&mut commands, &asset_db, &asset_server, 50);
     // arena.spawn_player(&mut commands, &asset_db, &asset_server);
 
     // Spawn an enemy ship
