@@ -1,7 +1,13 @@
 use bevy::prelude::*;
 
 use super::Scene;
-use crate::game::{arena, assets::AssetDB, background, camera, enemy};
+use crate::game::{
+    arena,
+    assets::AssetDB,
+    background,
+    camera::{self, CameraTargetLabel},
+    enemy,
+};
 
 pub struct EnemyShipAIScenePlugin;
 
@@ -40,4 +46,6 @@ fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<Asset
         Vec2::new(0.0, 0.0),
         0.0,
     );
+
+    commands.entity(enemy_entity).insert(CameraTargetLabel);
 }

@@ -15,6 +15,8 @@ pub use components::Player;
 
 use self::components::ContactForceInvulnerability;
 
+use super::camera::CameraTargetLabel;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
 ////////////////////////////////////////////////////////////////////////////////
@@ -76,12 +78,7 @@ pub fn spawn_player(
         .insert(Player {})
         .insert(GameEntityType::Player)
         .insert(DirectionControl::default())
-        // .insert(InputManagerBundle::<PlayerAction> {
-        //     // Stores "which actions are currently pressed"
-        //     action_state: ActionState::default(),
-        //     // Describes how to convert from player inputs into those actions
-        //     input_map: input_map.build(),
-        // })
+        .insert(CameraTargetLabel)
         .insert(RigidBody::Dynamic)
         .insert(asset_db.player_ship.collider.clone())
         .insert(Trauma::default())

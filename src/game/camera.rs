@@ -52,6 +52,9 @@ impl Plugin for CameraPlugin {
 // Components & Resources
 ////////////////////////////////////////////////////////////////////////////////
 
+#[derive(Component)]
+pub struct CameraTargetLabel;
+
 // This camera is smooth and follows the player + uses look ahead
 #[derive(Component)]
 pub struct SmoothCamera;
@@ -219,17 +222,17 @@ pub fn update_smooth_camera(
     time: Res<Time>,
     mut camera_query: Query<
         (&mut Transform, &mut CameraPID),
-        (Without<Player>, With<SmoothCamera>),
+        (Without<CameraTargetLabel>, With<SmoothCamera>),
     >,
-    input_query: Query<&ActionState<InputAction>, Without<Player>>,
-    player_query: Query<(&Transform, &Velocity), (With<Player>, Without<Camera>)>,
+    input_query: Query<&ActionState<InputAction>, Without<CameraTargetLabel>>,
+    target_query: Query<(&Transform, &Velocity), (With<CameraTargetLabel>, Without<Camera>)>,
 ) {
     if time.delta_seconds() == 0.0 {
         return;
     }
 
     if let (Ok((player_transform, player_velocity)), Ok(input_action)) =
-        (player_query.get_single(), input_query.get_single())
+        (target_query.get_single(), input_query.get_single())
     {
         if let Ok((mut camera_transform, mut camera_pid)) = camera_query.get_single_mut() {
             // Determine desired camera placement
@@ -266,15 +269,23 @@ fn update_shaky_camera(
     time: Res<Time>,
     mut shaky_camera_query: Query<
         (&mut Transform, &mut ShakyCamera),
-        (Without<Player>, Without<SmoothCamera>),
+        (Without<CameraTargetLabel>, Without<SmoothCamera>),
     >,
     smooth_camera_query: Query<
         &Transform,
-        (Without<Player>, With<SmoothCamera>, Without<ShakyCamera>),
+        (
+            Without<CameraTargetLabel>,
+            With<SmoothCamera>,
+            Without<ShakyCamera>,
+        ),
     >,
-    player_query: Query<
+    target_query: Query<
         Option<&Trauma>,
-        (With<Player>, Without<SmoothCamera>, Without<ShakyCamera>),
+        (
+            With<CameraTargetLabel>,
+            Without<SmoothCamera>,
+            Without<ShakyCamera>,
+        ),
     >,
 ) {
     if let (
@@ -282,7 +293,7 @@ fn update_shaky_camera(
         Ok(smooth_camera_transform),
         Ok((mut shaky_camera_transform, shaky_camera)),
     ) = (
-        player_query.get_single(),
+        target_query.get_single(),
         smooth_camera_query.get_single(),
         shaky_camera_query.get_single_mut(),
     ) {

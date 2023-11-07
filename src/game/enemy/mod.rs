@@ -21,6 +21,7 @@ use std::f32::consts::PI;
 
 use super::assets::groups;
 use super::assets::AssetDB;
+use super::camera::CameraTargetLabel;
 use super::config::Flag;
 use super::game_entity::Enemy;
 use super::game_entity::GameEntityType;
@@ -247,6 +248,7 @@ pub fn spawn(
             transform: spawn_transform,
             ..Default::default()
         })
+        .insert(Velocity::zero())
         .insert(GameEntityType::Enemy)
         .insert(Enemy)
         .insert(EnemyShipLabel)
