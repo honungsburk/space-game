@@ -163,7 +163,7 @@ impl CastVisionCones for RapierContext {
 fn update_enemy(
     vision_cone_debug: Res<VisionDonutConeDebugFlag>,
     gizmos: Gizmos, // TODO: expensive to pass this around?
-    mut enemy_query: Query<
+    mut ship_query: Query<
         (&mut ExternalImpulse, &mut Transform, &VisionDonutSegment),
         (With<EnemyShipLabel>, Without<Player>),
     >,
@@ -176,7 +176,7 @@ fn update_enemy(
         None
     };
 
-    for (mut enemy_impulse, mut enemy_transform, vision_donut_segment) in enemy_query.iter_mut() {
+    for (mut enemy_impulse, mut enemy_transform, vision_donut_segment) in ship_query.iter_mut() {
         // Bias the influence vector towards the direction the enemy is facing
         // let (_, _, current_angle) = enemy_transform.rotation.to_euler(EulerRot::XYZ);
         let mut influence_vector = (enemy_transform.rotation * Vec3::Y).truncate();
@@ -191,19 +191,26 @@ fn update_enemy(
             &mut giz,
         );
 
-        for (visible_entity, position) in visible_entities {
+        for (visible_entity, visible_position) in visible_entities {
             // If the entity is the player, move towards it
-            let enemy_position = enemy_transform.translation.truncate();
-            let distance = position.distance(enemy_position);
-            let direction = (position - enemy_position).normalize();
-            let influence = 1.0 / distance.powi(2);
+            let ship_position = enemy_transform.translation.truncate();
+            let distance = visible_position.distance(ship_position);
+            let direction = (ship_position - visible_position).normalize();
+            let influence = 300.0 / distance;
+
+            let vel = direction * influence;
+
+            println!("distance: {:?}", visible_position.length());
+            println!("vel: {:?}", vel);
 
             if player_query.contains(visible_entity) {
-                influence_vector += direction * influence;
+                influence_vector -= vel;
             } else {
-                influence_vector -= direction * influence;
+                influence_vector += vel;
             }
         }
+
+        // println!("influence_vector: {:?}", influence_vector);
 
         // turn the influence vector into an angle
         let new_angle = influence_vector.angle_between(Vec2::Y);
