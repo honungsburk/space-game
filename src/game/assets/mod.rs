@@ -263,7 +263,7 @@ fn create_asset_db() -> AssetDB {
         enemy_ship_1: Asset::new(
             "Enemy Ship 1",
             "sprites/enemy/enemyRed1.png",
-            Collider::cuboid(40.0, 40.0),
+            Collider::ball(50.0),
         ),
     }
 }

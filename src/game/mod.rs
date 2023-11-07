@@ -35,8 +35,9 @@ use projectile::ProjectilePlugin;
 
 use self::{
     average_velocity::AverageVelocityPlugin, background::BackgroundPlugin, debug::DebugPlugin,
-    events::GameOverEvent, input::InputPlugin, score::ScorePlugin, time_to_live::TimeToLivePlugin,
-    trauma::TraumaPlugin, turret::TurretPlugin, vitality::VitalityPlugin,
+    enemy::EnemyPlugin, events::GameOverEvent, input::InputPlugin, score::ScorePlugin,
+    time_to_live::TimeToLivePlugin, trauma::TraumaPlugin, turret::TurretPlugin,
+    vitality::VitalityPlugin,
 };
 
 pub struct GamePlugin {
@@ -67,8 +68,8 @@ impl Plugin for GamePlugin {
         // States
         .add_state::<SimulationState>()
         // Systems
+        .add_plugins(EnemyPlugin)
         .add_plugins((
-            // EnemyPlugin,
             InputPlugin,
             DebugPlugin,
             BackgroundPlugin,
