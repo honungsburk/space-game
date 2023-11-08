@@ -50,6 +50,61 @@ impl Plugin for EnemyPlugin {
 ////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Component, Debug)]
+struct ShipNavigationSystem {
+    /// If present the ship will be incentivized to be close to the guard point
+    ///
+    /// The first element is the point, and the second is the influence. A higher
+    /// influence means the ship will be more incentivized to be close to the point,
+    /// and a lower influence means the ship will be less incentivized to be close to it.
+    ///
+    guard_point: Option<(Vec2, f32)>,
+
+    /// For each frame we calculate a rolling average of the influence vectors
+    /// This is to smooth out the influence vector, so the ship does not jitter
+    /// to much.
+    average_influence: Vec2,
+}
+
+impl Default for ShipNavigationSystem {
+    fn default() -> Self {
+        Self {
+            guard_point: None,
+            average_influence: Vec2::ZERO,
+        }
+    }
+}
+
+impl ShipNavigationSystem {
+    /// Returns the influence vector for the ship
+    fn influence_vector(&self) -> Vec2 {
+        self.average_influence
+    }
+
+    /// Sets the guard point for the ship
+    fn set_guard_point(&mut self, point: Vec2, influence: f32) {
+        self.guard_point = Some((point, influence));
+    }
+
+    /// Clears the guard point for the ship
+    fn clear_guard_point(&mut self) {
+        self.guard_point = None;
+    }
+
+    /// Update and return the influence vector for the ship
+    fn update(&mut self, transform: &Transform, influence: &Vec2) -> Vec2 {
+        let position = transform.translation.truncate();
+        let forward_bias = (transform.rotation * Vec3::Y).truncate();
+        self.average_influence = (self.average_influence + *influence + forward_bias) / 2.0;
+
+        if let Some((guard_point, influence)) = self.guard_point {
+            return position.distance(guard_point) * influence + self.average_influence;
+        } else {
+            return self.average_influence;
+        }
+    }
+}
+
+#[derive(Component, Debug)]
 struct Tracking {
     entities: Vec<Entity>,
 }
@@ -167,9 +222,10 @@ fn update_enemy(
     mut ship_query: Query<
         (
             &mut ExternalImpulse,
-            &mut Transform,
+            &Transform,
             &VisionDonutSegment,
             &mut DirectionControl,
+            &mut ShipNavigationSystem,
         ),
         (With<EnemyShipLabel>, Without<Player>),
     >,
@@ -182,12 +238,17 @@ fn update_enemy(
         None
     };
 
-    for (mut enemy_impulse, mut enemy_transform, vision_donut_segment, mut direction_control) in
-        ship_query.iter_mut()
+    for (
+        mut enemy_impulse,
+        enemy_transform,
+        vision_donut_segment,
+        mut direction_control,
+        mut ship_navigation_system,
+    ) in ship_query.iter_mut()
     {
         // Bias the influence vector towards the direction the enemy is facing
         // let (_, _, current_angle) = enemy_transform.rotation.to_euler(EulerRot::XYZ);
-        let mut influence_vector = (enemy_transform.rotation * Vec3::Y).truncate();
+        let mut influence_vector = Vec2::ZERO;
 
         // Find every entity in the vision cone
         let visible_entities = rapier_context.cast_vision_cone(
@@ -208,9 +269,6 @@ fn update_enemy(
 
             let vel = direction * influence;
 
-            // println!("distance: {:?}", visible_position.length());
-            // println!("vel: {:?}", vel);
-
             if player_query.contains(visible_entity) {
                 influence_vector -= vel;
             } else {
@@ -218,14 +276,13 @@ fn update_enemy(
             }
         }
 
-        // println!("influence_vector: {:?}", influence_vector);
+        let final_influence = ship_navigation_system.update(&enemy_transform, &influence_vector);
 
         // turn the influence vector into an angle
-        let new_angle = Vec2::Y.angle_between(influence_vector);
+        let new_angle = Vec2::Y.angle_between(final_influence);
         direction_control.set_setpoint(new_angle);
-        // enemy_transform.rotation = Quat::from_rotation_z(new_angle);
 
-        enemy_impulse.impulse = influence_vector;
+        enemy_impulse.impulse = final_influence;
     }
 }
 
@@ -274,6 +331,7 @@ pub fn spawn(
             outer_distance: 300.0,
             angle: PI / 2.0,
         })
+        .insert(ShipNavigationSystem::default())
         .insert(DirectionControl {
             torque_impulse_magnitude: 0.005,
             ..Default::default()
