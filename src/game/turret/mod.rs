@@ -129,7 +129,7 @@ pub fn spawn(
             turret_config.weapon_damage,
             1000.0,
             Timer::from_seconds(1.0, TimerMode::Once),
-            Timer::from_seconds(0.1, TimerMode::Repeating),
+            None,
             groups::ENEMY_PROJECTILE_GROUP,
             groups::ENEMY_PROJECTILE_FILTER_MASK,
         ))

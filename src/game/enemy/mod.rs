@@ -27,9 +27,13 @@ use super::game_entity::Enemy;
 use super::game_entity::GameEntityType;
 use super::player::components::Player;
 use super::vitality::Health;
+use super::weapon::Weapon;
 use bevy::prelude::*;
 use bevy_rapier2d::geometry::*;
 use bevy_rapier2d::prelude::*;
+use rand_distr;
+use rand_distr::Distribution;
+use rand_distr::Poisson;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -40,13 +44,51 @@ pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<VisionConeDebugFlag>()
-            .add_systems(Update, update_enemy);
+            .add_systems(Update, (update_enemy_shooting, update_enemy));
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Components
 ////////////////////////////////////////////////////////////////////////////////
+
+#[derive(Component, Debug)]
+struct ShootTimer {
+    timer: Timer,
+}
+
+const POISSON_LAMBDA: f32 = 1.0;
+
+impl Default for ShootTimer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl ShootTimer {
+    pub fn new() -> Self {
+        let seconds = Poisson::new(POISSON_LAMBDA)
+            .unwrap()
+            .sample(&mut rand::thread_rng());
+
+        Self {
+            timer: Timer::from_seconds(seconds, TimerMode::Once),
+        }
+    }
+
+    pub fn update(&mut self, time: &Time) -> bool {
+        let completed = self.timer.tick(time.delta()).just_finished();
+
+        if completed {
+            let seconds = Poisson::new(POISSON_LAMBDA)
+                .unwrap()
+                .sample(&mut rand::thread_rng());
+            self.timer = Timer::from_seconds(seconds, TimerMode::Once);
+        }
+
+        return completed;
+    }
+}
 
 #[derive(Component, Debug)]
 struct ShipNavigationSystem {
@@ -215,6 +257,23 @@ impl CastVisionCones for RapierContext {
     }
 }
 
+fn update_enemy_shooting(
+    time: Res<Time>,
+    asset_db: Res<AssetDB>,
+    asset_server: Res<AssetServer>,
+    mut commands: Commands,
+    mut query: Query<(&mut ShootTimer, &Transform, &mut Weapon)>,
+) {
+    for (mut shoot_timer, transform, mut weapon) in query.iter_mut() {
+        if shoot_timer.update(&time) {
+            let position = transform.translation.truncate();
+            let direction = (transform.rotation * Vec3::Y).truncate();
+
+            weapon.fire(&mut commands, &asset_db, &asset_server, *transform);
+        }
+    }
+}
+
 fn update_enemy(
     vision_cone_debug: Res<VisionConeDebugFlag>,
     gizmos: Gizmos, // TODO: expensive to pass this around?
@@ -324,6 +383,7 @@ pub fn spawn(
             transform: spawn_transform,
             ..Default::default()
         })
+        .insert(ShootTimer::default())
         .insert(Velocity::zero())
         .insert(GameEntityType::Enemy)
         .insert(Enemy)
@@ -340,6 +400,14 @@ pub fn spawn(
             ..Default::default()
         })
         .insert(Health::at_max(50))
+        .insert(Weapon::laser(
+            10,
+            750.0,
+            Timer::from_seconds(1.0, TimerMode::Once),
+            None,
+            groups::ENEMY_PROJECTILE_GROUP,
+            groups::ENEMY_PROJECTILE_FILTER_MASK,
+        ))
         .insert(RigidBody::Dynamic)
         .insert(asset.collider.clone())
         .insert(CollisionGroups::new(

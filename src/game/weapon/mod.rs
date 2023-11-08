@@ -29,7 +29,7 @@ pub enum WeaponType {
         projectile_time_to_live: Timer,
         projectile_collision_membership: Group,
         projectile_collision_filter: Group,
-        cooldown: Timer,
+        cooldown: Option<Timer>,
     },
 }
 
@@ -40,7 +40,11 @@ impl Weapon {
 
     pub fn can_fire(&self) -> bool {
         match &self.0 {
-            WeaponType::Laser { cooldown, .. } => cooldown.finished(),
+            WeaponType::Laser {
+                cooldown: Some(cooldown),
+                ..
+            } => cooldown.finished(),
+            _ => true,
         }
     }
 
@@ -69,7 +73,9 @@ impl Weapon {
                     *projectile_damage,
                 );
 
-                cooldown.reset()
+                if let Some(cooldown) = cooldown {
+                    cooldown.reset()
+                }
             }
         }
     }
@@ -78,7 +84,7 @@ impl Weapon {
         projectile_damage: u32,
         projectile_speed: f32,
         projectile_time_to_live: Timer,
-        cooldown: Timer,
+        cooldown: Option<Timer>,
         projectile_collision_membership: Group,
         projectile_collision_filter: Group,
     ) -> Self {
@@ -100,7 +106,7 @@ impl Weapon {
             projectile_damage: 1,
             projectile_speed: 1000.0,
             projectile_time_to_live: Timer::from_seconds(1.0, TimerMode::Once),
-            cooldown: Timer::from_seconds(0.1, TimerMode::Repeating),
+            cooldown: Some(Timer::from_seconds(0.1, TimerMode::Repeating)),
             projectile_collision_membership,
             projectile_collision_filter,
         })
@@ -114,9 +120,13 @@ impl Weapon {
 fn update_weapon(time: Res<Time>, mut query: Query<&mut Weapon>) {
     for mut weapon in query.iter_mut() {
         match &mut weapon.0 {
-            WeaponType::Laser { cooldown, .. } => {
+            WeaponType::Laser {
+                cooldown: Some(cooldown),
+                ..
+            } => {
                 cooldown.tick(time.delta());
             }
+            _ => {}
         }
     }
 }

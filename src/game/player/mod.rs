@@ -119,7 +119,7 @@ pub fn spawn_player(
             10,
             1000.0,
             Timer::from_seconds(1.0, TimerMode::Once),
-            Timer::from_seconds(0.1, TimerMode::Repeating),
+            Some(Timer::from_seconds(0.1, TimerMode::Repeating)),
             groups::PLAYER_PROJECTILE_GROUP,
             groups::PLAYER_PROJECTILE_FILTER_MASK,
         ));
