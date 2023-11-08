@@ -11,6 +11,7 @@ use crate::ui::hud;
 
 use super::background;
 use super::camera;
+use super::enemy;
 use super::input::InputAction;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::DebugRenderContext;
@@ -53,6 +54,7 @@ fn debug_keyboard_input(
     mut camera_setpoint_debug: Option<ResMut<camera::CameraSetpointDebugFlag>>,
     mut render_debug: Option<ResMut<DebugRenderContext>>,
     mut fps_debug: Option<ResMut<hud::FPSCounterDebugFlag>>,
+    mut vision_cone_debug: Option<ResMut<enemy::VisionConeDebugFlag>>,
 ) {
     if let Ok(input_action) = input_query.get_single() {
         if input_action.just_pressed(InputAction::DebugBackgroundGrid) {
@@ -81,6 +83,12 @@ fn debug_keyboard_input(
 
         if input_action.just_pressed(InputAction::DebugFPSCounter) {
             if let Some(fps_debug) = fps_debug.as_mut() {
+                fps_debug.flag.flip();
+            }
+        }
+
+        if input_action.just_pressed(InputAction::DebugVisionCone) {
+            if let Some(fps_debug) = vision_cone_debug.as_mut() {
                 fps_debug.flag.flip();
             }
         }

@@ -21,7 +21,6 @@ use std::f32::consts::PI;
 
 use super::assets::groups;
 use super::assets::AssetDB;
-use super::camera::CameraTargetLabel;
 use super::config::Flag;
 use super::control_system::DirectionControl;
 use super::game_entity::Enemy;
@@ -40,7 +39,7 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<VisionDonutConeDebugFlag>()
+        app.init_resource::<VisionConeDebugFlag>()
             .add_systems(Update, update_enemy);
     }
 }
@@ -121,11 +120,11 @@ struct VisionDonutSegment {
 }
 
 #[derive(Resource, DerefMut, Deref)]
-pub struct VisionDonutConeDebugFlag {
+pub struct VisionConeDebugFlag {
     pub flag: Flag,
 }
 
-impl Default for VisionDonutConeDebugFlag {
+impl Default for VisionConeDebugFlag {
     fn default() -> Self {
         Self {
             flag: Flag::new("Vision Cone Debug", "Display Vision Cones", true),
@@ -217,11 +216,12 @@ impl CastVisionCones for RapierContext {
 }
 
 fn update_enemy(
-    vision_cone_debug: Res<VisionDonutConeDebugFlag>,
+    vision_cone_debug: Res<VisionConeDebugFlag>,
     gizmos: Gizmos, // TODO: expensive to pass this around?
     mut ship_query: Query<
         (
             &mut ExternalImpulse,
+            &Velocity,
             &Transform,
             &VisionDonutSegment,
             &mut DirectionControl,
@@ -240,6 +240,7 @@ fn update_enemy(
 
     for (
         mut enemy_impulse,
+        velocity,
         enemy_transform,
         vision_donut_segment,
         mut direction_control,
@@ -251,12 +252,14 @@ fn update_enemy(
         let mut influence_vector = Vec2::ZERO;
 
         // Find every entity in the vision cone
+        let angel = vision_donut_segment.angle * (velocity.linvel.length() / 200.0).clamp(0.0, 1.0);
+
         let visible_entities = rapier_context.cast_vision_cone(
             &enemy_transform,
             vision_donut_segment.ray_angel_density,
             vision_donut_segment.inner_distance,
             vision_donut_segment.outer_distance,
-            vision_donut_segment.angle,
+            angel, // TODO limit the angle based on the velocity of the enemy
             &mut giz,
         );
 
@@ -351,14 +354,9 @@ pub fn spawn(
             linear_damping: 0.5,
             angular_damping: 1.0,
         })
-        .insert(ExternalForce {
-            force: Vec2::new(0.0, 0.0),
-            torque: 0.0,
-        })
-        .insert(ExternalImpulse {
-            impulse: Vec2::new(0.0, 0.0),
-            torque_impulse: 0.0,
-        })
+        .insert(Velocity::default())
+        .insert(ExternalForce::default())
+        .insert(ExternalImpulse::default())
         .id();
 
     return entity;

@@ -50,6 +50,7 @@ pub enum InputAction {
     DebugCameraSetpoint,
     DebugRender,
     DebugFPSCounter,
+    DebugVisionCone,
     // Game State Actions
     SceneReload,
     SceneNone,
@@ -124,6 +125,10 @@ pub fn create_input_map() -> InputMap<InputAction> {
         (
             InputKind::Keyboard(KeyCode::F5),
             InputAction::DebugFPSCounter,
+        ),
+        (
+            InputKind::Keyboard(KeyCode::F6),
+            InputAction::DebugVisionCone,
         ),
     ]);
 
