@@ -9,6 +9,7 @@ mod enemy_ship_ai;
 mod main_game;
 mod player_death;
 mod player_movement;
+mod turret;
 mod turret_performance;
 
 use bevy::prelude::*;
@@ -23,6 +24,7 @@ impl Plugin for ScenePlugin {
         app.add_state::<Scene>()
             .init_resource::<Reload>()
             .add_plugins((
+                turret::TurretScenePlugin,
                 player_movement::PlayerMovementScenePlugin,
                 main_game::MainGameScenePlugin,
                 turret_performance::TurretPerformanceScenePlugin,
@@ -50,8 +52,9 @@ pub enum Scene {
     TurretPerformance, // Performance testing mode with a lot of turrets
     PlayerDeath,       // Player death testing mode
     EnemyShipAI,
-    #[default]
     PlayerMovement,
+    #[default]
+    Turret,
 }
 
 impl fmt::Display for Scene {
@@ -63,6 +66,7 @@ impl fmt::Display for Scene {
             Scene::PlayerDeath => write!(f, "Player Death"),
             Scene::EnemyShipAI => write!(f, "Enemy Ship AI"),
             Scene::PlayerMovement => write!(f, "Player Movement"),
+            Scene::Turret => write!(f, "Turret"),
         }
     }
 }
@@ -89,6 +93,10 @@ fn update_scene(
             next_scene.set(Scene::PlayerDeath);
         } else if input_action.just_pressed(InputAction::SceneEnemyShipAI) {
             next_scene.set(Scene::EnemyShipAI);
+        } else if input_action.just_pressed(InputAction::ScenePlayerMovement) {
+            next_scene.set(Scene::PlayerMovement);
+        } else if input_action.just_pressed(InputAction::SceneTurret) {
+            next_scene.set(Scene::Turret);
         } else if input_action.just_pressed(InputAction::SceneReload) {
             reload_scene.set_if_neq(Reload(Some(current_scene.get().clone())));
             next_scene.set(Scene::None);
