@@ -44,7 +44,7 @@ pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<VisionConeDebugFlag>()
-            .add_systems(Update, (update_enemy_shooting, update_enemy));
+            .add_systems(Update, update_enemy);
     }
 }
 
