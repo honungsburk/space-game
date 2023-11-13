@@ -16,9 +16,6 @@
 
 mod ai;
 
-use std::collections::HashMap;
-use std::f32::consts::PI;
-
 use super::assets::groups;
 use super::assets::AssetDB;
 use super::config::Flag;
@@ -28,12 +25,14 @@ use super::game_entity::GameEntityType;
 use super::player::components::Player;
 use super::vitality::Health;
 use super::weapon::Weapon;
+use crate::misc::rapier_extension;
 use bevy::prelude::*;
 use bevy_rapier2d::geometry::*;
 use bevy_rapier2d::prelude::*;
 use rand_distr;
 use rand_distr::Distribution;
 use rand_distr::Poisson;
+use std::f32::consts::PI;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -178,85 +177,6 @@ impl Default for VisionConeDebugFlag {
 // Systems
 ////////////////////////////////////////////////////////////////////////////////
 
-trait CastVisionCones {
-    /// Casts a vision cone from the start position, and returns a list of entities
-    /// that are in the vision cone.
-    fn cast_vision_cone(
-        &self,
-        start: &Transform,           // start position
-        ray_angel_density: f32, // number of rays to cast per radian (so put 180 for one ray per degree)
-        inner_distance: f32,    // inner radius of the donut, so you do not collide with yourself
-        outer_distance: f32,    // outer radius of the donut, where the vision ends
-        angle: f32,             // angle of the vision cone, in radians
-        gizmos: &mut Option<Gizmos>, // gizmos to draw the rays
-    ) -> HashMap<Entity, Vec2>;
-}
-
-impl CastVisionCones for RapierContext {
-    fn cast_vision_cone(
-        &self,
-        transform: &Transform,
-        ray_angel_density: f32,
-        inner_distance: f32,
-        outer_distance: f32,
-        angle: f32,
-        gizmos: &mut Option<Gizmos>,
-    ) -> HashMap<Entity, Vec2> {
-        // Store entities, the sum of all the hit points, and the number of hits
-        let mut entities: HashMap<Entity, (Vec2, u32)> = HashMap::new();
-
-        let filter = QueryFilter::default(); // We must filter projectiles?
-        let ray_max_toi = outer_distance - inner_distance;
-        let mut ray_angle = -angle / 2.0;
-
-        let start = transform.translation.truncate();
-        let cone_direction = (transform.rotation * Vec3::Y).truncate();
-
-        while ray_angle < angle / 2.0 {
-            let direction = cone_direction.rotate(Vec2::new(ray_angle.cos(), ray_angle.sin()));
-
-            let ray_start = start + direction * inner_distance;
-
-            if let Some((entity, toi)) =
-                self.cast_ray(ray_start, direction, ray_max_toi, true, filter)
-            {
-                let ray_end = ray_start + direction * toi;
-
-                if let Some((sum, n)) = entities.get_mut(&entity) {
-                    *sum += ray_end;
-                    *n += 1;
-                } else {
-                    entities.insert(entity, (ray_end, 1));
-                }
-
-                if let Some(gizmos) = gizmos {
-                    gizmos.line(ray_start.extend(0.0), ray_end.extend(0.0), Color::WHITE);
-                }
-            } else {
-                if let Some(gizmos) = gizmos {
-                    gizmos.line(
-                        ray_start.extend(0.0),
-                        (start + direction * outer_distance).extend(0.0),
-                        Color::WHITE,
-                    );
-                }
-            }
-
-            ray_angle += 1.0 / ray_angel_density;
-        }
-
-        // Compute the average position of each entity
-
-        let mut final_entities: HashMap<Entity, Vec2> = HashMap::new();
-
-        for (entity, (sum, n)) in entities {
-            final_entities.insert(entity, sum / n as f32);
-        }
-
-        final_entities
-    }
-}
-
 fn update_enemy_shooting(
     time: Res<Time>,
     asset_db: Res<AssetDB>,
@@ -313,13 +233,14 @@ fn update_enemy(
         // Find every entity in the vision cone
         let angel = vision_donut_segment.angle * (velocity.linvel.length() / 200.0).clamp(0.0, 1.0);
 
-        let visible_entities = rapier_context.cast_vision_cone(
+        let visible_entities = rapier_extension::cast_vision_cone(
+            &rapier_context,
+            &mut giz,
             &enemy_transform,
             vision_donut_segment.ray_angel_density,
             vision_donut_segment.inner_distance,
             vision_donut_segment.outer_distance,
-            angel, // TODO limit the angle based on the velocity of the enemy
-            &mut giz,
+            angel,
         );
 
         for (visible_entity, visible_position) in visible_entities {
