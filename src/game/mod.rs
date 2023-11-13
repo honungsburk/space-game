@@ -10,6 +10,7 @@ pub mod enemy;
 pub mod events;
 pub mod game_entity;
 pub mod input;
+pub mod kamikaze_drone;
 pub mod meteors;
 pub mod player;
 pub mod projectile;
@@ -36,8 +37,9 @@ use projectile::ProjectilePlugin;
 use self::{
     average_velocity::AverageVelocityPlugin, background::BackgroundPlugin,
     control_system::ControlSystemPlugin, debug::DebugPlugin, enemy::EnemyPlugin,
-    events::GameOverEvent, input::InputPlugin, score::ScorePlugin, time_to_live::TimeToLivePlugin,
-    trauma::TraumaPlugin, turret::TurretPlugin, vitality::VitalityPlugin,
+    events::GameOverEvent, input::InputPlugin, kamikaze_drone::KamikazeDronesPlugin,
+    score::ScorePlugin, time_to_live::TimeToLivePlugin, trauma::TraumaPlugin, turret::TurretPlugin,
+    vitality::VitalityPlugin,
 };
 
 pub struct GamePlugin {
@@ -68,7 +70,7 @@ impl Plugin for GamePlugin {
         // States
         .add_state::<SimulationState>()
         // Systems
-        .add_plugins((EnemyPlugin, ControlSystemPlugin))
+        .add_plugins((KamikazeDronesPlugin, EnemyPlugin, ControlSystemPlugin))
         .add_plugins((
             InputPlugin,
             DebugPlugin,

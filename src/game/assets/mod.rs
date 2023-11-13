@@ -75,6 +75,7 @@ pub struct AssetDB {
 
     // Enemy Assets
     pub enemy_ship_1: Asset,
+    pub kamikaze_drone: Asset,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -264,6 +265,12 @@ fn create_asset_db() -> AssetDB {
             "Enemy Ship 1",
             "sprites/enemy/enemyRed1.png",
             Collider::ball(50.0),
+        ),
+
+        kamikaze_drone: Asset::new(
+            "Kamikaze Drone",
+            "sprites/enemy/kamikaze_drone.png",
+            Collider::ball(10.0),
         ),
     }
 }
