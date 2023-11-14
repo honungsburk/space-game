@@ -3,7 +3,7 @@ mod systems;
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::{
-    Collider, ColliderMassProperties, ExternalForce, ExternalImpulse, Sensor, Velocity,
+    Collider, ColliderMassProperties, ExternalForce, ExternalImpulse, RigidBody, Sensor, Velocity,
 };
 
 use crate::misc::transform::from_location_angle;
@@ -55,6 +55,8 @@ pub fn spawn(
             texture: asset_server.load(asset.sprite_path),
             ..Default::default()
         })
+        .insert(asset.collider.clone())
+        .insert(RigidBody::Dynamic)
         .insert(Velocity::default())
         .insert(ExternalImpulse::default())
         .insert(ExternalForce::default())
