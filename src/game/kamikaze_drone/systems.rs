@@ -122,6 +122,7 @@ pub fn update_boid_targets(
 
                     if let Ok(mut targets) = kamikaze_drone_query.get_mut(parent.get()) {
                         targets.0.insert(other_entity);
+                        println!("collision_event");
                     }
                 }
             }

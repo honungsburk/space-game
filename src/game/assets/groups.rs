@@ -7,6 +7,8 @@ pub const METEOR_GROUP: Group = Group::GROUP_3;
 pub const ARENA_GROUP: Group = Group::GROUP_4;
 pub const ENEMY_GROUP: Group = Group::GROUP_5;
 pub const ENEMY_PROJECTILE_GROUP: Group = Group::GROUP_6;
+pub const KAMIKAZE_DRONE_GROUP: Group = Group::GROUP_7;
+pub const SENSOR_GROUP: Group = Group::GROUP_8;
 
 // Entity Collision Filters
 pub const PLAYER_FILTER_MASK: Group = METEOR_GROUP
@@ -26,3 +28,4 @@ pub const ENEMY_FILTER_MASK: Group = PLAYER_GROUP
     .union(ENEMY_GROUP)
     .union(PLAYER_PROJECTILE_GROUP);
 pub const ENEMY_PROJECTILE_FILTER_MASK: Group = METEOR_GROUP.union(PLAYER_GROUP);
+pub const KAMIKAZE_DRONE_FILTER_MASK: Group = SENSOR_GROUP;

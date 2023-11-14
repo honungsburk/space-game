@@ -3,14 +3,15 @@ mod systems;
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::{
-    Collider, ColliderMassProperties, ExternalForce, ExternalImpulse, RigidBody, Sensor, Velocity,
+    ActiveEvents, Collider, ColliderMassProperties, CollisionGroups, ExternalForce,
+    ExternalImpulse, RigidBody, Sensor, SolverGroups, Velocity,
 };
 
 use crate::misc::transform::from_location_angle;
 
 use self::components::{KamikazeDroneLabel, KamikazeDroneSensorLabel};
 
-use super::assets::AssetDB;
+use super::assets::{groups, AssetDB};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -20,7 +21,10 @@ pub struct KamikazeDronesPlugin;
 
 impl Plugin for KamikazeDronesPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, systems::update_kamikaze_drone);
+        app.add_systems(
+            Update,
+            (systems::update_kamikaze_drone, systems::update_boid_targets),
+        );
     }
 }
 
@@ -47,6 +51,11 @@ pub fn spawn(
         .insert(Collider::ball(sensor_range))
         .insert(ColliderMassProperties::Density(0.0))
         .insert(Sensor)
+        .insert(ActiveEvents::COLLISION_EVENTS)
+        .insert(CollisionGroups::new(
+            groups::SENSOR_GROUP.into(),
+            groups::KAMIKAZE_DRONE_GROUP.into(),
+        ))
         .id();
 
     let drone_entity = commands
@@ -57,10 +66,19 @@ pub fn spawn(
         })
         .insert(asset.collider.clone())
         .insert(RigidBody::Dynamic)
+        .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(Velocity::default())
         .insert(ExternalImpulse::default())
         .insert(ExternalForce::default())
         .insert(KamikazeDroneLabel)
+        .insert(CollisionGroups::new(
+            groups::KAMIKAZE_DRONE_GROUP.into(),
+            groups::KAMIKAZE_DRONE_FILTER_MASK.into(),
+        ))
+        .insert(SolverGroups::new(
+            groups::KAMIKAZE_DRONE_GROUP.into(),
+            groups::KAMIKAZE_DRONE_FILTER_MASK.into(),
+        ))
         .push_children(&[drone_sensor])
         .id();
 
