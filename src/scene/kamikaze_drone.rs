@@ -47,4 +47,18 @@ fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<Asset
     commands
         .entity(kamikaze_drone_entity)
         .insert(CameraTargetLabel);
+
+    // spawn 99 more drones
+
+    let drone_count = 99;
+
+    for _ in 0..drone_count {
+        kamikaze_drone::spawn(
+            &mut commands,
+            &asset_db,
+            &asset_server,
+            Vec2::new(0.0, 0.0),
+            0.0,
+        );
+    }
 }
