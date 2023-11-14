@@ -231,22 +231,21 @@ pub fn update_smooth_camera(
         return;
     }
 
-    if let (Ok((player_transform, player_velocity)), Ok(input_action)) =
+    if let (Ok((target_transform, target_velocity)), Ok(input_action)) =
         (target_query.get_single(), input_query.get_single())
     {
         if let Ok((mut camera_transform, mut camera_pid)) = camera_query.get_single_mut() {
             // Determine desired camera placement
-
             let player_rotation = if let Some(axis_data) =
                 input_action.clamped_axis_pair(InputAction::PlayerRotateShip)
             {
                 100.0 * axis_data.xy()
             } else {
-                player_transform.rotation.mul_vec3(Vec3::Y).xy().normalize() * 100.0
+                target_transform.rotation.mul_vec3(Vec3::Y).xy().normalize() * 100.0
             };
 
-            let desired_camera_placement = player_transform.translation.xy()
-                + (player_rotation + player_velocity.linvel).clamp_length(0.0, 200.0);
+            let desired_camera_placement = target_transform.translation.xy()
+                + (player_rotation + target_velocity.linvel).clamp_length(0.0, 200.0);
 
             camera_pid.set_setpoint(desired_camera_placement);
 

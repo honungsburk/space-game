@@ -36,7 +36,7 @@ fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<Asset
     arena.spawn_random_asteroids(&mut commands, &asset_db, &asset_server, 50);
 
     // Spawn an enemy ship
-    let enemy_entity = kamikaze_drone::spawn(
+    let kamikaze_drone_entity = kamikaze_drone::spawn(
         &mut commands,
         &asset_db,
         &asset_server,
@@ -44,5 +44,7 @@ fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<Asset
         0.0,
     );
 
-    commands.entity(enemy_entity).insert(CameraTargetLabel);
+    commands
+        .entity(kamikaze_drone_entity)
+        .insert(CameraTargetLabel);
 }

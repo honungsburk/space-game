@@ -305,7 +305,6 @@ pub fn spawn(
             ..Default::default()
         })
         .insert(ShootTimer::default())
-        .insert(Velocity::zero())
         .insert(GameEntityType::Enemy)
         .insert(Enemy)
         .insert(EnemyShipLabel)

@@ -93,6 +93,7 @@ pub fn cast_vision_cone(
 /// # Parameters
 ///
 /// * `ctx`: The rapier context
+/// * `gizmos`: The gizmos to draw cast shapes on
 /// * `entity_transform`: The transform of the entity casting the vision cone
 /// * `ray_angel_density`: The number of rays to cast per degree
 /// * `inner_distance`: The distance from the entity to start shape casting
@@ -108,6 +109,7 @@ pub fn cast_vision_cone(
 ///
 pub fn find_unobstructed_path(
     ctx: &RapierContext,
+    gizmos: &mut Option<Gizmos>,
     entity_transform: &Transform,
     ray_angel_density: f32,
     inner_distance: f32,
@@ -122,7 +124,7 @@ pub fn find_unobstructed_path(
     let shape = Collider::cuboid(width / 2.0, 1.0);
     let max_toi = outer_distance - inner_distance;
 
-    let check_angle = |angle: f32| -> Option<Vec2> {
+    let mut check_angle = |angle: f32| -> Option<Vec2> {
         let direction_vec: Vec2 = entity_direction
             .rotate(Vec2::new(angle.cos(), angle.sin()))
             .normalize();
@@ -133,6 +135,13 @@ pub fn find_unobstructed_path(
         let res = ctx.cast_shape(start_pos, shape_rot, direction_vec, &shape, max_toi, filter);
 
         if let None = res {
+            if let Some(gizmo) = gizmos {
+                gizmo.line(
+                    start_pos.extend(0.0),
+                    (start_pos + direction_vec * max_toi).extend(0.0),
+                    Color::WHITE,
+                );
+            }
             return Some(direction_vec);
         }
         return None;

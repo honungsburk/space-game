@@ -2,7 +2,9 @@ mod components;
 mod systems;
 
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::{Collider, ColliderMassProperties, Sensor};
+use bevy_rapier2d::prelude::{
+    Collider, ColliderMassProperties, ExternalForce, ExternalImpulse, Sensor, Velocity,
+};
 
 use crate::misc::transform::from_location_angle;
 
@@ -18,8 +20,7 @@ pub struct KamikazeDronesPlugin;
 
 impl Plugin for KamikazeDronesPlugin {
     fn build(&self, app: &mut App) {
-        // app.init_resource::<VisionConeDebugFlag>()
-        //     .add_systems(Update, update_enemy);
+        app.add_systems(Update, systems::update_kamikaze_drone);
     }
 }
 
@@ -54,6 +55,9 @@ pub fn spawn(
             texture: asset_server.load(asset.sprite_path),
             ..Default::default()
         })
+        .insert(Velocity::default())
+        .insert(ExternalImpulse::default())
+        .insert(ExternalForce::default())
         .insert(KamikazeDroneLabel)
         .push_children(&[drone_sensor])
         .id();
