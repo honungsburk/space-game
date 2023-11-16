@@ -134,7 +134,16 @@ pub fn find_unobstructed_path(
 
         let res = ctx.cast_shape(start_pos, shape_rot, direction_vec, &shape, max_toi, filter);
 
-        if let None = res {
+        // This gizmo is useless...
+        if let Some((_, toi)) = res {
+            if let Some(gizmo) = gizmos {
+                gizmo.line(
+                    start_pos.extend(0.0),
+                    (start_pos + direction_vec * toi.toi).extend(0.0),
+                    Color::RED,
+                );
+            }
+        } else {
             if let Some(gizmo) = gizmos {
                 gizmo.line(
                     start_pos.extend(0.0),

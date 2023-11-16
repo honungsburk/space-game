@@ -2,9 +2,12 @@ mod components;
 mod systems;
 
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::{
-    ActiveEvents, Collider, ColliderMassProperties, CollisionGroups, ExternalForce,
-    ExternalImpulse, RigidBody, Sensor, SolverGroups, Velocity,
+use bevy_rapier2d::{
+    dynamics::Damping,
+    prelude::{
+        ActiveEvents, Collider, ColliderMassProperties, CollisionGroups, ExternalForce,
+        ExternalImpulse, RigidBody, Sensor, SolverGroups, Velocity,
+    },
 };
 
 use crate::misc::transform::from_location_angle;
@@ -69,6 +72,10 @@ pub fn spawn(
         })
         .insert(KamikazeDroneLabel)
         .insert(asset.collider.clone())
+        .insert(Damping {
+            linear_damping: 0.0,
+            angular_damping: 1.0, // TODO: This should be 0.0 but we do not have a any controler for angualr velocity yet!
+        })
         .insert(RigidBody::Dynamic)
         .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(Velocity::default())
