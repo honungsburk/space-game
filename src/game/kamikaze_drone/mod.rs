@@ -9,7 +9,7 @@ use bevy_rapier2d::prelude::{
 
 use crate::misc::transform::from_location_angle;
 
-use self::components::{KamikazeDroneLabel, KamikazeDroneSensorLabel};
+use self::components::{BoidTargets, KamikazeDroneLabel, KamikazeDroneSensorLabel};
 
 use super::assets::{groups, AssetDB};
 
@@ -23,7 +23,10 @@ impl Plugin for KamikazeDronesPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (systems::update_kamikaze_drone, systems::update_boid_targets),
+            (
+                systems::update_kamikaze_drone,
+                systems::update_kamikaze_drone_targets,
+            ),
         );
     }
 }
@@ -64,13 +67,14 @@ pub fn spawn(
             texture: asset_server.load(asset.sprite_path),
             ..Default::default()
         })
+        .insert(KamikazeDroneLabel)
         .insert(asset.collider.clone())
         .insert(RigidBody::Dynamic)
         .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(Velocity::default())
         .insert(ExternalImpulse::default())
         .insert(ExternalForce::default())
-        .insert(KamikazeDroneLabel)
+        .insert(BoidTargets::default())
         .insert(CollisionGroups::new(
             groups::KAMIKAZE_DRONE_GROUP.into(),
             groups::KAMIKAZE_DRONE_FILTER_MASK.into(),

@@ -12,3 +12,9 @@ pub struct KamikazeDroneSensorLabel;
 
 #[derive(Debug, PartialEq, Eq, Component)]
 pub struct BoidTargets(pub HashSet<Entity>);
+
+impl Default for BoidTargets {
+    fn default() -> Self {
+        Self(HashSet::new())
+    }
+}
