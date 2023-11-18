@@ -5,7 +5,7 @@ use crate::game::{
     arena,
     assets::AssetDB,
     background, boids,
-    camera::{self, CameraTargetLabel},
+    camera::{self},
 };
 
 pub struct BoidScenePlugin;

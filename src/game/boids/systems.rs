@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap};
 
 use super::components::BoidLabel;
-use bevy::{gizmos, prelude::*, window::PrimaryWindow};
+use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::Velocity;
 
 const BOID_MAX_SPEED: f32 = 200.0;
@@ -25,7 +25,6 @@ struct BoidCompute {
 
 // boids: https://vanhunteradams.com/Pico/Animal_Movement/Boids-algorithm.html
 pub fn update_boid(
-    mut gizmos: Gizmos,
     time: Res<Time>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     mut boid_query: Query<(Entity, &mut Transform, &mut Velocity), With<BoidLabel>>,
@@ -54,8 +53,6 @@ pub fn update_boid(
                 // Seperation
                 compute1.close += diff;
                 compute2.close -= diff;
-
-                // gizmos.line(boid_1.1.translation, boid_2.1.translation, Color::RED)
             } else {
                 // Alignment
                 compute1.position_sum += boid_2.1.translation.truncate();
@@ -64,11 +61,7 @@ pub fn update_boid(
                 compute2.velocity_sum += boid_1.2.linvel;
                 compute1.neighbors += 1.0;
                 compute2.neighbors += 1.0;
-
-                // gizmos.line(boid_1.1.translation, boid_2.1.translation, Color::GREEN)
             }
-        } else {
-            // gizmos.line(boid_1.1.translation, boid_2.1.translation, Color::WHITE)
         }
     }
 

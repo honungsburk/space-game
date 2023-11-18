@@ -18,7 +18,7 @@ pub struct BoidsPlugin;
 
 impl Plugin for BoidsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (systems::update_boid));
+        app.add_systems(Update, systems::update_boid);
     }
 }
 

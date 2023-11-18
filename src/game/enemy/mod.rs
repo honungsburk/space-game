@@ -177,22 +177,22 @@ impl Default for VisionConeDebugFlag {
 // Systems
 ////////////////////////////////////////////////////////////////////////////////
 
-fn update_enemy_shooting(
-    time: Res<Time>,
-    asset_db: Res<AssetDB>,
-    asset_server: Res<AssetServer>,
-    mut commands: Commands,
-    mut query: Query<(&mut ShootTimer, &Transform, &mut Weapon)>,
-) {
-    for (mut shoot_timer, transform, mut weapon) in query.iter_mut() {
-        if shoot_timer.update(&time) {
-            let position = transform.translation.truncate();
-            let direction = (transform.rotation * Vec3::Y).truncate();
+// fn update_enemy_shooting(
+//     time: Res<Time>,
+//     asset_db: Res<AssetDB>,
+//     asset_server: Res<AssetServer>,
+//     mut commands: Commands,
+//     mut query: Query<(&mut ShootTimer, &Transform, &mut Weapon)>,
+// ) {
+//     for (mut shoot_timer, transform, mut weapon) in query.iter_mut() {
+//         if shoot_timer.update(&time) {
+//             let position = transform.translation.truncate();
+//             let direction = (transform.rotation * Vec3::Y).truncate();
 
-            weapon.fire(&mut commands, &asset_db, &asset_server, *transform);
-        }
-    }
-}
+//             weapon.fire(&mut commands, &asset_db, &asset_server, *transform);
+//         }
+//     }
+// }
 
 fn update_enemy(
     vision_cone_debug: Res<VisionConeDebugFlag>,

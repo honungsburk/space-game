@@ -1,6 +1,4 @@
-use bevy::prelude::{Component, Entity};
-
-use std::collections::HashSet;
+use bevy::prelude::Component;
 
 /// Means an entity is a KamikazeDrone
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component)]

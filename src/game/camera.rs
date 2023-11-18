@@ -1,4 +1,3 @@
-use super::player::components::Player;
 use super::trauma::Trauma;
 use super::{config::Flag, input::InputAction};
 use crate::misc::control::PID;
