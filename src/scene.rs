@@ -5,6 +5,7 @@
 //! is the state that is active when the game is first started. The `InGame` state
 //! is the state that is active when the player is playing the game. The `Paused`
 //! state is the state that is active when the player pauses the game.
+mod boid;
 mod enemy_ship_ai;
 mod kamikaze_drone;
 mod main_game;
@@ -25,6 +26,7 @@ impl Plugin for ScenePlugin {
         app.add_state::<Scene>()
             .init_resource::<Reload>()
             .add_plugins((
+                boid::BoidScenePlugin,
                 kamikaze_drone::KamikazeDroneScenePlugin,
                 turret::TurretScenePlugin,
                 player_movement::PlayerMovementScenePlugin,
@@ -56,8 +58,9 @@ pub enum Scene {
     EnemyShipAI,
     PlayerMovement,
     Turret,
-    #[default]
     KamikazeDrone,
+    #[default]
+    Boid,
 }
 
 impl fmt::Display for Scene {
@@ -71,6 +74,7 @@ impl fmt::Display for Scene {
             Scene::PlayerMovement => write!(f, "Player Movement"),
             Scene::Turret => write!(f, "Turret"),
             Scene::KamikazeDrone => write!(f, "Kamikaze Drone"),
+            Scene::Boid => write!(f, "Boid"),
         }
     }
 }
@@ -103,6 +107,8 @@ fn update_scene(
             next_scene.set(Scene::Turret);
         } else if input_action.just_pressed(InputAction::SceneKamikazeDrone) {
             next_scene.set(Scene::KamikazeDrone);
+        } else if input_action.just_pressed(InputAction::SceneBoid) {
+            next_scene.set(Scene::Boid);
         } else if input_action.just_pressed(InputAction::SceneReload) {
             reload_scene.set_if_neq(Reload(Some(current_scene.get().clone())));
             next_scene.set(Scene::None);

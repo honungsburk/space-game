@@ -61,6 +61,7 @@ pub enum InputAction {
     ScenePlayerMovement,
     SceneTurret,
     SceneKamikazeDrone,
+    SceneBoid,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -165,6 +166,7 @@ pub fn create_input_map() -> InputMap<InputAction> {
             InputKind::Keyboard(KeyCode::Key7),
             InputAction::SceneKamikazeDrone,
         ),
+        (InputKind::Keyboard(KeyCode::Key8), InputAction::SceneBoid),
     ]);
 
     input_map.build()

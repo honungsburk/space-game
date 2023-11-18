@@ -4,26 +4,25 @@ use super::Scene;
 use crate::game::{
     arena,
     assets::AssetDB,
-    background,
+    background, boids,
     camera::{self, CameraTargetLabel},
-    kamikaze_drone,
 };
 
-pub struct KamikazeDroneScenePlugin;
+pub struct BoidScenePlugin;
 
-impl Plugin for KamikazeDroneScenePlugin {
+impl Plugin for BoidScenePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            OnEnter(Scene::KamikazeDrone),
+            OnEnter(Scene::Boid),
             (background::spawn, camera::spawn, spawn),
         )
         .add_systems(
-            OnExit(Scene::KamikazeDrone),
+            OnExit(Scene::Boid),
             (
                 background::despawn,
                 camera::despawn,
                 arena::despawn,
-                kamikaze_drone::despawn,
+                boids::despawn,
             ),
         );
     }
@@ -36,7 +35,7 @@ fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<Asset
     // arena.spawn_random_asteroids(&mut commands, &asset_db, &asset_server, 50);
 
     // Spawn an enemy ship
-    let kamikaze_drone_entity = kamikaze_drone::spawn(
+    let kamikaze_drone_entity = boids::spawn(
         &mut commands,
         &asset_db,
         &asset_server,
@@ -44,13 +43,13 @@ fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<Asset
         0.0,
     );
 
-    commands
-        .entity(kamikaze_drone_entity)
-        .insert(CameraTargetLabel);
+    // commands
+    //     .entity(kamikaze_drone_entity)
+    //     .insert(CameraTargetLabel);
 
     // spawn 99 more drones
 
-    kamikaze_drone::spawn(
+    boids::spawn(
         &mut commands,
         &asset_db,
         &asset_server,
@@ -58,7 +57,7 @@ fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<Asset
         0.0,
     );
 
-    kamikaze_drone::spawn(
+    boids::spawn(
         &mut commands,
         &asset_db,
         &asset_server,

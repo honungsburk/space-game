@@ -2,6 +2,7 @@ pub mod arena;
 pub mod assets;
 pub mod average_velocity;
 pub mod background;
+pub mod boids;
 pub mod camera;
 pub mod config;
 pub mod control_system;
@@ -35,7 +36,7 @@ use camera::CameraPlugin;
 use projectile::ProjectilePlugin;
 
 use self::{
-    average_velocity::AverageVelocityPlugin, background::BackgroundPlugin,
+    average_velocity::AverageVelocityPlugin, background::BackgroundPlugin, boids::BoidsPlugin,
     control_system::ControlSystemPlugin, debug::DebugPlugin, enemy::EnemyPlugin,
     events::GameOverEvent, input::InputPlugin, kamikaze_drone::KamikazeDronesPlugin,
     score::ScorePlugin, time_to_live::TimeToLivePlugin, trauma::TraumaPlugin, turret::TurretPlugin,
@@ -70,7 +71,12 @@ impl Plugin for GamePlugin {
         // States
         .add_state::<SimulationState>()
         // Systems
-        .add_plugins((KamikazeDronesPlugin, EnemyPlugin, ControlSystemPlugin))
+        .add_plugins((
+            BoidsPlugin,
+            KamikazeDronesPlugin,
+            EnemyPlugin,
+            ControlSystemPlugin,
+        ))
         .add_plugins((
             InputPlugin,
             DebugPlugin,
