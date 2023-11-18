@@ -13,14 +13,12 @@ use super::events::GameOverEvent;
 use super::events::HighScoreEvent;
 use super::{game_entity::GameEntityType, vitality::DeathEvent};
 
-pub struct ScorePlugin {
-    pub high_scores: HighScores,
-}
+pub struct ScorePlugin;
 
 impl Plugin for ScorePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(GameScore::default())
-            .insert_resource(self.high_scores.clone())
+            .insert_resource(HighScores::default())
             .add_event::<HighScoreEvent>()
             .add_systems(
                 Update,

@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 pub mod cli;
-pub mod config;
 pub mod file_save;
 pub mod game;
 pub mod misc;
@@ -15,16 +14,15 @@ mod ui;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy_prototype_lyon::prelude::*;
-use config::{Config, VisualDebug};
 use game::{score::high_score, GamePlugin};
 use parent_child_no_rotation::NoRotationPlugin;
 use scene::ScenePlugin;
-use settings::Settings;
+use settings::{Settings, SettingsPlugin};
 use systems::*;
 use ui::hud::HudPlugin;
 
 // pub fn run(config: Config, settings: Settings) {
-pub fn run(config: Config, _settings: Settings, high_scores: high_score::HighScores) {
+pub fn run(settings: Settings, _high_scores: high_score::HighScores) {
     let mut app = App::new();
 
     // Defaults
@@ -34,17 +32,14 @@ pub fn run(config: Config, _settings: Settings, high_scores: high_score::HighSco
     app.insert_resource(Msaa::Sample4).add_plugins(ShapePlugin);
 
     // Add Internal Plugins
-    app.add_plugins(GamePlugin {
-        has_camera_debug: config.has_visual_debug(VisualDebug::Camera),
-        has_colliders_debug: config.has_visual_debug(VisualDebug::Colliders),
-        high_scores,
-    })
-    .add_plugins(NoRotationPlugin)
-    .add_plugins(HudPlugin)
-    .add_plugins(FrameTimeDiagnosticsPlugin::default())
-    .add_plugins(ScenePlugin)
-    // Systems
-    .add_systems(Update, exit_game);
+    app.add_plugins(GamePlugin)
+        .add_plugins(NoRotationPlugin)
+        .add_plugins(HudPlugin)
+        .add_plugins(FrameTimeDiagnosticsPlugin::default())
+        .add_plugins(ScenePlugin)
+        .add_plugins(SettingsPlugin::new(settings))
+        // Systems
+        .add_systems(Update, exit_game);
 
     app.run()
 }

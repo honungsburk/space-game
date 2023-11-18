@@ -13,21 +13,7 @@ use noise::{Fbm, NoiseFn, Perlin, Seedable};
 // Plugin
 ////////////////////////////////////////////////////////////////////////////////
 
-pub struct CameraPlugin {
-    pub is_debug: bool,
-}
-
-impl Default for CameraPlugin {
-    fn default() -> Self {
-        Self { is_debug: false }
-    }
-}
-
-impl CameraPlugin {
-    pub fn new(is_debug: bool) -> Self {
-        Self { is_debug }
-    }
-}
+pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {

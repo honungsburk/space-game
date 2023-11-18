@@ -43,21 +43,7 @@ use self::{
     vitality::VitalityPlugin,
 };
 
-pub struct GamePlugin {
-    pub has_camera_debug: bool,
-    pub has_colliders_debug: bool,
-    pub high_scores: score::HighScores,
-}
-
-impl Default for GamePlugin {
-    fn default() -> Self {
-        Self {
-            has_camera_debug: false,
-            has_colliders_debug: false,
-            high_scores: score::HighScores::default(),
-        }
-    }
-}
+pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
@@ -82,7 +68,7 @@ impl Plugin for GamePlugin {
             DebugPlugin,
             BackgroundPlugin,
             ArenaPlugin,
-            CameraPlugin::new(self.has_camera_debug),
+            CameraPlugin,
             AssetPlugin,
             PlayerPlugin,
             TurretPlugin,
@@ -92,9 +78,7 @@ impl Plugin for GamePlugin {
             AverageVelocityPlugin,
             TimeToLivePlugin,
             VitalityPlugin,
-            ScorePlugin {
-                high_scores: self.high_scores.clone(),
-            },
+            ScorePlugin,
         ))
         .add_systems(
             Update,
