@@ -38,7 +38,6 @@ pub fn spawn(
 ) -> Entity {
     let spawn_transform = from_location_angle(location, rotation);
     let asset = &asset_db.kamikaze_drone;
-    let sensor_range = 200.0;
 
     let drone_entity = commands
         .spawn(SpriteBundle {

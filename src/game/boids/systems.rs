@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap};
 
 use super::components::BoidLabel;
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::{gizmos, prelude::*, window::PrimaryWindow};
 use bevy_rapier2d::prelude::Velocity;
 
 const BOID_MAX_SPEED: f32 = 200.0;
@@ -10,7 +10,7 @@ const BOID_MIN_SPEED: f32 = 20.0;
 const BOID_MAX_Y: f32 = 200.0;
 
 const FOLLOW_RADIUS: f32 = 200.0;
-const AVOID_RADIUS: f32 = 50.0;
+const AVOID_RADIUS: f32 = 40.0;
 const AVOID_FACTOR: f32 = 0.05;
 const MATCHING_FACTOR: f32 = 0.05;
 const CENTERING_FACTOR: f32 = 0.0005;
@@ -25,6 +25,7 @@ struct BoidCompute {
 
 // boids: https://vanhunteradams.com/Pico/Animal_Movement/Boids-algorithm.html
 pub fn update_boid(
+    mut gizmos: Gizmos,
     time: Res<Time>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     mut boid_query: Query<(Entity, &mut Transform, &mut Velocity), With<BoidLabel>>,
@@ -53,6 +54,8 @@ pub fn update_boid(
                 // Seperation
                 compute1.close += diff;
                 compute2.close -= diff;
+
+                // gizmos.line(boid_1.1.translation, boid_2.1.translation, Color::RED)
             } else {
                 // Alignment
                 compute1.position_sum += boid_2.1.translation.truncate();
@@ -61,7 +64,11 @@ pub fn update_boid(
                 compute2.velocity_sum += boid_1.2.linvel;
                 compute1.neighbors += 1.0;
                 compute2.neighbors += 1.0;
+
+                // gizmos.line(boid_1.1.translation, boid_2.1.translation, Color::GREEN)
             }
+        } else {
+            // gizmos.line(boid_1.1.translation, boid_2.1.translation, Color::WHITE)
         }
     }
 
@@ -74,9 +81,9 @@ pub fn update_boid(
 
             if compute.neighbors > 0.0 {
                 velocity_change +=
-                    (compute.velocity_sum / compute.neighbors - v.linvel) * MATCHING_FACTOR;
+                    ((compute.velocity_sum / compute.neighbors) - v.linvel) * MATCHING_FACTOR;
 
-                velocity_change += (compute.position_sum / compute.neighbors
+                velocity_change += ((compute.position_sum / compute.neighbors)
                     - t.translation.truncate())
                     * CENTERING_FACTOR;
             }
@@ -97,7 +104,14 @@ pub fn update_boid(
         // Update position
         // TODO: You need the average velocity of the frame, and delta_second is the velocity of the last frame, so this is wrong
         t.translation += v.linvel.extend(0.0) * time.delta_seconds();
-        // t.rotation = Quat::from_rotation_z(Vec2::Y.angle_between(v.linvel));
+
+        let new_rotation = Quat::from_rotation_z(Vec2::Y.angle_between(v.linvel));
+
+        if new_rotation.angle_between(t.rotation) < 0.1 {
+            v.linvel = (v.linvel * 1.1).clamp_length(BOID_MIN_SPEED, BOID_MAX_SPEED)
+        }
+
+        t.rotation = new_rotation;
 
         if t.translation.y > max_y {
             t.translation.y = min_y;
