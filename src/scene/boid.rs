@@ -35,13 +35,13 @@ fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<Asset
     // arena.spawn_random_asteroids(&mut commands, &asset_db, &asset_server, 50);
 
     // Spawn an enemy ship
-    let kamikaze_drone_entity = boids::spawn(
-        &mut commands,
-        &asset_db,
-        &asset_server,
-        Vec2::new(0.0, 0.0),
-        0.0,
-    );
+    // let kamikaze_drone_entity = boids::spawn(
+    //     &mut commands,
+    //     &asset_db,
+    //     &asset_server,
+    //     Vec2::new(0.0, 0.0),
+    //     0.0,
+    // );
 
     // commands
     //     .entity(kamikaze_drone_entity)

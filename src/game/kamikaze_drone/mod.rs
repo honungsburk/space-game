@@ -24,13 +24,13 @@ pub struct KamikazeDronesPlugin;
 
 impl Plugin for KamikazeDronesPlugin {
     fn build(&self, app: &mut App) {
-        // app.add_systems(
-        //     Update,
-        //     (
-        //         systems::update_kamikaze_drone,
-        //         systems::update_kamikaze_drone_targets,
-        //     ),
-        // );
+        app.add_systems(
+            Update,
+            (
+                systems::update_kamikaze_drone,
+                systems::update_kamikaze_drone_targets,
+            ),
+        );
     }
 }
 
