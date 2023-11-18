@@ -92,7 +92,7 @@ fn update_projectiles_on_collision(
     projectile_query: Query<(&Projectile, Option<&Damage>), Without<Health>>,
     mut health_query: Query<&mut Health, Without<Projectile>>,
 ) {
-    for collision_event in collision_events.iter() {
+    for collision_event in collision_events.read() {
         match collision_event {
             // Will be removed before collision is resolved
             CollisionEvent::Started(entity1, entity2, flags) => {

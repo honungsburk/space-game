@@ -111,7 +111,7 @@ pub fn player_collision(
         With<Player>,
     >,
 ) {
-    for contact_force_event in contact_force_events.iter() {
+    for contact_force_event in contact_force_events.read() {
         if player_query.contains(contact_force_event.collider1)
             || player_query.contains(contact_force_event.collider2)
         {
@@ -125,7 +125,7 @@ pub fn player_collision(
                 if !contact_force_invulnerability.is_invulnerable() {
                     // in the range 0-400
                     let adjusted_force =
-                        contact_force_event.total_force_magnitude / mass_properties.0.mass;
+                        contact_force_event.total_force_magnitude / mass_properties.mass;
                     let effect = (adjusted_force / 400.0).min(1.0);
                     // Take damage
                     player_health.take_damage_u32((effect * 10.0) as u32);

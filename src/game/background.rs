@@ -110,7 +110,7 @@ fn on_window_resize(
     background_tile_query: Query<Entity, With<BackgroundTile>>,
     asset_server: Res<AssetServer>,
 ) {
-    if let Some(e) = resize_reader.iter().last() {
+    if let Some(e) = resize_reader.read().last() {
         // Remove all background tiles
         for entity in background_tile_query.iter() {
             commands.entity(entity).despawn_recursive();

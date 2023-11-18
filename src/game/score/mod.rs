@@ -39,7 +39,7 @@ fn update_score_on_deaths(
     mut game_score: ResMut<GameScore>,
     mut death_events: EventReader<DeathEvent>,
 ) {
-    for ev in death_events.iter() {
+    for ev in death_events.read() {
         match ev._type() {
             GameEntityType::Enemy => {
                 game_score.add_score(10);
@@ -56,7 +56,7 @@ fn update_high_scores_on_game_over(
     mut game_over_events: EventReader<GameOverEvent>,
     mut high_score_events: EventWriter<HighScoreEvent>,
 ) {
-    for GameOverEvent { score } in game_over_events.iter() {
+    for GameOverEvent { score } in game_over_events.read() {
         let player_name = String::from("Player");
         if let Some(placement) = high_scores.add_name_score(player_name.clone(), *score) {
             high_score_events.send(HighScoreEvent {

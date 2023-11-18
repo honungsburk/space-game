@@ -132,7 +132,15 @@ pub fn find_unobstructed_path(
 
         let start_pos = entity_pos + direction_vec * inner_distance;
 
-        let res = ctx.cast_shape(start_pos, shape_rot, direction_vec, &shape, max_toi, filter);
+        let res = ctx.cast_shape(
+            start_pos,
+            shape_rot,
+            direction_vec,
+            &shape,
+            max_toi,
+            true,
+            filter,
+        );
 
         // This gizmo is useless...
         if let Some((_, toi)) = res {

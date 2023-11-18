@@ -117,7 +117,7 @@ pub fn update_kamikaze_drone_targets(
     mut kamikaze_drone_query: Query<&mut BoidTargets, With<KamikazeDroneLabel>>,
     sensor_query: Query<&Parent, With<KamikazeDroneSensorLabel>>,
 ) {
-    for collision_event in collision_events.iter() {
+    for collision_event in collision_events.read() {
         match collision_event {
             CollisionEvent::Started(entity1, entity2, _) => {
                 let sensor = sensor_query.get(*entity1).or(sensor_query.get(*entity2));

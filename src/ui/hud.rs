@@ -3,6 +3,7 @@ mod health_bar;
 mod score_tracker;
 
 use bevy::prelude::*;
+use bevy_progressbar::ProgressBarMaterial;
 
 pub use self::fps_counter::FPSCounterDebugFlag;
 
@@ -27,9 +28,9 @@ struct HUD {}
 fn spawn_hud(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut images: ResMut<Assets<Image>>,
+    mut materials: ResMut<Assets<ProgressBarMaterial>>,
 ) {
-    build_hud(&mut commands, &asset_server, &mut images);
+    build_hud(&mut commands, &asset_server, &mut materials);
 }
 
 const BACKGROUND_COLOR: Color = Color::rgba(0.25, 0.25, 0.25, 0.5);
@@ -37,11 +38,11 @@ const BACKGROUND_COLOR: Color = Color::rgba(0.25, 0.25, 0.25, 0.5);
 fn build_hud(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
-    images: &mut ResMut<Assets<Image>>,
+    materials: &mut ResMut<Assets<ProgressBarMaterial>>,
 ) {
     let health_bar_id = health_bar::build(commands, asset_server);
     let fps_counter_id = fps_counter::build(commands, asset_server);
-    let score_tracker_id = score_tracker::build(commands, asset_server, images);
+    let score_tracker_id = score_tracker::build(commands, asset_server, materials);
 
     let mut hud_entity = commands.spawn((
         NodeBundle {

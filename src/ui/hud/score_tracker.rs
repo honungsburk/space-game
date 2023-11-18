@@ -1,6 +1,6 @@
 use crate::{game::score::GameScore, ui::assets::GameFonts};
 use bevy::prelude::*;
-use bevy_progressbar::{ProgressBarBundle, ProgressBarSections};
+use bevy_progressbar::{ProgressBar, ProgressBarBundle, ProgressBarMaterial};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -37,15 +37,28 @@ struct LockedScore;
 
 const MULTIPLIER_TIME_AMOUNT: u32 = 1000;
 
-fn build_multiplier_timer(commands: &mut Commands, images: &mut ResMut<Assets<Image>>) -> Entity {
+fn build_multiplier_timer(
+    commands: &mut Commands,
+    materials: &mut ResMut<Assets<ProgressBarMaterial>>,
+) -> Entity {
+    let mut bar = ProgressBar::new(vec![
+        (MULTIPLIER_TIME_AMOUNT / 2, Color::DARK_GRAY),
+        (MULTIPLIER_TIME_AMOUNT / 2, Color::WHITE),
+    ]);
+
+    bar.set_progress(1.0);
+
+    let style = Style {
+        width: Val::Px(400.0),
+        height: Val::Px(4.0),
+        right: Val::Px(0.0),
+        ..default()
+    };
+
     // Multiplier Timer
     let multiplier_timer_id = commands
-        .spawn(
-            ProgressBarBundle::new(MULTIPLIER_TIME_AMOUNT, 250, 5, images)
-                .add_section(MULTIPLIER_TIME_AMOUNT / 2, Color::DARK_GRAY)
-                .add_section(MULTIPLIER_TIME_AMOUNT / 2, Color::WHITE),
-        )
-        .insert(MultiplierTimer {})
+        .spawn(MultiplierTimer)
+        .insert(ProgressBarBundle::new(style, bar, materials))
         .id();
 
     multiplier_timer_id
@@ -54,7 +67,7 @@ fn build_multiplier_timer(commands: &mut Commands, images: &mut ResMut<Assets<Im
 pub fn build(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
-    images: &mut ResMut<Assets<Image>>,
+    materials: &mut ResMut<Assets<ProgressBarMaterial>>,
 ) -> Entity {
     // Multiplier Tracker
     let multiplier_score_id = commands
@@ -140,7 +153,7 @@ pub fn build(
 
     // Multiplier Timer
 
-    let multiplier_timer_id = build_multiplier_timer(commands, images);
+    let multiplier_timer_id = build_multiplier_timer(commands, materials);
 
     // Locked Score
 
@@ -225,7 +238,7 @@ fn update_score_tracker(
             With<LockedScore>,
         ),
     >,
-    mut multiplier_timer_query: Query<&mut ProgressBarSections, With<MultiplierTimer>>,
+    mut multiplier_timer_query: Query<&mut ProgressBar, With<MultiplierTimer>>,
     game_score: Res<GameScore>,
 ) {
     if game_score.is_changed() {
@@ -238,15 +251,16 @@ fn update_score_tracker(
         for mut text in locked_score_query.iter_mut() {
             text.sections[0].value = game_score.locked_in_score().to_string();
         }
-        for mut sections in multiplier_timer_query.iter_mut() {
+        for mut multiplier_progressbar in multiplier_timer_query.iter_mut() {
             if let Some(precent_left) = game_score.multiplier_time_percent_left() {
                 let left = (precent_left * (MULTIPLIER_TIME_AMOUNT as f32)) as u32;
-                sections.0 = vec![
+
+                multiplier_progressbar.sections = vec![
                     (MULTIPLIER_TIME_AMOUNT - left, Color::DARK_GRAY),
                     (left, Color::WHITE),
                 ];
             } else {
-                sections.0 = vec![(MULTIPLIER_TIME_AMOUNT, Color::DARK_GRAY)];
+                multiplier_progressbar.sections = vec![(MULTIPLIER_TIME_AMOUNT, Color::DARK_GRAY)];
             }
         }
     }

@@ -91,7 +91,7 @@ pub fn register_turret_target(
     sensor_query: Query<(&Parent, &Sensor)>,
     player_query: Query<&GlobalTransform, With<Player>>,
 ) {
-    for collision_event in collision_events.iter() {
+    for collision_event in collision_events.read() {
         match collision_event {
             CollisionEvent::Started(entity1, entity2, _) => {
                 let sensor = sensor_query.get(*entity1).or(sensor_query.get(*entity2));

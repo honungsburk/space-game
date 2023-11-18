@@ -6,15 +6,15 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.11.2"
+bevy = "0.12.0"
 rand = { version = "0.8.5", features = [ "small_rng" ] }
 noise = "0.8.2"
-bevy_rapier2d = "0.22.0"
-leafwing-input-manager = "0.10.0"
-bevy_prototype_lyon = "0.9.0"
+bevy_rapier2d = "0.23.0"
+leafwing-input-manager = "0.11.1"
+bevy_prototype_lyon = "0.10.0"
 approx = "0.5.1"
 toml = "0.8.2"
 serde = { version = "1.0.130", features = ["derive"] }
 clap = { version = "4.4.6", features = ["derive"] }
-bevy-progressbar = "0.4.0"
+bevy-progressbar = "0.6.1"
 rand_distr = "0.4.3"
