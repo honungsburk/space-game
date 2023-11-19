@@ -1,9 +1,9 @@
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 
-use crate::settings::Settings;
+use crate::settings::{ResolutionSetting, Settings};
 
 /// A Space Game
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Default)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
     /// Show visual debug information
@@ -24,16 +24,12 @@ pub struct Cli {
     /// Set the y resolution
     #[arg(long, short)]
     pub y_pixels: Option<u32>,
-}
 
-impl Default for Cli {
-    fn default() -> Self {
-        Self {
-            settings: None,
-            x_pixels: None,
-            y_pixels: None,
-        }
-    }
+    /// Sets a bunch of settings to make the game look good on social media
+    ///
+    /// Overrides the x and y resolution settings.
+    #[arg(long, value_enum)]
+    pub social: Option<SocialMediaFormat>,
 }
 
 impl Cli {
@@ -52,6 +48,31 @@ impl Cli {
             new_config.window.resolution.y = y;
         }
 
+        if let Some(social) = self.social {
+            new_config.window.resolution = social.resolution();
+        }
+
         new_config
+    }
+}
+
+/// Optimize the game for a specific social media platform
+///
+/// For now, it only means changing the resolution to match the platform's
+/// recommended resolution.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
+pub enum SocialMediaFormat {
+    Instagram,
+    FullHD,
+    Short,
+}
+
+impl SocialMediaFormat {
+    pub fn resolution(self) -> ResolutionSetting {
+        match self {
+            SocialMediaFormat::Instagram => ResolutionSetting { x: 1080, y: 1350 },
+            SocialMediaFormat::FullHD => ResolutionSetting { x: 1920, y: 1080 },
+            SocialMediaFormat::Short => ResolutionSetting { x: 720, y: 1280 },
+        }
     }
 }
