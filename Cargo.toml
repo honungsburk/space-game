@@ -18,3 +18,4 @@ serde = { version = "1.0.130", features = ["derive"] }
 clap = { version = "4.4.6", features = ["derive"] }
 bevy-progressbar = "0.6.1"
 rand_distr = "0.4.3"
+hashlink = "0.8.4"

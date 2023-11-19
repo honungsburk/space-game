@@ -57,9 +57,9 @@ pub enum Scene {
     PlayerDeath,       // Player death testing mode
     EnemyShipAI,
     PlayerMovement,
+    #[default]
     Turret,
     KamikazeDrone,
-    #[default]
     Boid,
 }
 

@@ -16,8 +16,8 @@ pub mod meteors;
 pub mod player;
 pub mod projectile;
 pub mod score;
+pub mod sensor;
 mod systems;
-pub mod targets;
 pub mod time_to_live;
 pub mod trauma;
 pub mod turret;
@@ -39,8 +39,8 @@ use self::{
     average_velocity::AverageVelocityPlugin, background::BackgroundPlugin, boids::BoidsPlugin,
     control_system::ControlSystemPlugin, debug::DebugPlugin, enemy::EnemyPlugin,
     events::GameOverEvent, input::InputPlugin, kamikaze_drone::KamikazeDronesPlugin,
-    score::ScorePlugin, time_to_live::TimeToLivePlugin, trauma::TraumaPlugin, turret::TurretPlugin,
-    vitality::VitalityPlugin,
+    score::ScorePlugin, sensor::SensorPlugin, time_to_live::TimeToLivePlugin, trauma::TraumaPlugin,
+    turret::TurretPlugin, vitality::VitalityPlugin,
 };
 
 pub struct GamePlugin;
@@ -58,6 +58,7 @@ impl Plugin for GamePlugin {
         .add_state::<SimulationState>()
         // Systems
         .add_plugins((
+            SensorPlugin,
             BoidsPlugin,
             KamikazeDronesPlugin,
             EnemyPlugin,

@@ -4,13 +4,14 @@ mod draw;
 mod systems;
 
 use self::ai::TurretAI;
+use super::game_entity::Enemy;
 use super::{
     assets::{groups, AssetDB},
     game_entity::GameEntityType,
+    sensor::ColliderSensorBundle,
     vitality::Health,
     weapon::Weapon,
 };
-use super::{game_entity::Enemy, targets::Targets};
 use crate::{
     parent_child_no_rotation::{NoRotationChild, NoRotationParent},
     prelude::*,
@@ -61,9 +62,7 @@ impl Plugin for TurretPlugin {
         app.add_systems(
             Update,
             (
-                systems::update_turret_target,
                 systems::update_turret_rotation.before(systems::update_stationary_control),
-                systems::register_turret_target,
                 // update_stationary_control,
                 systems::update_turret_radius_outline,
                 systems::fire_weapon,
@@ -124,7 +123,6 @@ pub fn spawn(
         })
         .insert(RotationControl::default())
         .insert(StationaryControl::default())
-        .insert(Targets::default())
         .insert(Weapon::laser(
             turret_config.weapon_damage,
             1000.0,
@@ -159,16 +157,15 @@ pub fn spawn(
             let sensor_range = 500.0;
 
             parent
-                .spawn((draw::dashed_circle(sensor_range, 10.0, 10.0), stroke))
-                .insert(NoRotationChild)
-                .insert(Collider::ball(sensor_range))
-                .insert(ColliderMassProperties::Density(0.0))
-                .insert(Sensor)
-                .insert(CollisionGroups::new(
-                    groups::ENEMY_GROUP.into(),
-                    groups::PLAYER_GROUP.into(),
+                .spawn(ColliderSensorBundle::<Vec2>::ball(
+                    sensor_range,
+                    groups::PLAYER_GROUP,
                 ))
-                .insert(ActiveEvents::COLLISION_EVENTS)
+                .insert((
+                    draw::dashed_circle(sensor_range, 10.0, 10.0),
+                    stroke,
+                    NoRotationChild,
+                ))
                 .insert(TurretSensorLabel);
         });
 }

@@ -1,18 +1,21 @@
 use super::ai::TurretAI;
 use super::{ai, components::*};
 use crate::game::assets::AssetDB;
-use crate::game::targets::Targets;
-use crate::game::{player::components::Player, targets::Target, weapon::Weapon};
+use crate::game::sensor::SensorTargetVec2;
+use crate::game::weapon::Weapon;
 use bevy::{math::Vec3Swizzles, prelude::*};
 use bevy_prototype_lyon::prelude::*;
-use bevy_rapier2d::{
-    geometry::*,
-    prelude::{CollisionEvent, ExternalImpulse, Velocity},
-};
+use bevy_rapier2d::prelude::{ExternalImpulse, Velocity};
 
-pub fn update_ai(mut query: Query<(&mut ai::TurretAI, &Targets)>, time: Res<Time>) {
-    for (mut turret_ai, targets) in query.iter_mut() {
-        turret_ai.state.update(&time, !targets.is_empty());
+pub fn update_ai(
+    mut turret_query: Query<&mut ai::TurretAI>,
+    sensor_query: Query<(&Parent, &SensorTargetVec2)>,
+    time: Res<Time>,
+) {
+    for (parent, target) in sensor_query.iter() {
+        if let Ok(mut turret_ai) = turret_query.get_mut(parent.get()) {
+            turret_ai.state.update(&time, target.has_target());
+        }
     }
 }
 
@@ -34,118 +37,43 @@ pub fn update_turret_rotation(
         &TurretAI,
         &mut RotationControl,
         &Transform,
-        &Targets,
+        &Children,
         &mut ExternalImpulse,
     )>,
+    target_query: Query<&SensorTargetVec2>,
     time: Res<Time>,
 ) {
     let dt = time.delta_seconds();
     if dt == 0.0 {
         return;
     }
-    for (turret_ai, mut rotation_control, turret_global_transform, targets, mut turret_impulse) in
+    for (turret_ai, mut rotation_control, turret_global_transform, children, mut turret_impulse) in
         query.iter_mut()
     {
         if !turret_ai.state.is_targeting() {
             continue;
         }
 
-        if let Some(target) = targets.current_target() {
-            let desired_angel =
-                Vec2::Y.angle_between(target.location - turret_global_transform.translation.xy());
+        // If we have a target, set the desired angle to the angle between the turret and the target
+        for child in children.iter() {
+            if let Ok(Some((_, location))) = target_query.get(*child).map(|t| t.get()) {
+                let desired_angel =
+                    Vec2::Y.angle_between(*location - turret_global_transform.translation.xy());
 
-            // if target.location - turret_transform.translation().xy() == Vec2::ZERO then desired_angel is NaN
-            if desired_angel.is_nan() {
-                continue;
-            }
-
-            rotation_control.control.set_setpoint(desired_angel);
-
-            let (_, _, current_angle) = turret_global_transform.rotation.to_euler(EulerRot::XYZ);
-
-            let control_signal = rotation_control.control.update(current_angle, dt);
-
-            turret_impulse.torque_impulse = control_signal * 0.001;
-        }
-    }
-}
-
-pub fn update_turret_target(
-    mut target_query: Query<&mut Targets>,
-    transform_query: Query<&GlobalTransform>,
-) {
-    for mut targets in target_query.iter_mut() {
-        targets.for_each(|target| {
-            if let Ok(target_transform) = transform_query.get(target.entity) {
-                target.location = target_transform.translation().xy();
-            }
-        })
-    }
-}
-
-// TODO: Create a custom event for this CollisionEvent => CustomEvent
-// Then we only need to read through the events once, but will we be delayed one frame?
-pub fn register_turret_target(
-    mut collision_events: EventReader<CollisionEvent>,
-    mut targets_query: Query<&mut Targets, Without<Player>>,
-    sensor_query: Query<(&Parent, &Sensor)>,
-    player_query: Query<&GlobalTransform, With<Player>>,
-) {
-    for collision_event in collision_events.read() {
-        match collision_event {
-            CollisionEvent::Started(entity1, entity2, _) => {
-                let sensor = sensor_query.get(*entity1).or(sensor_query.get(*entity2));
-
-                if let Ok((parent, _)) = sensor {
-                    let targets = targets_query.get_mut(parent.get());
-                    let player_entity = if player_query.contains(*entity1) {
-                        *entity1
-                    } else {
-                        *entity2
-                    };
-
-                    let player = player_query.get(player_entity);
-
-                    if let (Ok(mut targets), Ok(player_global)) = (targets, player) {
-                        let player_location = player_global.translation().xy();
-
-                        let target = Target {
-                            entity: player_entity,
-                            location: player_location,
-                        };
-
-                        targets.add(target);
-                    }
+                if desired_angel.is_nan() {
+                    continue;
                 }
-            }
-            CollisionEvent::Stopped(entity1, entity2, _) => {
-                let sensor = sensor_query.get(*entity1).or(sensor_query.get(*entity2));
-                if let Ok((parent, _)) = sensor {
-                    let targets = targets_query.get_mut(parent.get());
-                    if let Ok(mut targets) = targets {
-                        if player_query.contains(*entity1) {
-                            targets.remove(*entity1);
-                        } else if player_query.contains(*entity2) {
-                            targets.remove(*entity2);
-                        }
-                    }
-                }
+
+                rotation_control.control.set_setpoint(desired_angel);
             }
         }
-    }
-}
 
-pub fn get_target<'a>(
-    targets_query: &'a mut Query<&mut Targets, Without<Player>>,
-    entity1: &Entity,
-    entity2: &Entity,
-) -> Option<Mut<'a, Targets>> {
-    if targets_query.contains(*entity1) {
-        return targets_query.get_mut(*entity1).ok();
-    } else if targets_query.contains(*entity2) {
-        return targets_query.get_mut(*entity2).ok();
-    } else {
-        return None;
+        // Rotate the turret towards the desired angle
+        let (_, _, current_angle) = turret_global_transform.rotation.to_euler(EulerRot::XYZ);
+
+        let control_signal = rotation_control.control.update(current_angle, dt);
+
+        turret_impulse.torque_impulse = control_signal * 0.001;
     }
 }
 
@@ -180,17 +108,14 @@ pub fn update_stationary_control(
 // the lyon plugin will check if a shape has changed, and if it has it will update the mesh
 // This is very expensive, so we only want to do it when we need to.
 pub fn update_turret_radius_outline(
-    mut turret_query: Query<&mut Targets, With<TurretLabel>>,
-    mut turret_radius_query: Query<(&Parent, &mut Stroke), With<TurretSensorLabel>>,
+    mut turret_radius_query: Query<(&mut Stroke, &mut SensorTargetVec2), With<TurretSensorLabel>>,
 ) {
-    for (parent, mut stroke) in turret_radius_query.iter_mut() {
-        if let Ok(mut targets) = turret_query.get_mut(parent.get()) {
-            if targets.has_changed() {
-                if targets.is_empty() {
-                    stroke.color = Color::rgba(0.0, 0.0, 0.0, 0.2);
-                } else {
-                    stroke.color = Color::rgba(1.0, 0.0, 0.0, 0.4);
-                }
+    for (mut stroke, mut target) in turret_radius_query.iter_mut() {
+        if target.has_changed() {
+            if target.has_target() {
+                stroke.color = Color::rgba(1.0, 0.0, 0.0, 0.4);
+            } else {
+                stroke.color = Color::rgba(0.0, 0.0, 0.0, 0.2);
             }
         }
     }
