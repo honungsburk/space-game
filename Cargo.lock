@@ -2134,6 +2134,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "hashlink"
+version = "0.8.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8094feaf31ff591f651a2664fb9cfd92bba7a60ce3197265e9482ebe753c8f7"
+dependencies = [
+ "hashbrown 0.14.0",
+]
+
+[[package]]
 name = "hassle-rs"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3542,6 +3551,7 @@ dependencies = [
  "bevy_prototype_lyon",
  "bevy_rapier2d",
  "clap",
+ "hashlink",
  "leafwing-input-manager",
  "noise",
  "rand 0.8.5",

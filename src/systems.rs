@@ -9,3 +9,10 @@ pub fn exit_game(
         app_exit_event_writer.send(AppExit);
     }
 }
+
+/// Cleanup all entities with a specific component.
+fn cleanup<T: Component>(mut commands: Commands, q: Query<Entity, With<T>>) {
+    for e in q.iter() {
+        commands.entity(e).despawn_recursive();
+    }
+}

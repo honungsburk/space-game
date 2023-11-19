@@ -14,6 +14,7 @@ pub const SENSOR_GROUP: Group = Group::GROUP_8;
 pub const PLAYER_FILTER_MASK: Group = METEOR_GROUP
     .union(ARENA_GROUP)
     .union(ENEMY_GROUP)
+    .union(SENSOR_GROUP)
     .union(ENEMY_PROJECTILE_GROUP);
 pub const METEOR_FILTER_MASK: Group = PLAYER_GROUP
     .union(METEOR_GROUP)
