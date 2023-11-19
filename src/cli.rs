@@ -60,6 +60,10 @@ impl Cli {
 ///
 /// For now, it only means changing the resolution to match the platform's
 /// recommended resolution.
+///
+/// TODO: there is a problem where that putting a video in 9:16 aspect ratio
+/// doesn't work on the Mac Retina display. It should have enough pixels but
+/// it ends up with another resolution instead.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, ValueEnum)]
 pub enum SocialMediaFormat {
     Instagram,
