@@ -14,7 +14,7 @@ use crate::misc::transform::from_location_angle;
 
 use self::components::{BoidTargets, KamikazeDroneLabel, KamikazeDroneSensorLabel};
 
-use super::assets::{groups, AssetDB};
+use super::assets::{self, groups};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -43,13 +43,12 @@ impl Plugin for KamikazeDronesPlugin {
 ///
 pub fn spawn(
     commands: &mut Commands,
-    asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
     location: Vec2,
     rotation: f32,
 ) -> Entity {
     let spawn_transform = from_location_angle(location, rotation);
-    let asset = &asset_db.kamikaze_drone;
+    let asset = assets::KAMIKAZE_DRONE;
     let sensor_range = 200.0;
 
     let drone_sensor = commands
@@ -71,7 +70,7 @@ pub fn spawn(
             ..Default::default()
         })
         .insert(KamikazeDroneLabel)
-        .insert(asset.collider.clone())
+        .insert(asset.collider())
         .insert(Damping {
             linear_damping: 0.0,
             angular_damping: 1.0, // TODO: This should be 0.0 but we do not have a any controler for angualr velocity yet!

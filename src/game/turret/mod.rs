@@ -6,7 +6,7 @@ mod systems;
 use self::ai::TurretAI;
 use super::game_entity::Enemy;
 use super::{
-    assets::{groups, AssetDB},
+    assets::{self, groups},
     game_entity::GameEntityType,
     sensor::ColliderSensorBundle,
     vitality::Health,
@@ -84,13 +84,12 @@ pub fn despawn(mut commands: Commands, query: Query<Entity, With<TurretLabel>>) 
 
 pub fn spawn(
     commands: &mut Commands,
-    asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
     turret_config: &TurretConfig,
     spawn_transform: Transform,
 ) {
-    let turret_base = &asset_db.turret_base_big;
-    let gun = &asset_db.gun_8;
+    let turret_base = assets::TURRET_BASE_BIG;
+    let gun = assets::GUN_8;
 
     commands
         .spawn(TurretLabel)
@@ -107,7 +106,7 @@ pub fn spawn(
             groups::ENEMY_GROUP.into(),
             groups::ENEMY_FILTER_MASK.into(),
         ))
-        .insert(turret_base.collider.clone())
+        .insert(turret_base.collider())
         .insert(SolverGroups::new(
             groups::ENEMY_GROUP.into(),
             groups::ENEMY_FILTER_MASK.into(),

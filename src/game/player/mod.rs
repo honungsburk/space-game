@@ -6,7 +6,7 @@ use crate::game::control_system::DirectionControl;
 use crate::game::game_entity::GameEntityType;
 use crate::game::trauma::Trauma;
 use crate::game::vitality::Health;
-use crate::game::{assets::groups, assets::AssetDB, weapon::Weapon};
+use crate::game::{assets, assets::groups, weapon::Weapon};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use systems::*;
@@ -41,23 +41,16 @@ impl Plugin for PlayerPlugin {
 // Spawning
 ////////////////////////////////////////////////////////////////////////////////
 
-pub fn spawn_player_at_center(
-    commands: Commands,
-    asset_db: Res<AssetDB>,
-    asset_server: Res<AssetServer>,
-) {
-    spawn(Vec2::new(0.0, 0.0), std::f32::consts::PI / 2.0)(commands, asset_db, asset_server);
+pub fn spawn_player_at_center(commands: Commands, asset_server: Res<AssetServer>) {
+    spawn(Vec2::new(0.0, 0.0), std::f32::consts::PI / 2.0)(commands, asset_server);
 }
 
-pub fn spawn(location: Vec2, rotation: f32) -> impl Fn(Commands, Res<AssetDB>, Res<AssetServer>) {
-    move |mut commands, asset_db, asset_server| {
-        spawn_player(&mut commands, &asset_db, &asset_server, location, rotation)
-    }
+pub fn spawn(location: Vec2, rotation: f32) -> impl Fn(Commands, Res<AssetServer>) {
+    move |mut commands, asset_server| spawn_player(&mut commands, &asset_server, location, rotation)
 }
 
 pub fn spawn_player(
     commands: &mut Commands,
-    asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
     location: Vec2,
     rotation: f32,
@@ -71,7 +64,7 @@ pub fn spawn_player(
     commands
         .spawn(SpriteBundle {
             transform: spawn_transform,
-            texture: asset_server.load(asset_db.player_ship.sprite_path),
+            texture: asset_server.load(assets::PLAYER_SHIP.sprite_path),
             ..default()
         })
         .insert(Player {})
@@ -82,7 +75,7 @@ pub fn spawn_player(
         })
         .insert(CameraTargetLabel)
         .insert(RigidBody::Dynamic)
-        .insert(asset_db.player_ship.collider.clone())
+        .insert(assets::PLAYER_SHIP.collider())
         .insert(Trauma::default())
         .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(ActiveEvents::CONTACT_FORCE_EVENTS)

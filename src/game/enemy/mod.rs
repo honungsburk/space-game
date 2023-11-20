@@ -16,8 +16,8 @@
 
 mod ai;
 
+use super::assets;
 use super::assets::groups;
-use super::assets::AssetDB;
 use super::config::Flag;
 use super::control_system::DirectionControl;
 use super::game_entity::Enemy;
@@ -281,12 +281,11 @@ pub fn despawn(mut commands: Commands, query: Query<Entity, With<Enemy>>) {
 
 pub fn spawn(
     commands: &mut Commands,
-    asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
     spawn_location: Vec2,
     rotation: f32,
 ) -> Entity {
-    let asset = &asset_db.enemy_ship_1;
+    let asset = assets::ENEMY_SHIP_1;
 
     let mut spawn_transform = Transform::from_translation(spawn_location.extend(0.0));
     spawn_transform.rotate_local_z(rotation);
@@ -329,7 +328,7 @@ pub fn spawn(
             groups::ENEMY_PROJECTILE_FILTER_MASK,
         ))
         .insert(RigidBody::Dynamic)
-        .insert(asset.collider.clone())
+        .insert(asset.collider())
         .insert(CollisionGroups::new(
             groups::ENEMY_GROUP.into(),
             groups::ENEMY_FILTER_MASK.into(),

@@ -1,6 +1,5 @@
 use super::ai::TurretAI;
 use super::{ai, components::*};
-use crate::game::assets::AssetDB;
 use crate::game::sensor::SensorTargetVec2;
 use crate::game::weapon::Weapon;
 use bevy::{math::Vec3Swizzles, prelude::*};
@@ -22,12 +21,11 @@ pub fn update_ai(
 pub fn fire_weapon(
     mut query: Query<(&ai::TurretAI, &mut Weapon, &Transform)>,
     mut commands: Commands,
-    asset_db: Res<AssetDB>,
     asset_server: Res<AssetServer>,
 ) {
     for (turret_ai, mut weapon, transform) in query.iter_mut() {
         if turret_ai.state.is_firing() {
-            weapon.fire(&mut commands, &asset_db, &asset_server, *transform)
+            weapon.fire(&mut commands, &asset_server, *transform)
         }
     }
 }

@@ -3,7 +3,7 @@ use crate::game::control_system::DirectionControl;
 use crate::game::input::InputAction;
 use crate::game::trauma::Trauma;
 use crate::game::vitality::Health;
-use crate::game::{assets::AssetDB, weapon::Weapon};
+use crate::game::{assets, weapon::Weapon};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -77,7 +77,6 @@ pub fn control_ship(
 
 pub fn fire_weapon(
     mut commands: Commands,
-    asset_db: Res<AssetDB>,
     asset_server: Res<AssetServer>,
     input_query: Query<&ActionState<InputAction>, Without<Player>>,
     mut query: Query<(&Transform, &mut Weapon), With<Player>>,
@@ -88,12 +87,7 @@ pub fn fire_weapon(
         if action.pressed(InputAction::PlayerFireWeapon) && weapon.can_fire() {
             let value = action.value(InputAction::PlayerFireWeapon);
             if value > 0.0 {
-                weapon.fire(
-                    &mut commands,
-                    &asset_db,
-                    &asset_server,
-                    player_transform.clone(),
-                );
+                weapon.fire(&mut commands, &asset_server, player_transform.clone());
             }
         }
     }

@@ -1,4 +1,4 @@
-use super::assets::AssetDB;
+use super::assets;
 use super::time_to_live::TimeToLive;
 use super::vitality::*;
 use bevy::math::Vec3Swizzles;
@@ -47,14 +47,13 @@ pub fn despawn_projectiles(commands: &mut Commands, query: Query<Entity, With<Pr
 
 pub fn spawn_laser_projectile(
     commands: &mut Commands,
-    asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
     spawn_transform: Transform,
     collision_membership: &Group,
     collision_filter: &Group,
     damage: u32,
 ) {
-    let laser_projectile = &asset_db.laser_projectile;
+    let laser_projectile = assets::PROJECTILE_LASER;
 
     commands
         .spawn(SpriteBundle {
@@ -63,7 +62,7 @@ pub fn spawn_laser_projectile(
             ..default()
         })
         .insert(RigidBody::Dynamic)
-        .insert(laser_projectile.collider.clone())
+        .insert(laser_projectile.collider())
         .insert(CollisionGroups::new(
             (*collision_membership).into(),
             (*collision_filter).into(),

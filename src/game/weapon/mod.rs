@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Group;
 
-use super::{assets::AssetDB, projectile as Projectile};
+use super::projectile;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -51,7 +51,6 @@ impl Weapon {
     pub fn fire(
         &mut self,
         commands: &mut Commands,
-        asset_db: &Res<AssetDB>,
         asset_server: &Res<AssetServer>,
         spawn_transform: Transform,
     ) {
@@ -63,9 +62,8 @@ impl Weapon {
                 projectile_damage,
                 ..
             } => {
-                Projectile::spawn_laser_projectile(
+                projectile::spawn_laser_projectile(
                     commands,
-                    &asset_db,
                     &asset_server,
                     spawn_transform,
                     projectile_collision_membership,

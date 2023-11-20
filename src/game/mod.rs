@@ -31,7 +31,6 @@ use systems::*;
 use weapon::WeaponPlugin;
 
 use arena::ArenaPlugin;
-use assets::AssetPlugin;
 use camera::CameraPlugin;
 use projectile::ProjectilePlugin;
 
@@ -70,7 +69,6 @@ impl Plugin for GamePlugin {
             BackgroundPlugin,
             ArenaPlugin,
             CameraPlugin,
-            AssetPlugin,
             PlayerPlugin,
             TurretPlugin,
             ProjectilePlugin,

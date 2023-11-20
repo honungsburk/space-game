@@ -1,10 +1,10 @@
-use super::assets::AssetDB;
+use super::assets;
 use super::camera::ScreenBounds;
 use super::game_entity::Enemy;
 use super::meteors::MeteorSize;
 use super::meteors::{self, Meteor};
+use super::player;
 use super::turret;
-use super::{assets, player};
 use crate::misc::random;
 use crate::prelude::*;
 use bevy::prelude::*;
@@ -47,12 +47,12 @@ pub fn despawn(
     commands.despawn_all(&query);
 }
 
-pub fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<AssetServer>) {
+pub fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
     let arena = Arena::new(2000.0, 400.0);
 
-    arena.spawn_asteroid_bounds(&mut commands, &asset_db, &asset_server);
-    arena.spawn_random_asteroids(&mut commands, &asset_db, &asset_server, 100);
-    arena.spawn_player(&mut commands, &asset_db, &asset_server);
+    arena.spawn_asteroid_bounds(&mut commands, &asset_server);
+    arena.spawn_random_asteroids(&mut commands, &asset_server, 100);
+    arena.spawn_player(&mut commands, &asset_server);
 
     commands.insert_resource(arena);
     commands.insert_resource(EnemySpawnTimer::from_seconds(10.0));
@@ -99,7 +99,6 @@ fn update_spawn_enemy(
     mut enemy_spawn_timer_opt: Option<ResMut<EnemySpawnTimer>>,
     arena_opt: Option<Res<Arena>>,
     mut commands: Commands,
-    asset_db: Res<crate::game::assets::AssetDB>,
     asset_server: Res<AssetServer>,
     rapier_context: Res<RapierContext>,
 ) {
@@ -119,7 +118,6 @@ fn update_spawn_enemy(
                 &screen_bounds,
                 &arena,
                 &mut commands,
-                &asset_db,
                 &asset_server,
                 rapier_context,
             );
@@ -198,15 +196,10 @@ impl Arena {
         &self.player_spawn_locations
     }
 
-    pub fn spawn_asteroid_bounds(
-        &self,
-        commands: &mut Commands,
-        asset_db: &Res<AssetDB>,
-        asset_server: &Res<AssetServer>,
-    ) {
+    pub fn spawn_asteroid_bounds(&self, commands: &mut Commands, asset_server: &Res<AssetServer>) {
         let asteroid_bounds = &self.asteroid_bounds;
 
-        let inner_radius = asteroid_bounds.radius + assets::BIG_METEOR_RADIUS * 2.0;
+        let inner_radius = asteroid_bounds.radius + assets::METEOR_BIG_RADIUS * 2.0;
         let outer_radius = inner_radius + asteroid_bounds.width;
 
         let mut candidates = VecDeque::from([(Vec2::new(0.0, inner_radius), MeteorSize::Big)]);
@@ -228,7 +221,7 @@ impl Arena {
             let valid = added.iter().all(|added_pos| {
                 let diff: Vec2 = *added_pos - candidate_pos;
                 let distance: f32 = diff.length();
-                distance > assets::BIG_METEOR_RADIUS * 2.0
+                distance > assets::METEOR_BIG_RADIUS * 2.0
             });
 
             // can be replaced with AABB testing to make it faster, but I don't think it is needed
@@ -240,13 +233,7 @@ impl Arena {
 
                 transform.rotation = Quat::from_rotation_z(rotation);
                 // Add the candidate to the world
-                meteors::spawn_immovable_meteor(
-                    asset_db,
-                    asset_server,
-                    commands,
-                    candidate_size,
-                    transform,
-                );
+                meteors::spawn_immovable_meteor(asset_server, commands, candidate_size, transform);
                 // generate more candidates
 
                 let number_of_candidates = 6;
@@ -256,8 +243,8 @@ impl Arena {
                 for i in 1..=number_of_candidates {
                     let angle = 2.0 * PI * (i as f32 / number_of_candidates as f32) + angle_offset;
                     // 2 is so that there is no overlapp, 0.1 to add a bit of padding.
-                    let distance = assets::BIG_METEOR_RADIUS * 2.1
-                        + uniform.sample(&mut rng) * assets::BIG_METEOR_RADIUS * 0.2;
+                    let distance = assets::METEOR_BIG_RADIUS * 2.1
+                        + uniform.sample(&mut rng) * assets::METEOR_BIG_RADIUS * 0.2;
                     let offset = Vec2::new(angle.cos() * distance, angle.sin() * distance);
 
                     candidates.push_back((offset + candidate_pos, MeteorSize::Big));
@@ -266,15 +253,9 @@ impl Arena {
         }
     }
 
-    pub fn spawn_player(
-        &self,
-        commands: &mut Commands,
-        asset_db: &Res<AssetDB>,
-        asset_server: &Res<AssetServer>,
-    ) {
+    pub fn spawn_player(&self, commands: &mut Commands, asset_server: &Res<AssetServer>) {
         player::spawn_player(
             commands,
-            asset_db,
             asset_server,
             self.player_spawn_locations.position,
             self.player_spawn_locations.rotation,
@@ -284,7 +265,7 @@ impl Arena {
     pub fn spawn_random_asteroids(
         &self,
         commands: &mut Commands,
-        asset_db: &Res<AssetDB>,
+
         asset_server: &Res<AssetServer>,
         number_of_meteors: usize,
     ) {
@@ -296,10 +277,10 @@ impl Arena {
             let size = rng.gen_range(0..10);
 
             let (meteor_size, meteor_radius) = match size {
-                1..=2 => (MeteorSize::Tiny, assets::TINY_METEOR_RADIUS),
-                3..=5 => (MeteorSize::Small, assets::SMALL_METEOR_RADIUS),
-                6..=8 => (MeteorSize::Medium, assets::MEDIUM_METEOR_RADIUS),
-                _ => (MeteorSize::Big, assets::BIG_METEOR_RADIUS),
+                1..=2 => (MeteorSize::Tiny, assets::METEOR_TINY_RADIUS),
+                3..=5 => (MeteorSize::Small, assets::METEOR_SMALL_RADIUS),
+                6..=8 => (MeteorSize::Medium, assets::METEOR_MEDIUM_RADIUS),
+                _ => (MeteorSize::Big, assets::METEOR_BIG_RADIUS),
             };
 
             // Subtract the meteor radius from the arena radius to ensure that the meteor is spawned
@@ -320,7 +301,6 @@ impl Arena {
             };
             if is_movable {
                 meteors::spawn_meteor(
-                    asset_db,
                     asset_server,
                     commands,
                     meteor_size,
@@ -329,13 +309,7 @@ impl Arena {
                     0.0,
                 );
             } else {
-                meteors::spawn_immovable_meteor(
-                    asset_db,
-                    asset_server,
-                    commands,
-                    meteor_size,
-                    transform,
-                );
+                meteors::spawn_immovable_meteor(asset_server, commands, meteor_size, transform);
             }
         }
     }
@@ -349,13 +323,12 @@ fn spawn_enemy(
     screen_bounds: &Res<ScreenBounds>,
     arena: &Res<Arena>,
     commands: &mut Commands,
-    asset_db: &Res<crate::game::assets::AssetDB>,
     asset_server: &Res<AssetServer>,
     rapier_context: Res<RapierContext>,
 ) {
     let mut has_spawn_location = false;
 
-    let turret_asset = &asset_db.turret_base_big;
+    let turret_asset = assets::TURRET_BASE_BIG;
     let mut candidate_spawn_location = Vec2::new(0.0, 0.0);
     let filter = QueryFilter::default();
 
@@ -381,7 +354,7 @@ fn spawn_enemy(
         rapier_context.intersections_with_shape(
             candidate_spawn_location,
             0.0,
-            &turret_asset.collider,
+            &turret_asset.collider(),
             filter,
             |_| {
                 has_spawn_location = false;
@@ -393,7 +366,6 @@ fn spawn_enemy(
     if attempts < max_attempts {
         turret::spawn(
             commands,
-            asset_db,
             asset_server,
             &turret::TurretConfig::default(),
             Transform::from_xyz(candidate_spawn_location.x, candidate_spawn_location.y, 0.0),

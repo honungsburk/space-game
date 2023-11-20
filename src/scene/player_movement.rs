@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::Scene;
-use crate::game::{arena, assets::AssetDB, background, camera, player};
+use crate::game::{arena, background, camera, player};
 
 pub struct PlayerMovementScenePlugin;
 
@@ -29,7 +29,7 @@ impl Plugin for PlayerMovementScenePlugin {
     }
 }
 
-fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<AssetServer>) {
+fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
     let arena = arena::Arena::new(1000.0, 200.0);
-    arena.spawn_random_asteroids(&mut commands, &asset_db, &asset_server, 50);
+    arena.spawn_random_asteroids(&mut commands, &asset_server, 50);
 }

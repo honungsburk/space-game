@@ -4,11 +4,9 @@ mod systems;
 use bevy::prelude::*;
 use bevy_rapier2d::dynamics::Velocity;
 
-use crate::misc::transform::from_location_angle;
-
 use self::components::BoidLabel;
-
-use super::assets::AssetDB;
+use crate::game::assets;
+use crate::misc::transform::from_location_angle;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -31,13 +29,12 @@ impl Plugin for BoidsPlugin {
 ///
 pub fn spawn(
     commands: &mut Commands,
-    asset_db: &Res<AssetDB>,
     asset_server: &Res<AssetServer>,
     location: Vec2,
     rotation: f32,
 ) -> Entity {
     let spawn_transform = from_location_angle(location, rotation);
-    let asset = &asset_db.kamikaze_drone;
+    let asset = assets::KAMIKAZE_DRONE;
 
     let drone_entity = commands
         .spawn(SpriteBundle {

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::Scene;
-use crate::game::{assets::AssetDB, background, camera, player, turret};
+use crate::game::{background, camera, player, turret};
 
 pub struct TurretPerformanceScenePlugin;
 
@@ -31,7 +31,7 @@ impl Plugin for TurretPerformanceScenePlugin {
     }
 }
 
-fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<AssetServer>) {
+fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Spawn turrets in a grid north of the player
 
     let turret_count = 1000;
@@ -49,7 +49,6 @@ fn spawn(mut commands: Commands, asset_db: Res<AssetDB>, asset_server: Res<Asset
 
             turret::spawn(
                 &mut commands,
-                &asset_db,
                 &asset_server,
                 &turret::TurretConfig::default(),
                 spawn_transform,

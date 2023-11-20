@@ -2,9 +2,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 
 use super::Scene;
 use crate::game::{
-    arena,
-    assets::AssetDB,
-    background, boids,
+    arena, background, boids,
     camera::{self},
 };
 
@@ -30,7 +28,6 @@ impl Plugin for BoidScenePlugin {
 
 fn spawn(
     mut commands: Commands,
-    asset_db: Res<AssetDB>,
     asset_server: Res<AssetServer>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
@@ -38,7 +35,7 @@ fn spawn(
 
     // Spawn the arena and player
     let arena = arena::Arena::new(1000.0, 200.0);
-    arena.spawn_asteroid_bounds(&mut commands, &asset_db, &asset_server);
+    arena.spawn_asteroid_bounds(&mut commands, &asset_server);
     // arena.spawn_random_asteroids(&mut commands, &asset_db, &asset_server, 50);
     // Spawn 100 boids at random locations
     let boid_count = 100;
@@ -46,7 +43,6 @@ fn spawn(
     for _ in 0..boid_count {
         boids::spawn(
             &mut commands,
-            &asset_db,
             &asset_server,
             Vec2::new(
                 (rand::random::<f32>() - 0.5) * window.width(),
