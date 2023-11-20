@@ -8,8 +8,8 @@ mod parent_child_no_rotation;
 pub mod prelude;
 pub mod scene;
 pub mod settings;
-mod systems;
 mod ui;
+pub mod utility_systems;
 
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
@@ -18,8 +18,8 @@ use game::{score::high_score, GamePlugin};
 use parent_child_no_rotation::NoRotationPlugin;
 use scene::ScenePlugin;
 use settings::{Settings, SettingsPlugin};
-use systems::*;
 use ui::hud::HudPlugin;
+use utility_systems::*;
 
 // pub fn run(config: Config, settings: Settings) {
 pub fn run(settings: Settings, _high_scores: high_score::HighScores) {

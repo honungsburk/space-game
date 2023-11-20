@@ -36,7 +36,19 @@ impl Asset {
 // Assets
 ////////////////////////////////////////////////////////////////////////////////
 
+pub const ALL: [&'static [&'static Asset]; 6] = [
+    &ALL_PLAYERS,
+    &ALL_METEORS,
+    &ALL_TURRET_BASES,
+    &ALL_GUNS,
+    &ALL_PROJECTILES,
+    &ALL_ENEMIES,
+];
+
 // PLAYER
+
+pub const ALL_PLAYERS: [&'static Asset; 1] = [&PLAYER_SHIP];
+
 pub const PLAYER_SHIP: Asset =
     Asset::new("Player Ship", "sprites/playerShip1_blue.png", ship_collider);
 
@@ -78,6 +90,29 @@ fn ship_collider() -> Collider {
 }
 
 // METEOR
+
+pub const ALL_METEORS: [&'static Asset; 20] = [
+    &METEOR_BROWN_BIG_1,
+    &METEOR_BROWN_BIG_2,
+    &METEOR_BROWN_BIG_3,
+    &METEOR_BROWN_BIG_4,
+    &METEOR_BROWN_MEDIUM_1,
+    &METEOR_BROWN_MEDIUM_2,
+    &METEOR_BROWN_SMALL_1,
+    &METEOR_BROWN_SMALL_2,
+    &METEOR_BROWN_TINY_1,
+    &METEOR_BROWN_TINY_2,
+    &METEOR_GREY_BIG_1,
+    &METEOR_GREY_BIG_2,
+    &METEOR_GREY_BIG_3,
+    &METEOR_GREY_BIG_4,
+    &METEOR_GREY_MEDIUM_1,
+    &METEOR_GREY_MEDIUM_2,
+    &METEOR_GREY_SMALL_1,
+    &METEOR_GREY_SMALL_2,
+    &METEOR_GREY_TINY_1,
+    &METEOR_GREY_TINY_2,
+];
 
 pub const METEOR_BIG_RADIUS: f32 = 50.0;
 pub const METEOR_MEDIUM_RADIUS: f32 = 25.0;
@@ -188,6 +223,8 @@ pub const METEOR_GREY_TINY_2: Asset = Asset::new(
 
 // TURRET
 
+pub const ALL_TURRET_BASES: [&'static Asset; 2] = [&TURRET_BASE_BIG, &TURRET_BASE_SMALL];
+
 pub const TURRET_BASE_BIG: Asset = Asset::new(
     "Turret Base Big",
     "sprites/parts/turret/turretBase_big.png",
@@ -202,17 +239,25 @@ pub const TURRET_BASE_SMALL: Asset = Asset::new(
 
 // GUN
 
+pub const ALL_GUNS: [&'static Asset; 1] = [&GUN_8];
+
 pub const GUN_8: Asset = Asset::new("Gun 8", "sprites/parts/gun/gun08.png", || {
     Collider::cuboid(5.0, 15.0)
 });
 
 // Projectiles
+
+pub const ALL_PROJECTILES: [&'static Asset; 1] = [&PROJECTILE_LASER];
+
 pub const PROJECTILE_LASER: Asset =
     Asset::new("Laser Projectile", "sprites/laserBlue01.png", || {
         Collider::capsule_y(22.0, 5.0)
     });
 
 // ENEMY
+
+pub const ALL_ENEMIES: [&'static Asset; 2] = [&ENEMY_SHIP_1, &KAMIKAZE_DRONE];
+
 pub const ENEMY_SHIP_1: Asset = Asset::new("Enemy Ship 1", "sprites/enemy/enemyRed1.png", || {
     Collider::ball(50.0)
 });

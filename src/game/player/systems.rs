@@ -3,7 +3,7 @@ use crate::game::control_system::DirectionControl;
 use crate::game::input::InputAction;
 use crate::game::trauma::Trauma;
 use crate::game::vitality::Health;
-use crate::game::{assets, weapon::Weapon};
+use crate::game::weapon::Weapon;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use leafwing_input_manager::prelude::*;
