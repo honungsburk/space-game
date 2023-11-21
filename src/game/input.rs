@@ -8,7 +8,7 @@ use leafwing_input_manager::{prelude::*, user_input::InputKind};
 
 use crate::scene::GameScene;
 
-use super::debug::DebugAction;
+use super::{debug::DebugAction, player::PlayerShipAction};
 // Actions
 
 pub struct InputPlugin;
@@ -41,13 +41,8 @@ pub fn spawn_input(mut commands: Commands) {
 // This is the list of "things in the game I want to be able to do based on input"
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Debug, Reflect)]
 pub enum InputAction {
-    // Player Actions
-    PlayerThrottleForward,
-    PlayerThrottleBackwards,
-    PlayerRotateShip,
-    PlayerRotateShipLeft,
-    PlayerRotateShipRight,
-    PlayerFireWeapon,
+    // Ship Actions
+    PlayerShip(PlayerShipAction),
     // Debug Actions
     Debug(DebugAction),
     // Game State Actions
@@ -65,39 +60,39 @@ pub fn create_input_map() -> InputMap<InputAction> {
     input_map.insert_multiple(vec![
         (
             InputKind::Keyboard(KeyCode::W),
-            InputAction::PlayerThrottleForward,
+            InputAction::PlayerShip(PlayerShipAction::ThrottleForward),
         ),
         (
             InputKind::Keyboard(KeyCode::S),
-            InputAction::PlayerThrottleBackwards,
+            InputAction::PlayerShip(PlayerShipAction::ThrottleBackwards),
         ),
         (
             InputKind::Keyboard(KeyCode::A),
-            InputAction::PlayerRotateShipLeft,
+            InputAction::PlayerShip(PlayerShipAction::RotateShipLeft),
         ),
         (
             InputKind::Keyboard(KeyCode::D),
-            InputAction::PlayerRotateShipRight,
+            InputAction::PlayerShip(PlayerShipAction::RotateShipRight),
         ),
         (
             InputKind::Keyboard(KeyCode::L),
-            InputAction::PlayerFireWeapon,
+            InputAction::PlayerShip(PlayerShipAction::FireWeapon),
         ),
         (
             InputKind::GamepadButton(GamepadButtonType::RightTrigger2),
-            InputAction::PlayerThrottleForward,
+            InputAction::PlayerShip(PlayerShipAction::ThrottleForward),
         ),
         (
             InputKind::GamepadButton(GamepadButtonType::LeftTrigger2),
-            InputAction::PlayerThrottleBackwards,
+            InputAction::PlayerShip(PlayerShipAction::ThrottleBackwards),
         ),
         (
             InputKind::GamepadButton(GamepadButtonType::South),
-            InputAction::PlayerFireWeapon,
+            InputAction::PlayerShip(PlayerShipAction::FireWeapon),
         ),
         (
             InputKind::DualAxis(DualAxis::left_stick()),
-            InputAction::PlayerRotateShip,
+            InputAction::PlayerShip(PlayerShipAction::RotateShip),
         ),
     ]);
 

@@ -1,5 +1,6 @@
 use super::debug::{self, CameraPositionDebugFlagLabel, CameraSetpointDebugFlagLabel};
 use super::input::InputAction;
+use super::player::PlayerShipAction;
 use super::trauma::Trauma;
 use crate::misc::control::PID;
 use bevy::math::Vec3Swizzles;
@@ -219,8 +220,8 @@ pub fn update_smooth_camera(
     {
         if let Ok((mut camera_transform, mut camera_pid)) = camera_query.get_single_mut() {
             // Determine desired camera placement
-            let player_rotation = if let Some(axis_data) =
-                input_action.clamped_axis_pair(InputAction::PlayerRotateShip)
+            let player_rotation = if let Some(axis_data) = input_action
+                .clamped_axis_pair(InputAction::PlayerShip(PlayerShipAction::RotateShip))
             {
                 100.0 * axis_data.xy()
             } else {

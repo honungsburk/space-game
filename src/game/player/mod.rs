@@ -17,6 +17,18 @@ use self::components::ContactForceInvulnerability;
 
 use super::camera::CameraTargetLabel;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Reflect)]
+pub enum PlayerShipAction {
+    #[default]
+    NoOp,
+    ThrottleForward,
+    ThrottleBackwards,
+    RotateShip,
+    RotateShipLeft,
+    RotateShipRight,
+    FireWeapon,
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
 ////////////////////////////////////////////////////////////////////////////////
