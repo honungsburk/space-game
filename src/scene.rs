@@ -86,8 +86,6 @@ impl fmt::Display for GameScene {
 pub struct Reload(Option<GameScene>);
 
 fn update_scene(
-    mut reload_scene: ResMut<Reload>,
-    current_scene: Res<State<GameScene>>,
     mut next_scene: ResMut<NextState<GameScene>>,
     input_query: Query<&ActionState<InputAction>>,
 ) {
