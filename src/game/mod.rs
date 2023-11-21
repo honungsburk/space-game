@@ -4,6 +4,7 @@ pub mod average_velocity;
 pub mod background;
 pub mod boids;
 pub mod camera;
+pub mod camera_movement;
 pub mod config;
 pub mod control_system;
 pub mod debug;
@@ -36,10 +37,11 @@ use projectile::ProjectilePlugin;
 
 use self::{
     average_velocity::AverageVelocityPlugin, background::BackgroundPlugin, boids::BoidsPlugin,
-    control_system::ControlSystemPlugin, debug::DebugPlugin, enemy::EnemyPlugin,
-    events::GameOverEvent, input::InputPlugin, kamikaze_drone::KamikazeDronesPlugin,
-    score::ScorePlugin, sensor::SensorPlugin, time_to_live::TimeToLivePlugin, trauma::TraumaPlugin,
-    turret::TurretPlugin, vitality::VitalityPlugin,
+    camera_movement::CameraMovementPlugin, control_system::ControlSystemPlugin, debug::DebugPlugin,
+    enemy::EnemyPlugin, events::GameOverEvent, input::InputPlugin,
+    kamikaze_drone::KamikazeDronesPlugin, score::ScorePlugin, sensor::SensorPlugin,
+    time_to_live::TimeToLivePlugin, trauma::TraumaPlugin, turret::TurretPlugin,
+    vitality::VitalityPlugin,
 };
 
 pub struct GamePlugin;
@@ -62,6 +64,7 @@ impl Plugin for GamePlugin {
             KamikazeDronesPlugin,
             EnemyPlugin,
             ControlSystemPlugin,
+            CameraMovementPlugin,
         ))
         .add_plugins((
             InputPlugin,

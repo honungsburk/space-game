@@ -20,7 +20,7 @@
 //!     CameraMovement::FollowEntity(ENTITY_ID, CameraMovement::Velcoity),
 //!     CameraMovement::ScreenShake(ENTITY_ID),
 //!     CameraMovement::MouseMovement(1.0),
-//!     CameraMovement::WASDMovement(1.0),
+//!     CameraMovement::KeyboardMovement(200.0),
 //!     CameraMovement::ScrollToZoom(1.0),
 //!     CameraMovement::MouseRotate(1.0),
 //! ))
@@ -32,6 +32,20 @@ mod keyboard_movement;
 
 use bevy::prelude::*;
 
+pub use keyboard_movement::KeyboardMovement;
+use leafwing_input_manager::Actionlike;
+
+/// Actions that move the camera
+#[derive(Actionlike, Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect, Default)]
+pub enum CameraMovementAction {
+    #[default]
+    NoOp,
+    MoveUp,
+    MoveDown,
+    MoveLeft,
+    MoveRight,
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
 ////////////////////////////////////////////////////////////////////////////////
@@ -39,5 +53,7 @@ use bevy::prelude::*;
 pub struct CameraMovementPlugin;
 
 impl Plugin for CameraMovementPlugin {
-    fn build(&self, app: &mut App) {}
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, keyboard_movement::update);
+    }
 }

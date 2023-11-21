@@ -8,7 +8,7 @@ use leafwing_input_manager::{prelude::*, user_input::InputKind};
 
 use crate::scene::GameScene;
 
-use super::{debug::DebugAction, player::PlayerShipAction};
+use super::{camera_movement::CameraMovementAction, debug::DebugAction, player::PlayerShipAction};
 // Actions
 
 pub struct InputPlugin;
@@ -41,6 +41,7 @@ pub fn spawn_input(mut commands: Commands) {
 // This is the list of "things in the game I want to be able to do based on input"
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Debug, Reflect)]
 pub enum InputAction {
+    CameraMovement(CameraMovementAction),
     // Ship Actions
     PlayerShip(PlayerShipAction),
     // Debug Actions
@@ -57,6 +58,43 @@ pub fn create_input_map() -> InputMap<InputAction> {
     // Create an `InputMap` to add default inputs to
     let mut input_map: InputMap<InputAction> = InputMap::default();
 
+    // Add Camera inputs
+    input_map.insert_multiple(vec![
+        (
+            InputKind::Keyboard(KeyCode::Up),
+            InputAction::CameraMovement(CameraMovementAction::MoveUp),
+        ),
+        (
+            InputKind::Keyboard(KeyCode::Down),
+            InputAction::CameraMovement(CameraMovementAction::MoveDown),
+        ),
+        (
+            InputKind::Keyboard(KeyCode::Left),
+            InputAction::CameraMovement(CameraMovementAction::MoveLeft),
+        ),
+        (
+            InputKind::Keyboard(KeyCode::Right),
+            InputAction::CameraMovement(CameraMovementAction::MoveRight),
+        ),
+        (
+            InputKind::Keyboard(KeyCode::W),
+            InputAction::CameraMovement(CameraMovementAction::MoveUp),
+        ),
+        (
+            InputKind::Keyboard(KeyCode::S),
+            InputAction::CameraMovement(CameraMovementAction::MoveDown),
+        ),
+        (
+            InputKind::Keyboard(KeyCode::A),
+            InputAction::CameraMovement(CameraMovementAction::MoveLeft),
+        ),
+        (
+            InputKind::Keyboard(KeyCode::D),
+            InputAction::CameraMovement(CameraMovementAction::MoveRight),
+        ),
+    ]);
+
+    // Add PlayerShip inputs
     input_map.insert_multiple(vec![
         (
             InputKind::Keyboard(KeyCode::W),
