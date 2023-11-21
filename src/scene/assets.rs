@@ -1,5 +1,6 @@
 use super::GameScene;
-use crate::game::{assets, background, camera, camera_movement};
+use crate::game::camera_movement::KeyboardMovementBundle;
+use crate::game::{assets, background};
 use crate::utility_systems;
 use bevy::prelude::*;
 pub struct AssetsScenePlugin;
@@ -26,7 +27,7 @@ fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands.spawn((
         Camera2dBundle::default(),
-        camera_movement::KeyboardMovement::new(500.0),
+        KeyboardMovementBundle::new(500.0),
     ));
 
     // Assets

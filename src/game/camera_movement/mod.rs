@@ -32,19 +32,18 @@ mod keyboard_movement;
 
 use bevy::prelude::*;
 
-pub use keyboard_movement::KeyboardMovement;
-use leafwing_input_manager::Actionlike;
+pub use keyboard_movement::{KeyboardMovement, KeyboardMovementBundle};
 
-/// Actions that move the camera
-#[derive(Actionlike, Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect, Default)]
-pub enum CameraMovementAction {
-    #[default]
-    NoOp,
-    MoveUp,
-    MoveDown,
-    MoveLeft,
-    MoveRight,
-}
+// /// Actions that move the camera
+// #[derive(Actionlike, Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect, Default)]
+// pub enum CameraMovementAction {
+//     #[default]
+//     NoOp,
+//     MoveUp,
+//     MoveDown,
+//     MoveLeft,
+//     MoveRight,
+// }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -54,6 +53,6 @@ pub struct CameraMovementPlugin;
 
 impl Plugin for CameraMovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, keyboard_movement::update);
+        app.add_plugins(keyboard_movement::KeyboardMovementPlugin);
     }
 }
