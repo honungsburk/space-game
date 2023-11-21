@@ -1,7 +1,4 @@
-use crate::{
-    game::{config::Flag, debug::FPSDebugFlag},
-    ui::assets::GameFonts,
-};
+use crate::{game::debug::FPSDebugFlag, ui::assets::GameFonts};
 use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
