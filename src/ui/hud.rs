@@ -5,8 +5,6 @@ mod score_tracker;
 use bevy::prelude::*;
 use bevy_progressbar::ProgressBarMaterial;
 
-pub use self::fps_counter::FPSCounterDebugFlag;
-
 pub struct HudPlugin;
 
 impl Plugin for HudPlugin {

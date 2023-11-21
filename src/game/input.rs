@@ -7,6 +7,8 @@ use bevy::prelude::*;
 use leafwing_input_manager::{prelude::*, user_input::InputKind};
 
 use crate::scene::GameScene;
+
+use super::debug::DebugAction;
 // Actions
 
 pub struct InputPlugin;
@@ -47,12 +49,7 @@ pub enum InputAction {
     PlayerRotateShipRight,
     PlayerFireWeapon,
     // Debug Actions
-    DebugBackgroundGrid,
-    DebugCameraPosition,
-    DebugCameraSetpoint,
-    DebugRender,
-    DebugFPSCounter,
-    DebugVisionCone,
+    Debug(DebugAction),
     // Game State Actions
     GameScene(GameScene),
 }
@@ -108,24 +105,27 @@ pub fn create_input_map() -> InputMap<InputAction> {
     input_map.insert_multiple(vec![
         (
             InputKind::Keyboard(KeyCode::F1),
-            InputAction::DebugBackgroundGrid,
+            InputAction::Debug(DebugAction::BackgroundGrid),
         ),
         (
             InputKind::Keyboard(KeyCode::F2),
-            InputAction::DebugCameraPosition,
+            InputAction::Debug(DebugAction::CameraPosition),
         ),
         (
             InputKind::Keyboard(KeyCode::F3),
-            InputAction::DebugCameraSetpoint,
+            InputAction::Debug(DebugAction::CameraSetpoint),
         ),
-        (InputKind::Keyboard(KeyCode::F4), InputAction::DebugRender),
+        (
+            InputKind::Keyboard(KeyCode::F4),
+            InputAction::Debug(DebugAction::Render),
+        ),
         (
             InputKind::Keyboard(KeyCode::F5),
-            InputAction::DebugFPSCounter,
+            InputAction::Debug(DebugAction::FPSCounter),
         ),
         (
             InputKind::Keyboard(KeyCode::F6),
-            InputAction::DebugVisionCone,
+            InputAction::Debug(DebugAction::VisionCone),
         ),
     ]);
 

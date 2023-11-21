@@ -3,8 +3,10 @@ use bevy::{
     window::{PrimaryWindow, WindowResized},
 };
 
-use super::camera::ShakyCamera;
-use super::config::Flag;
+use super::{
+    camera::ShakyCamera,
+    debug::{self, BackgroundGridDebugFlagLabel},
+};
 
 const BACKGROUND_TILE_WIDTH: f32 = 256.0;
 const BACKGROUND_TILE_HEIGHT: f32 = 256.0;
@@ -25,13 +27,13 @@ impl Plugin for BackgroundPlugin {
                 BACKGROUND_TILE_HEIGHT * BACKGROUND_TILE_SCALE,
             ),
         })
-        .init_resource::<BackgroundGridDebugFlag>()
         .add_systems(
             Update,
             (
                 update_background,
                 on_window_resize,
-                update_background_grid_debug.run_if(condition_debug_background),
+                update_background_grid_debug
+                    .run_if(debug::flag_is_on::<BackgroundGridDebugFlagLabel>),
             ),
         );
     }
@@ -73,30 +75,9 @@ pub struct BackgroundGrid {
     grid: Grid,
 }
 
-/// A resource that controls if the background grid lines should be shown
-#[derive(Resource, Debug)]
-pub struct BackgroundGridDebugFlag {
-    pub flag: Flag,
-}
-
-impl Default for BackgroundGridDebugFlag {
-    fn default() -> Self {
-        Self {
-            flag: Flag::new("Background Grid", "Display the background grid", false),
-        }
-    }
-}
 #[derive(Component)]
 pub struct BackgroundTile {
     pub tile: Tile,
-}
-
-////////////////////////////////////////////////////////////////////////////////
-/// Run conditions
-////////////////////////////////////////////////////////////////////////////////
-
-fn condition_debug_background(background_grid_debug: Res<BackgroundGridDebugFlag>) -> bool {
-    background_grid_debug.flag.is_on()
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,6 @@
+use super::debug::{self, CameraPositionDebugFlagLabel, CameraSetpointDebugFlagLabel};
+use super::input::InputAction;
 use super::trauma::Trauma;
-use super::{config::Flag, input::InputAction};
 use crate::misc::control::PID;
 use bevy::math::Vec3Swizzles;
 use bevy::prelude::*;
@@ -16,20 +17,17 @@ pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<CameraPositionDebugFlag>()
-            .init_resource::<CameraSetpointDebugFlag>()
-            .init_resource::<ScreenBounds>()
-            .add_systems(
-                Update,
-                (
-                    update_smooth_camera,
-                    update_shaky_camera.after(update_smooth_camera),
-                    update_screen_bounds,
-                    // Debug
-                    debug_camera_position.run_if(run_debug_camera_position),
-                    debug_camera_setpoint.run_if(run_debug_camera_setpoint),
-                ),
-            );
+        app.init_resource::<ScreenBounds>().add_systems(
+            Update,
+            (
+                update_smooth_camera,
+                update_shaky_camera.after(update_smooth_camera),
+                update_screen_bounds,
+                // Debug
+                debug_camera_position.run_if(debug::flag_is_on::<CameraPositionDebugFlagLabel>),
+                debug_camera_setpoint.run_if(debug::flag_is_on::<CameraSetpointDebugFlagLabel>),
+            ),
+        );
     }
 }
 
@@ -325,48 +323,6 @@ fn update_shaky_camera(
 ////////////////////////////////////////////////////////////////////////////////
 /// DEBUG
 ////////////////////////////////////////////////////////////////////////////////
-
-#[derive(Resource)]
-pub struct CameraPositionDebugFlag {
-    pub flag: Flag,
-}
-
-impl Default for CameraPositionDebugFlag {
-    fn default() -> Self {
-        Self {
-            flag: Flag::new(
-                "Camera Position",
-                "Display a crosshair where the player's camera is located",
-                false,
-            ),
-        }
-    }
-}
-
-#[derive(Resource, DerefMut, Deref)]
-pub struct CameraSetpointDebugFlag {
-    pub flag: Flag,
-}
-
-impl Default for CameraSetpointDebugFlag {
-    fn default() -> Self {
-        Self {
-            flag: Flag::new(
-                "Camera Setpoint",
-                "Display a crosshair at the point to which the player's camera is moving towards",
-                false,
-            ),
-        }
-    }
-}
-
-fn run_debug_camera_position(camera_position_debug: Res<CameraPositionDebugFlag>) -> bool {
-    camera_position_debug.flag.is_on()
-}
-
-fn run_debug_camera_setpoint(camera_setpoint_debug: Res<CameraSetpointDebugFlag>) -> bool {
-    camera_setpoint_debug.flag.is_on()
-}
 
 fn debug_camera_position(mut gizmos: Gizmos, mut query: Query<&Transform, With<SmoothCamera>>) {
     if let Ok(transform) = query.get_single_mut() {

@@ -1,20 +1,24 @@
 //! Contains code to create configurations for the game.
 
+use bevy::prelude::*;
+
 /// A configuration for the game that is either true or false.
-#[derive(Debug, PartialEq, Eq, Hash)]
-pub struct Flag {
+#[derive(Debug, PartialEq, Eq, Hash, Resource)]
+pub struct Flag<A> {
     name: String,
     description: String,
     value: bool,
+    _phantom: std::marker::PhantomData<A>,
 }
 
-impl Flag {
+impl<A> Flag<A> {
     /// Creates a new flag.
     pub fn new(name: &str, description: &str, value: bool) -> Self {
         Self {
             name: name.to_string(),
             description: description.to_string(),
             value,
+            _phantom: std::marker::PhantomData,
         }
     }
 

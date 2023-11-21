@@ -1,4 +1,7 @@
-use crate::{game::config::Flag, ui::assets::GameFonts};
+use crate::{
+    game::{config::Flag, debug::FPSDebugFlag},
+    ui::assets::GameFonts,
+};
 use bevy::{
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     prelude::*,
@@ -12,10 +15,7 @@ pub struct FPSCounterPlugin;
 
 impl Plugin for FPSCounterPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(FPSCounterDebugFlag {
-            flag: Flag::new("FPS Counter", "Show fps count in the hud", false),
-        })
-        .insert_resource(UpdateFPSTimer(Timer::from_seconds(
+        app.insert_resource(UpdateFPSTimer(Timer::from_seconds(
             0.5,
             TimerMode::Repeating,
         )))
@@ -24,7 +24,7 @@ impl Plugin for FPSCounterPlugin {
             (
                 update_fps_counter_timer,
                 update_fps_counter_visability,
-                update_fps_counter.run_if(should_show_fps_counter),
+                update_fps_counter,
             ),
         );
     }
@@ -37,10 +37,6 @@ impl Plugin for FPSCounterPlugin {
 #[derive(Component, Debug)]
 struct FPSCounter;
 
-#[derive(Resource, DerefMut, Deref, Debug)]
-pub struct FPSCounterDebugFlag {
-    pub flag: Flag,
-}
 #[derive(Resource, DerefMut, Deref, Debug)]
 struct UpdateFPSTimer(Timer);
 
@@ -80,17 +76,13 @@ pub fn build(commands: &mut Commands, asset_server: &Res<AssetServer>) -> Entity
 // Systems
 ////////////////////////////////////////////////////////////////////////////////
 
-pub fn should_show_fps_counter(fps_counter_debug_flag: Res<FPSCounterDebugFlag>) -> bool {
-    fps_counter_debug_flag.flag.is_on()
-}
-
 fn update_fps_counter_visability(
-    fps_counter_debug_flag: Res<FPSCounterDebugFlag>,
+    fps_counter_debug_flag: Res<FPSDebugFlag>,
     mut fps_counter_visibility_query: Query<&mut Visibility, With<FPSCounter>>,
 ) {
     if fps_counter_debug_flag.is_changed() {
         if let Ok(mut visibility) = fps_counter_visibility_query.get_single_mut() {
-            *visibility = if fps_counter_debug_flag.flag.is_on() {
+            *visibility = if fps_counter_debug_flag.is_on() {
                 Visibility::Inherited
             } else {
                 Visibility::Hidden

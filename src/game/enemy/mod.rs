@@ -18,8 +18,8 @@ mod ai;
 
 use super::assets;
 use super::assets::groups;
-use super::config::Flag;
 use super::control_system::DirectionControl;
+use super::debug::VisionConeDebugFlag;
 use super::game_entity::Enemy;
 use super::game_entity::GameEntityType;
 use super::player::components::Player;
@@ -42,8 +42,7 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<VisionConeDebugFlag>()
-            .add_systems(Update, update_enemy);
+        app.add_systems(Update, update_enemy);
     }
 }
 
@@ -160,19 +159,6 @@ struct VisionDonutSegment {
     angle: f32,
 }
 
-#[derive(Resource, DerefMut, Deref)]
-pub struct VisionConeDebugFlag {
-    pub flag: Flag,
-}
-
-impl Default for VisionConeDebugFlag {
-    fn default() -> Self {
-        Self {
-            flag: Flag::new("Vision Cone Debug", "Display Vision Cones", true),
-        }
-    }
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Systems
 ////////////////////////////////////////////////////////////////////////////////
@@ -211,7 +197,7 @@ fn update_enemy(
     player_query: Query<&Player>,
     rapier_context: Res<RapierContext>,
 ) {
-    let mut giz = if vision_cone_debug.flag.is_on() {
+    let mut giz = if vision_cone_debug.is_on() {
         Some(gizmos)
     } else {
         None
