@@ -5,6 +5,8 @@
 
 use bevy::prelude::*;
 use leafwing_input_manager::{prelude::*, user_input::InputKind};
+
+use crate::scene::GameScene;
 // Actions
 
 pub struct InputPlugin;
@@ -52,17 +54,7 @@ pub enum InputAction {
     DebugFPSCounter,
     DebugVisionCone,
     // Game State Actions
-    SceneReload,
-    SceneNone,
-    SceneMainGame,
-    SceneTurretPerformance,
-    ScenePlayerDeath,
-    SceneEnemyShipAI,
-    ScenePlayerMovement,
-    SceneTurret,
-    SceneKamikazeDrone,
-    SceneBoid,
-    SceneAssets,
+    GameScene(GameScene),
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -138,37 +130,49 @@ pub fn create_input_map() -> InputMap<InputAction> {
     ]);
 
     // Add GameMode inputs
-    input_map.insert_chord([KeyCode::ControlLeft, KeyCode::R], InputAction::SceneReload);
+    // input_map.insert_chord([KeyCode::ControlLeft, KeyCode::R], InputAction::SceneReload);
 
     input_map.insert_multiple(vec![
-        (InputKind::Keyboard(KeyCode::Key0), InputAction::SceneNone),
+        (
+            InputKind::Keyboard(KeyCode::Key0),
+            InputAction::GameScene(GameScene::None),
+        ),
         (
             InputKind::Keyboard(KeyCode::Key1),
-            InputAction::SceneMainGame,
+            InputAction::GameScene(GameScene::MainGame),
         ),
         (
             InputKind::Keyboard(KeyCode::Key2),
-            InputAction::SceneTurretPerformance,
+            InputAction::GameScene(GameScene::TurretPerformance),
         ),
         (
             InputKind::Keyboard(KeyCode::Key3),
-            InputAction::ScenePlayerDeath,
+            InputAction::GameScene(GameScene::PlayerDeath),
         ),
         (
             InputKind::Keyboard(KeyCode::Key4),
-            InputAction::SceneEnemyShipAI,
+            InputAction::GameScene(GameScene::EnemyShipAI),
         ),
         (
             InputKind::Keyboard(KeyCode::Key5),
-            InputAction::ScenePlayerMovement,
+            InputAction::GameScene(GameScene::PlayerMovement),
         ),
-        (InputKind::Keyboard(KeyCode::Key6), InputAction::SceneTurret),
+        (
+            InputKind::Keyboard(KeyCode::Key6),
+            InputAction::GameScene(GameScene::Turret),
+        ),
         (
             InputKind::Keyboard(KeyCode::Key7),
-            InputAction::SceneKamikazeDrone,
+            InputAction::GameScene(GameScene::KamikazeDrone),
         ),
-        (InputKind::Keyboard(KeyCode::Key8), InputAction::SceneBoid),
-        (InputKind::Keyboard(KeyCode::Key9), InputAction::SceneAssets),
+        (
+            InputKind::Keyboard(KeyCode::Key8),
+            InputAction::GameScene(GameScene::Boid),
+        ),
+        (
+            InputKind::Keyboard(KeyCode::Key9),
+            InputAction::GameScene(GameScene::Assets),
+        ),
     ]);
 
     input_map.build()

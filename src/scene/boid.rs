@@ -1,6 +1,6 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use super::Scene;
+use super::GameScene;
 use crate::game::{
     arena, background, boids,
     camera::{self},
@@ -11,11 +11,11 @@ pub struct BoidScenePlugin;
 impl Plugin for BoidScenePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            OnEnter(Scene::Boid),
+            OnEnter(GameScene::Boid),
             (background::spawn, camera::spawn, spawn),
         )
         .add_systems(
-            OnExit(Scene::Boid),
+            OnExit(GameScene::Boid),
             (
                 background::despawn,
                 camera::despawn,

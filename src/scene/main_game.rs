@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::Scene;
+use super::GameScene;
 use crate::game::{arena, background, camera};
 
 pub struct MainGameScenePlugin;
@@ -10,11 +10,11 @@ pub struct MainGameScenePlugin;
 impl Plugin for MainGameScenePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            OnEnter(Scene::MainGame),
+            OnEnter(GameScene::MainGame),
             (background::spawn, camera::spawn, arena::spawn),
         )
         .add_systems(
-            OnExit(Scene::MainGame),
+            OnExit(GameScene::MainGame),
             (background::despawn, camera::despawn, arena::despawn),
         );
     }

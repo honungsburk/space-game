@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::Scene;
+use super::GameScene;
 use crate::game::{background, camera, player, turret};
 
 pub struct TurretPerformanceScenePlugin;
@@ -11,7 +11,7 @@ impl Plugin for TurretPerformanceScenePlugin {
     fn build(&self, app: &mut App) {
         app // Runs even when the game is paused
             .add_systems(
-                OnEnter(Scene::TurretPerformance),
+                OnEnter(GameScene::TurretPerformance),
                 (
                     player::spawn(Vec2::new(0.0, 0.0), 0.0),
                     background::spawn,
@@ -20,7 +20,7 @@ impl Plugin for TurretPerformanceScenePlugin {
                 ),
             )
             .add_systems(
-                OnExit(Scene::TurretPerformance),
+                OnExit(GameScene::TurretPerformance),
                 (
                     player::despawn,
                     background::despawn,

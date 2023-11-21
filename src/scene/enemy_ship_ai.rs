@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::Scene;
+use super::GameScene;
 use crate::game::{
     arena, background,
     camera::{self, CameraTargetLabel},
@@ -14,11 +14,11 @@ pub struct EnemyShipAIScenePlugin;
 impl Plugin for EnemyShipAIScenePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            OnEnter(Scene::EnemyShipAI),
+            OnEnter(GameScene::EnemyShipAI),
             (background::spawn, camera::spawn, spawn),
         )
         .add_systems(
-            OnExit(Scene::EnemyShipAI),
+            OnExit(GameScene::EnemyShipAI),
             (
                 background::despawn,
                 camera::despawn,

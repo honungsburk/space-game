@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::Scene;
+use super::GameScene;
 use crate::game::{arena, background, camera, player};
 
 pub struct PlayerMovementScenePlugin;
@@ -9,7 +9,7 @@ impl Plugin for PlayerMovementScenePlugin {
     fn build(&self, app: &mut App) {
         app // Runs even when the game is paused
             .add_systems(
-                OnEnter(Scene::PlayerMovement),
+                OnEnter(GameScene::PlayerMovement),
                 (
                     player::spawn(Vec2::new(0.0, 0.0), 0.0),
                     background::spawn,
@@ -18,7 +18,7 @@ impl Plugin for PlayerMovementScenePlugin {
                 ),
             )
             .add_systems(
-                OnExit(Scene::PlayerMovement),
+                OnExit(GameScene::PlayerMovement),
                 (
                     player::despawn,
                     background::despawn,

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::Scene;
+use super::GameScene;
 use crate::game::{
     arena, background,
     camera::{self, CameraTargetLabel},
@@ -12,11 +12,11 @@ pub struct KamikazeDroneScenePlugin;
 impl Plugin for KamikazeDroneScenePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            OnEnter(Scene::KamikazeDrone),
+            OnEnter(GameScene::KamikazeDrone),
             (background::spawn, camera::spawn, spawn),
         )
         .add_systems(
-            OnExit(Scene::KamikazeDrone),
+            OnExit(GameScene::KamikazeDrone),
             (
                 background::despawn,
                 camera::despawn,

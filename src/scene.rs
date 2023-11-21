@@ -24,7 +24,7 @@ pub struct ScenePlugin;
 
 impl Plugin for ScenePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<Scene>()
+        app.add_state::<GameScene>()
             .init_resource::<Reload>()
             .add_plugins((
                 assets::AssetsScenePlugin,
@@ -49,8 +49,8 @@ impl Plugin for ScenePlugin {
 /// is to perform performance testing on the turret enemy type.
 ///
 ///
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
-pub enum Scene {
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Default, States, Reflect)]
+pub enum GameScene {
     // Real Game Modes
     None, // No mode
     MainGame,
@@ -66,58 +66,36 @@ pub enum Scene {
     Assets,
 }
 
-impl fmt::Display for Scene {
+impl fmt::Display for GameScene {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Scene::None => write!(f, "None"),
-            Scene::MainGame => write!(f, "Main Game"),
-            Scene::TurretPerformance => write!(f, "Turret Performance"),
-            Scene::PlayerDeath => write!(f, "Player Death"),
-            Scene::EnemyShipAI => write!(f, "Enemy Ship AI"),
-            Scene::PlayerMovement => write!(f, "Player Movement"),
-            Scene::Turret => write!(f, "Turret"),
-            Scene::KamikazeDrone => write!(f, "Kamikaze Drone"),
-            Scene::Boid => write!(f, "Boid"),
-            Scene::Assets => write!(f, "Assets"),
+            GameScene::None => write!(f, "None"),
+            GameScene::MainGame => write!(f, "Main Game"),
+            GameScene::TurretPerformance => write!(f, "Turret Performance"),
+            GameScene::PlayerDeath => write!(f, "Player Death"),
+            GameScene::EnemyShipAI => write!(f, "Enemy Ship AI"),
+            GameScene::PlayerMovement => write!(f, "Player Movement"),
+            GameScene::Turret => write!(f, "Turret"),
+            GameScene::KamikazeDrone => write!(f, "Kamikaze Drone"),
+            GameScene::Boid => write!(f, "Boid"),
+            GameScene::Assets => write!(f, "Assets"),
         }
     }
 }
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, Resource)]
-pub struct Reload(Option<Scene>);
+pub struct Reload(Option<GameScene>);
 
 fn update_scene(
     mut reload_scene: ResMut<Reload>,
-    current_scene: Res<State<Scene>>,
-    mut next_scene: ResMut<NextState<Scene>>,
+    current_scene: Res<State<GameScene>>,
+    mut next_scene: ResMut<NextState<GameScene>>,
     input_query: Query<&ActionState<InputAction>>,
 ) {
     if let Ok(input_action) = input_query.get_single() {
-        if let Some(mode) = reload_scene.0.take() {
-            next_scene.set(mode);
-            reload_scene.set_if_neq(Reload(None));
-        } else if input_action.just_pressed(InputAction::SceneNone) {
-            next_scene.set(Scene::None);
-        } else if input_action.just_pressed(InputAction::SceneMainGame) {
-            next_scene.set(Scene::MainGame);
-        } else if input_action.just_pressed(InputAction::SceneTurretPerformance) {
-            next_scene.set(Scene::TurretPerformance);
-        } else if input_action.just_pressed(InputAction::ScenePlayerDeath) {
-            next_scene.set(Scene::PlayerDeath);
-        } else if input_action.just_pressed(InputAction::SceneEnemyShipAI) {
-            next_scene.set(Scene::EnemyShipAI);
-        } else if input_action.just_pressed(InputAction::ScenePlayerMovement) {
-            next_scene.set(Scene::PlayerMovement);
-        } else if input_action.just_pressed(InputAction::SceneTurret) {
-            next_scene.set(Scene::Turret);
-        } else if input_action.just_pressed(InputAction::SceneKamikazeDrone) {
-            next_scene.set(Scene::KamikazeDrone);
-        } else if input_action.just_pressed(InputAction::SceneBoid) {
-            next_scene.set(Scene::Boid);
-        } else if input_action.just_pressed(InputAction::SceneAssets) {
-            next_scene.set(Scene::Assets);
-        } else if input_action.just_pressed(InputAction::SceneReload) {
-            reload_scene.set_if_neq(Reload(Some(current_scene.get().clone())));
-            next_scene.set(Scene::None);
+        for action in input_action.get_just_pressed() {
+            if let InputAction::GameScene(mode) = action {
+                next_scene.set(mode);
+            }
         }
     }
 }

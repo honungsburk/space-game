@@ -1,4 +1,4 @@
-use super::Scene;
+use super::GameScene;
 use crate::game::{assets, background, camera};
 use crate::utility_systems;
 use bevy::prelude::*;
@@ -10,11 +10,11 @@ struct AssetLabel;
 impl Plugin for AssetsScenePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            OnEnter(Scene::Assets),
+            OnEnter(GameScene::Assets),
             (background::spawn, camera::spawn, spawn),
         )
         .add_systems(
-            OnExit(Scene::Assets),
+            OnExit(GameScene::Assets),
             (
                 background::despawn,
                 camera::despawn,
