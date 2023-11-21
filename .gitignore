@@ -3,6 +3,7 @@
 /bin
 /traces
 .DS_Store
+.vscode 
 
 config.toml
 settings.toml
