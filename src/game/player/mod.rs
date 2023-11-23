@@ -1,3 +1,4 @@
+mod actions;
 pub mod components;
 mod systems;
 
@@ -9,25 +10,17 @@ use crate::game::vitality::Health;
 use crate::game::{assets, assets::groups, weapon::Weapon};
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use leafwing_input_manager::action_state::ActionState;
+use leafwing_input_manager::plugin::InputManagerPlugin;
+use leafwing_input_manager::InputManagerBundle;
 use systems::*;
 
+pub use actions::PlayerShipAction;
 pub use components::Player;
 
 use self::components::ContactForceInvulnerability;
 
 use super::camera::CameraTargetLabel;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Reflect)]
-pub enum PlayerShipAction {
-    #[default]
-    NoOp,
-    ThrottleForward,
-    ThrottleBackwards,
-    RotateShip,
-    RotateShipLeft,
-    RotateShipRight,
-    FireWeapon,
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -37,15 +30,16 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (
-                control_ship,
-                fire_weapon,
-                player_collision,
-                update_contact_force_invulnerability,
-            ),
-        );
+        app.add_plugins(InputManagerPlugin::<PlayerShipAction>::default())
+            .add_systems(
+                Update,
+                (
+                    control_ship,
+                    fire_weapon,
+                    player_collision,
+                    update_contact_force_invulnerability,
+                ),
+            );
     }
 }
 
@@ -84,6 +78,10 @@ pub fn spawn_player(
         .insert(DirectionControl {
             torque_impulse_magnitude: 0.005,
             ..Default::default()
+        })
+        .insert(InputManagerBundle::<PlayerShipAction> {
+            action_state: ActionState::default(),
+            input_map: actions::create_input_map(),
         })
         .insert(CameraTargetLabel)
         .insert(RigidBody::Dynamic)

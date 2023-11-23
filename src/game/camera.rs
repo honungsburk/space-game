@@ -1,5 +1,4 @@
 use super::debug::{self, CameraPositionDebugFlagLabel, CameraSetpointDebugFlagLabel};
-use super::input::InputAction;
 use super::player::PlayerShipAction;
 use super::trauma::Trauma;
 use crate::misc::control::PID;
@@ -208,7 +207,7 @@ pub fn update_smooth_camera(
         (&mut Transform, &mut CameraPID),
         (Without<CameraTargetLabel>, With<SmoothCamera>),
     >,
-    input_query: Query<&ActionState<InputAction>, Without<CameraTargetLabel>>,
+    input_query: Query<&ActionState<PlayerShipAction>, Without<CameraTargetLabel>>,
     target_query: Query<(&Transform, &Velocity), (With<CameraTargetLabel>, Without<Camera>)>,
 ) {
     if time.delta_seconds() == 0.0 {
@@ -220,8 +219,8 @@ pub fn update_smooth_camera(
     {
         if let Ok((mut camera_transform, mut camera_pid)) = camera_query.get_single_mut() {
             // Determine desired camera placement
-            let player_rotation = if let Some(axis_data) = input_action
-                .clamped_axis_pair(InputAction::PlayerShip(PlayerShipAction::RotateShip))
+            let player_rotation = if let Some(axis_data) =
+                input_action.clamped_axis_pair(PlayerShipAction::RotateShip)
             {
                 100.0 * axis_data.xy()
             } else {

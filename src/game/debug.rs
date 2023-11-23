@@ -8,10 +8,13 @@
 //!       on startup..
 
 use super::config::Flag;
-use super::input::InputAction;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::DebugRenderContext;
+use leafwing_input_manager::input_map::InputMap;
+use leafwing_input_manager::plugin::InputManagerPlugin;
 use leafwing_input_manager::prelude::ActionState;
+use leafwing_input_manager::user_input::InputKind;
+use leafwing_input_manager::{Actionlike, InputManagerBundle};
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Plugin
@@ -22,7 +25,9 @@ pub struct DebugPlugin;
 
 impl Plugin for DebugPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, debug_keyboard_input)
+        app.add_plugins(InputManagerPlugin::<DebugAction>::default())
+            .add_systems(Startup, create_debug_input)
+            .add_systems(Update, debug_keyboard_input)
             .insert_resource(Flag::<BackgroundGridDebugFlagLabel>::new(
                 "Background Grid",
                 "Display the background grid",
@@ -55,16 +60,47 @@ impl Plugin for DebugPlugin {
 /// Actions
 ////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect, Default)]
+#[derive(Actionlike, Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect)]
 pub enum DebugAction {
-    #[default]
-    NoOp,
     BackgroundGrid,
     CameraPosition,
     CameraSetpoint,
     Render,
     FPSCounter,
     VisionCone,
+}
+
+pub fn create_input_map() -> InputMap<DebugAction> {
+    // Create an `InputMap` to add default inputs to
+    let mut input_map: InputMap<DebugAction> = InputMap::default();
+
+    // Add Debug inputs
+    input_map.insert_multiple(vec![
+        (
+            InputKind::Keyboard(KeyCode::F1),
+            DebugAction::BackgroundGrid,
+        ),
+        (
+            InputKind::Keyboard(KeyCode::F2),
+            DebugAction::CameraPosition,
+        ),
+        (
+            InputKind::Keyboard(KeyCode::F3),
+            DebugAction::CameraSetpoint,
+        ),
+        (InputKind::Keyboard(KeyCode::F4), DebugAction::Render),
+        (InputKind::Keyboard(KeyCode::F5), DebugAction::FPSCounter),
+        (InputKind::Keyboard(KeyCode::F6), DebugAction::VisionCone),
+    ]);
+
+    input_map.build()
+}
+
+fn create_debug_input(mut commands: Commands) {
+    commands.spawn(InputManagerBundle::<DebugAction> {
+        action_state: ActionState::default(),
+        input_map: create_input_map(),
+    });
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +142,7 @@ pub fn flag_is_on<A: Send + Sync + 'static>(flag: Option<Res<Flag<A>>>) -> bool 
 }
 
 fn debug_keyboard_input(
-    input_query: Query<&ActionState<InputAction>>,
+    debug_action_query: Query<&ActionState<DebugAction>>,
     mut background_debug: Option<ResMut<BackgroundGridDebugFlag>>,
     mut camera_position_debug: Option<ResMut<CameraPositionDebugFlag>>,
     mut camera_setpoint_debug: Option<ResMut<CameraSetpointDebugFlag>>,
@@ -114,29 +150,26 @@ fn debug_keyboard_input(
     mut fps_debug: Option<ResMut<FPSDebugFlag>>,
     mut vision_cone_debug: Option<ResMut<VisionConeDebugFlag>>,
 ) {
-    if let Ok(input_action) = input_query.get_single() {
+    if let Ok(input_action) = debug_action_query.get_single() {
         for action in input_action.get_just_pressed() {
-            if let InputAction::Debug(debug_action) = action {
-                match debug_action {
-                    DebugAction::BackgroundGrid => {
-                        background_debug.as_mut().map(|flag| flag.flip());
-                    }
-                    DebugAction::CameraPosition => {
-                        camera_position_debug.as_mut().map(|flag| flag.flip());
-                    }
-                    DebugAction::CameraSetpoint => {
-                        camera_setpoint_debug.as_mut().map(|flag| flag.flip());
-                    }
-                    DebugAction::Render => {
-                        render_debug.as_mut().map(|ctx| ctx.enabled = !ctx.enabled);
-                    }
-                    DebugAction::FPSCounter => {
-                        fps_debug.as_mut().map(|flag| flag.flip());
-                    }
-                    DebugAction::VisionCone => {
-                        vision_cone_debug.as_mut().map(|flag| flag.flip());
-                    }
-                    _ => {}
+            match action {
+                DebugAction::BackgroundGrid => {
+                    background_debug.as_mut().map(|flag| flag.flip());
+                }
+                DebugAction::CameraPosition => {
+                    camera_position_debug.as_mut().map(|flag| flag.flip());
+                }
+                DebugAction::CameraSetpoint => {
+                    camera_setpoint_debug.as_mut().map(|flag| flag.flip());
+                }
+                DebugAction::Render => {
+                    render_debug.as_mut().map(|ctx| ctx.enabled = !ctx.enabled);
+                }
+                DebugAction::FPSCounter => {
+                    fps_debug.as_mut().map(|flag| flag.flip());
+                }
+                DebugAction::VisionCone => {
+                    vision_cone_debug.as_mut().map(|flag| flag.flip());
                 }
             }
         }
