@@ -47,7 +47,7 @@ pub enum InputAction {
     // Debug Actions
     Debug(DebugAction),
     // Game State Actions
-    GameScene(GameScene),
+    // GameScene(GameScene),
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -159,52 +159,6 @@ pub fn create_input_map() -> InputMap<InputAction> {
         (
             InputKind::Keyboard(KeyCode::F6),
             InputAction::Debug(DebugAction::VisionCone),
-        ),
-    ]);
-
-    // Add GameMode inputs
-    // input_map.insert_chord([KeyCode::ControlLeft, KeyCode::R], InputAction::SceneReload);
-
-    input_map.insert_multiple(vec![
-        (
-            InputKind::Keyboard(KeyCode::Key0),
-            InputAction::GameScene(GameScene::None),
-        ),
-        (
-            InputKind::Keyboard(KeyCode::Key1),
-            InputAction::GameScene(GameScene::MainGame),
-        ),
-        (
-            InputKind::Keyboard(KeyCode::Key2),
-            InputAction::GameScene(GameScene::TurretPerformance),
-        ),
-        (
-            InputKind::Keyboard(KeyCode::Key3),
-            InputAction::GameScene(GameScene::PlayerDeath),
-        ),
-        (
-            InputKind::Keyboard(KeyCode::Key4),
-            InputAction::GameScene(GameScene::EnemyShipAI),
-        ),
-        (
-            InputKind::Keyboard(KeyCode::Key5),
-            InputAction::GameScene(GameScene::PlayerMovement),
-        ),
-        (
-            InputKind::Keyboard(KeyCode::Key6),
-            InputAction::GameScene(GameScene::Turret),
-        ),
-        (
-            InputKind::Keyboard(KeyCode::Key7),
-            InputAction::GameScene(GameScene::KamikazeDrone),
-        ),
-        (
-            InputKind::Keyboard(KeyCode::Key8),
-            InputAction::GameScene(GameScene::Boid),
-        ),
-        (
-            InputKind::Keyboard(KeyCode::Key9),
-            InputAction::GameScene(GameScene::Assets),
         ),
     ]);
 
