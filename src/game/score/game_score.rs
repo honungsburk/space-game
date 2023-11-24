@@ -52,7 +52,7 @@ impl GameScore {
                 self.locked_in_score += self.current_multiplier_score * self.multiplier;
                 self.current_multiplier_score = 0;
                 self.multiplier_timer = None;
-                self.multiplier = 1;
+                self.multiplier = 0;
             }
         }
     }
@@ -89,7 +89,7 @@ impl GameScore {
     pub fn reset(&mut self) {
         self.locked_in_score = 0;
         self.current_multiplier_score = 0;
-        self.multiplier = 1;
+        self.multiplier = 0;
         self.multiplier_timer = None;
     }
 }

@@ -11,7 +11,7 @@ pub struct ScoreTrackerPlugin;
 impl Plugin for ScoreTrackerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(bevy_progressbar::ProgressBarPlugin)
-            .add_systems(Update, (update_multiplier_score, update_score_tracker));
+            .add_systems(Update, update_score_tracker);
     }
 }
 
@@ -119,7 +119,7 @@ pub fn build(
                 style: Style { ..default() },
                 text: Text {
                     sections: vec![TextSection::new(
-                        "1",
+                        "0",
                         TextStyle {
                             font: asset_server.font_future(),
                             font_size: 68.0,
@@ -201,17 +201,6 @@ pub fn build(
 ////////////////////////////////////////////////////////////////////////////////
 // Systems
 ////////////////////////////////////////////////////////////////////////////////
-
-fn update_multiplier_score(
-    mut text_query: Query<&mut Text, With<MultiplierScore>>,
-    game_score: Res<GameScore>,
-) {
-    if game_score.is_changed() {
-        for mut text in text_query.iter_mut() {
-            text.sections[0].value = format!("{}", game_score.multiplier().to_string());
-        }
-    }
-}
 
 fn update_score_tracker(
     mut multiplier_score_query: Query<
