@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::GameScene;
-use crate::game::{background, player, player_camera, turret};
+use crate::game::{background, meteors, player, player_camera, turret};
 
 pub struct TurretScenePlugin;
 
@@ -18,6 +18,7 @@ impl Plugin for TurretScenePlugin {
                     background::despawn,
                     player_camera::despawn,
                     turret::despawn,
+                    crate::utility_systems::cleanup::<meteors::Meteor>,
                 ),
             );
     }
@@ -32,6 +33,13 @@ fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
         &asset_server,
         &turret::TurretConfig::default(),
         spawn_transform,
+    );
+
+    meteors::spawn_immovable_meteor(
+        &asset_server,
+        &mut commands,
+        meteors::MeteorSize::Big,
+        Transform::from_translation(Vec3::new(200.0, 600.0, 0.0)),
     );
 
     let player_entity =

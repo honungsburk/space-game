@@ -312,7 +312,7 @@ impl Arena {
                 MeteorSize::Big => rng.gen_bool(0.5),
             };
             if is_movable {
-                meteors::spawn_meteor(
+                meteors::spawn(
                     asset_server,
                     commands,
                     meteor_size,

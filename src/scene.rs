@@ -76,10 +76,10 @@ pub enum GameScene {
     PlayerDeath,       // Player death testing mode
     EnemyShipAI,
     PlayerMovement,
+    #[default]
     Turret,
     KamikazeDrone,
     Boid,
-    #[default]
     Assets,
 }
 

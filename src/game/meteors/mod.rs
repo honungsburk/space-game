@@ -41,7 +41,7 @@ pub fn meteor_asset(size: &MeteorSize, color: &MeteorColor) -> Asset {
     }
 }
 
-pub fn spawn_meteor(
+pub fn spawn(
     asset_server: &Res<AssetServer>,
     commands: &mut Commands,
     size: MeteorSize,
@@ -99,6 +99,14 @@ pub fn spawn_immovable_meteor(
             texture: asset_server.load(asset.sprite_path),
             ..Default::default()
         })
+        .insert(CollisionGroups::new(
+            groups::METEOR_GROUP.into(),
+            groups::METEOR_FILTER_MASK.into(),
+        ))
+        .insert(SolverGroups::new(
+            groups::METEOR_GROUP.into(),
+            groups::METEOR_FILTER_MASK.into(),
+        ))
         .insert(Meteor)
         .insert(RigidBody::Fixed)
         .insert(asset.collider());
