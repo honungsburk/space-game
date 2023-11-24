@@ -12,8 +12,6 @@ pub struct PlayerCameraLabel;
 /// The smooth camera is offset from the player by a PID controller.
 /// The shaky camera is offset from the smooth camera by a random amount.
 pub fn spawn(commands: &mut Commands, target: Entity) -> (Entity, Entity) {
-    let transform = Transform::from_xyz(0.0, 0.0, 0.0);
-
     // Smooth camera
     let smooth_camera_id = commands
         .spawn(FollowEntityMovementBundle::smooth(target))
