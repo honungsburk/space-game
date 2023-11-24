@@ -62,7 +62,7 @@ fn update(
     time: Res<Time>,
     mut query: Query<(&mut Transform, &ShakyMovement)>,
     mut trasform_query: Query<&Transform, Without<ShakyMovement>>,
-    mut trauma_query: Query<&Trauma, Without<ShakyMovement>>,
+    trauma_query: Query<&Trauma, Without<ShakyMovement>>,
 ) {
     for (mut movement_transform, movement) in query.iter_mut() {
         if let Ok(target_transform) = trasform_query.get_mut(movement.transform_entity) {

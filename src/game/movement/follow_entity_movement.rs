@@ -134,7 +134,7 @@ pub fn update(
     time: Res<Time>,
     mut target_query: Query<
         (
-            &mut Transform,
+            &Transform,
             Option<&Velocity>,
             Option<&ActionState<PlayerShipAction>>,
         ),
@@ -147,7 +147,7 @@ pub fn update(
     }
 
     for (mut transform, mut follow_entity_movement) in query.iter_mut() {
-        if let Some((mut target_transform, target_velocity_opt, input_action_opt)) =
+        if let Some((target_transform, target_velocity_opt, input_action_opt)) =
             follow_entity_movement
                 .target
                 .and_then(|target| target_query.get_mut(target).ok())
