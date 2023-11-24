@@ -3,10 +3,7 @@ use bevy::{
     window::{PrimaryWindow, WindowResized},
 };
 
-use super::{
-    camera::ShakyCamera,
-    debug::{self, BackgroundGridDebugFlagLabel},
-};
+use super::debug::{self, BackgroundGridDebugFlagLabel};
 
 const BACKGROUND_TILE_WIDTH: f32 = 256.0;
 const BACKGROUND_TILE_HEIGHT: f32 = 256.0;
@@ -164,8 +161,8 @@ fn update_background_grid_debug(
 // The center background tile is always in the same tile as the camera.
 fn update_background(
     background_grid: Res<BackgroundGrid>,
-    mut query_background: Query<(&mut Transform, &BackgroundTile), Without<ShakyCamera>>,
-    query_camera: Query<&GlobalTransform, (Without<BackgroundTile>, With<ShakyCamera>)>,
+    mut query_background: Query<(&mut Transform, &BackgroundTile), Without<Camera>>,
+    query_camera: Query<&GlobalTransform, (Without<BackgroundTile>, With<Camera>)>,
 ) {
     if let Ok(camera_transform) = query_camera.get_single() {
         let camera_tile = background_grid

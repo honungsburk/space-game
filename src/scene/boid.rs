@@ -3,26 +3,23 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use super::GameScene;
 use crate::game::{
     arena, background, boids,
-    camera::{self},
+    player_camera::{self},
 };
 
 pub struct BoidScenePlugin;
 
 impl Plugin for BoidScenePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            OnEnter(GameScene::Boid),
-            (background::spawn, camera::spawn, spawn),
-        )
-        .add_systems(
-            OnExit(GameScene::Boid),
-            (
-                background::despawn,
-                camera::despawn,
-                arena::despawn,
-                boids::despawn,
-            ),
-        );
+        app.add_systems(OnEnter(GameScene::Boid), (background::spawn, spawn))
+            .add_systems(
+                OnExit(GameScene::Boid),
+                (
+                    background::despawn,
+                    player_camera::despawn,
+                    arena::despawn,
+                    boids::despawn,
+                ),
+            );
     }
 }
 

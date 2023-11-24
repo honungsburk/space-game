@@ -28,31 +28,28 @@
 //!
 //! ```
 //!
+mod follow_entity_movement;
 mod keyboard_movement;
+mod shaky_movement;
 
 use bevy::prelude::*;
 
+pub use follow_entity_movement::{FollowEntityMovement, FollowEntityMovementBundle};
 pub use keyboard_movement::{KeyboardMovement, KeyboardMovementBundle};
-
-// /// Actions that move the camera
-// #[derive(Actionlike, Debug, Clone, Copy, PartialEq, Eq, Hash, Reflect, Default)]
-// pub enum CameraMovementAction {
-//     #[default]
-//     NoOp,
-//     MoveUp,
-//     MoveDown,
-//     MoveLeft,
-//     MoveRight,
-// }
+pub use shaky_movement::ShakyMovement;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
 ////////////////////////////////////////////////////////////////////////////////
 
-pub struct CameraMovementPlugin;
+pub struct MovementPlugin;
 
-impl Plugin for CameraMovementPlugin {
+impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(keyboard_movement::KeyboardMovementPlugin);
+        app.add_plugins((
+            keyboard_movement::KeyboardMovementPlugin,
+            follow_entity_movement::FollowEntityMovementPlugin,
+            shaky_movement::ShakyMovementPlugin,
+        ));
     }
 }

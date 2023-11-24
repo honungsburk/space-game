@@ -1,10 +1,13 @@
 use bevy::prelude::*;
 
 use super::GameScene;
-use crate::game::{
-    arena, background,
-    camera::{self, CameraTargetLabel},
-    kamikaze_drone,
+use crate::{
+    game::{
+        arena, background, kamikaze_drone,
+        movement::FollowEntityMovement,
+        player_camera::{self},
+    },
+    utility_systems::cleanup,
 };
 
 pub struct KamikazeDroneScenePlugin;
@@ -13,15 +16,16 @@ impl Plugin for KamikazeDroneScenePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             OnEnter(GameScene::KamikazeDrone),
-            (background::spawn, camera::spawn, spawn),
+            (background::spawn, spawn),
         )
         .add_systems(
             OnExit(GameScene::KamikazeDrone),
             (
                 background::despawn,
-                camera::despawn,
+                player_camera::despawn,
                 arena::despawn,
                 kamikaze_drone::despawn,
+                cleanup::<Camera>,
             ),
         );
     }
@@ -38,8 +42,8 @@ fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
         kamikaze_drone::spawn(&mut commands, &asset_server, Vec2::new(0.0, 0.0), 0.0);
 
     commands
-        .entity(kamikaze_drone_entity)
-        .insert(CameraTargetLabel);
+        .spawn(Camera2dBundle::default())
+        .insert(FollowEntityMovement::smooth(kamikaze_drone_entity));
 
     // spawn 99 more drones
 

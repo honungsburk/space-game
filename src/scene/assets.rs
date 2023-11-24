@@ -1,5 +1,5 @@
 use super::GameScene;
-use crate::game::camera_movement::KeyboardMovementBundle;
+use crate::game::movement::KeyboardMovementBundle;
 use crate::game::{assets, background};
 use crate::utility_systems;
 use bevy::prelude::*;

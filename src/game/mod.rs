@@ -3,8 +3,6 @@ pub mod assets;
 pub mod average_velocity;
 pub mod background;
 pub mod boids;
-pub mod camera;
-pub mod camera_movement;
 pub mod config;
 pub mod control_system;
 pub mod debug;
@@ -13,9 +11,12 @@ pub mod events;
 pub mod game_entity;
 pub mod kamikaze_drone;
 pub mod meteors;
+pub mod movement;
 pub mod player;
+pub mod player_camera;
 pub mod projectile;
 pub mod score;
+pub mod screen_bounds;
 pub mod sensor;
 mod systems;
 pub mod time_to_live;
@@ -31,15 +32,15 @@ use systems::*;
 use weapon::WeaponPlugin;
 
 use arena::ArenaPlugin;
-use camera::CameraPlugin;
 use projectile::ProjectilePlugin;
 
 use self::{
     average_velocity::AverageVelocityPlugin, background::BackgroundPlugin, boids::BoidsPlugin,
-    camera_movement::CameraMovementPlugin, control_system::ControlSystemPlugin, debug::DebugPlugin,
-    enemy::EnemyPlugin, events::GameOverEvent, kamikaze_drone::KamikazeDronesPlugin,
-    score::ScorePlugin, sensor::SensorPlugin, time_to_live::TimeToLivePlugin, trauma::TraumaPlugin,
-    turret::TurretPlugin, vitality::VitalityPlugin,
+    control_system::ControlSystemPlugin, debug::DebugPlugin, enemy::EnemyPlugin,
+    events::GameOverEvent, kamikaze_drone::KamikazeDronesPlugin, movement::MovementPlugin,
+    score::ScorePlugin, screen_bounds::ScreenBoundsPlugin, sensor::SensorPlugin,
+    time_to_live::TimeToLivePlugin, trauma::TraumaPlugin, turret::TurretPlugin,
+    vitality::VitalityPlugin,
 };
 
 pub struct GamePlugin;
@@ -62,13 +63,13 @@ impl Plugin for GamePlugin {
             KamikazeDronesPlugin,
             EnemyPlugin,
             ControlSystemPlugin,
-            CameraMovementPlugin,
+            MovementPlugin,
+            ScreenBoundsPlugin,
         ))
         .add_plugins((
             DebugPlugin,
             BackgroundPlugin,
             ArenaPlugin,
-            CameraPlugin,
             PlayerPlugin,
             TurretPlugin,
             ProjectilePlugin,

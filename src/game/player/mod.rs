@@ -20,8 +20,6 @@ pub use components::Player;
 
 use self::components::ContactForceInvulnerability;
 
-use super::camera::CameraTargetLabel;
-
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
 ////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +50,9 @@ pub fn spawn_player_at_center(commands: Commands, asset_server: Res<AssetServer>
 }
 
 pub fn spawn(location: Vec2, rotation: f32) -> impl Fn(Commands, Res<AssetServer>) {
-    move |mut commands, asset_server| spawn_player(&mut commands, &asset_server, location, rotation)
+    move |mut commands, asset_server| {
+        spawn_player(&mut commands, &asset_server, location, rotation);
+    }
 }
 
 pub fn spawn_player(
@@ -60,7 +60,7 @@ pub fn spawn_player(
     asset_server: &Res<AssetServer>,
     location: Vec2,
     rotation: f32,
-) {
+) -> Entity {
     // Spawn transform
     let spawn_transform = Transform::from_xyz(location.x, location.y, 0.0)
         .with_rotation(Quat::from_rotation_z(rotation));
@@ -83,7 +83,6 @@ pub fn spawn_player(
             action_state: ActionState::default(),
             input_map: actions::create_input_map(),
         })
-        .insert(CameraTargetLabel)
         .insert(RigidBody::Dynamic)
         .insert(assets::PLAYER_SHIP.collider())
         .insert(Trauma::default())
@@ -125,7 +124,8 @@ pub fn spawn_player(
             Some(Timer::from_seconds(0.1, TimerMode::Repeating)),
             groups::PLAYER_PROJECTILE_GROUP,
             groups::PLAYER_PROJECTILE_FILTER_MASK,
-        ));
+        ))
+        .id()
 }
 
 pub fn despawn(mut commands: Commands, player_query: Query<Entity, With<Player>>) {

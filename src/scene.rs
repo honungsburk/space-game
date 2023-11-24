@@ -22,6 +22,19 @@ use leafwing_input_manager::{
 };
 use std::fmt;
 
+/// Add to entities that are part of the scene, so they can be
+/// easily despawned when the scene is exited.
+#[derive(Component, Debug, Clone, Eq, PartialEq, Hash, Default)]
+pub struct SceneEntityLabel;
+
+impl SceneEntityLabel {
+    pub fn despawn(mut commands: Commands, query: Query<Entity, With<SceneEntityLabel>>) {
+        for entity in query.iter() {
+            commands.entity(entity).despawn_recursive();
+        }
+    }
+}
+
 pub struct ScenePlugin;
 
 impl Plugin for ScenePlugin {

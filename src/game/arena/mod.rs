@@ -1,10 +1,11 @@
-use super::assets;
-use super::camera::ScreenBounds;
 use super::game_entity::Enemy;
 use super::meteors::MeteorSize;
 use super::meteors::{self, Meteor};
 use super::player;
+use super::player_camera::PlayerCameraLabel;
+use super::screen_bounds::ScreenBounds;
 use super::turret;
+use super::{assets, player_camera};
 use crate::misc::random;
 use crate::prelude::*;
 use bevy::prelude::*;
@@ -40,7 +41,15 @@ pub const PLAYER_SPAWN_RADIUS: f32 = 100.0;
 
 pub fn despawn(
     mut commands: Commands,
-    query: Query<Entity, Or<(With<Meteor>, With<player::Player>, With<Enemy>)>>,
+    query: Query<
+        Entity,
+        Or<(
+            With<Meteor>,
+            With<player::Player>,
+            With<Enemy>,
+            With<PlayerCameraLabel>,
+        )>,
+    >,
 ) {
     commands.remove_resource::<Arena>();
     commands.remove_resource::<EnemySpawnTimer>();
@@ -52,7 +61,10 @@ pub fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     arena.spawn_asteroid_bounds(&mut commands, &asset_server);
     arena.spawn_random_asteroids(&mut commands, &asset_server, 100);
-    arena.spawn_player(&mut commands, &asset_server);
+    let player_entity =
+        player::spawn_player(&mut commands, &asset_server, Vec2::new(0.0, 0.0), 0.0);
+
+    player_camera::spawn(&mut commands, player_entity);
 
     commands.insert_resource(arena);
     commands.insert_resource(EnemySpawnTimer::from_seconds(10.0));
