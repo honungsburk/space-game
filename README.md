@@ -114,8 +114,19 @@ Special debug sceens for faster iteration speed.
 cargo run -- --help
 ```
 
+### Profiling
+
+Bevy has a [built-in profiler](https://github.com/bevyengine/bevy/blob/main/docs/profiling.md).
+
+```
+cargo run --release --features bevy/trace_chrome
+``
+
+you can then open the file in [https://ui.perfetto.dev](https://ui.perfetto.dev)
+
 ### Resources
 
 - [ThisFromThat](https://accessible.games/accessible-player-experiences/access-patterns/distinguish-this-from-that/)
 - [Accessable Game Design](https://www.youtube.com/watch?v=4NGe4dzlukc)
 - [Game Feel](https://www.youtube.com/watch?v=AJdEqssNZ-U)
+```
