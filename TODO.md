@@ -17,6 +17,8 @@ Current objective is to get a gameplay loop working.
 
 - fix bug where targets are not being removed from the target list when they die.
 
+- Performance
+  - [ ] Try to remove as many colliders as possible, they hog performance.
 - Factions
   - Player
   - Enemy1, Enemy2, Enemy3

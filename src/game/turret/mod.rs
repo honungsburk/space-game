@@ -63,7 +63,6 @@ impl Plugin for TurretPlugin {
             Update,
             (
                 systems::update_turret_rotation.before(systems::update_stationary_control),
-                // update_stationary_control,
                 systems::update_turret_radius_outline,
                 systems::fire_weapon,
                 systems::update_ai
@@ -111,15 +110,9 @@ pub fn spawn(
             groups::ENEMY_GROUP.into(),
             groups::ENEMY_FILTER_MASK.into(),
         ))
-        .insert(Velocity { ..default() })
-        .insert(ExternalForce {
-            force: Vec2::new(0.0, 0.0),
-            torque: 0.0,
-        })
-        .insert(ExternalImpulse {
-            impulse: Vec2::new(0.0, 0.0),
-            torque_impulse: 0.0,
-        })
+        .insert(Velocity::default())
+        .insert(ExternalForce::default())
+        .insert(ExternalImpulse::default())
         .insert(RotationControl::default())
         .insert(StationaryControl::default())
         .insert(Weapon::laser(
