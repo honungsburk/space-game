@@ -135,16 +135,20 @@ pub fn spawn(
 
             gun_transform.rotate(Quat::from_rotation_z(PI));
 
-            parent.spawn(SpriteBundle {
-                texture: asset_server.load(gun.sprite_path),
-                transform: gun_transform,
-                ..Default::default()
-            });
+            parent
+                .spawn(SpriteBundle {
+                    texture: asset_server.load(gun.sprite_path),
+                    transform: gun_transform,
+                    ..Default::default()
+                })
+                .insert(CollisionGroups::new(Group::NONE, Group::NONE));
 
-            parent.spawn(SpriteBundle {
-                texture: asset_server.load(turret_base.sprite_path),
-                ..Default::default()
-            });
+            parent
+                .spawn(SpriteBundle {
+                    texture: asset_server.load(turret_base.sprite_path),
+                    ..Default::default()
+                })
+                .insert(CollisionGroups::new(Group::NONE, Group::NONE));
 
             let grey = Color::rgba(0.0, 0.0, 0.0, 0.2);
 
