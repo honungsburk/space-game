@@ -5,6 +5,7 @@ use crate::game::{
     arena, background, boids,
     player_camera::{self},
 };
+use crate::utility_systems::cleanup;
 
 pub struct BoidScenePlugin;
 
@@ -15,7 +16,7 @@ impl Plugin for BoidScenePlugin {
                 OnExit(GameScene::Boid),
                 (
                     background::despawn,
-                    player_camera::despawn,
+                    cleanup::<Camera>,
                     arena::despawn,
                     boids::despawn,
                 ),
@@ -48,4 +49,6 @@ fn spawn(
             rand::random::<f32>() * std::f32::consts::PI * 2.0,
         );
     }
+
+    commands.spawn(Camera2dBundle::default());
 }
