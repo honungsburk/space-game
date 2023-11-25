@@ -1,32 +1,36 @@
 use clap::{Parser, ValueEnum};
 
-use crate::settings::{ResolutionSetting, Settings};
+use crate::{
+    game::debug::VisualDebug,
+    settings::{ResolutionSetting, Settings},
+};
 
 /// A Space Game
 #[derive(Parser, Debug, Default)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    /// Show visual debug information
-    /// Takes a list of options
-    /// If not specified, no visual debug information will be shown
-    // #[arg(long, value_enum)]
-    // pub visual_debug: Vec<VisualDebug>, // NOTE: HashSet<VisualDebug> is not supported by clap
+    /// Show visual debug information.
+    /// Takes a list of flags.
+    /// CLI flags are joined with the settings file flags.
+    ///
+    /// Example: `--visual-debug background-grid camera-position`
+    #[arg(long, value_enum, num_args = 1..)]
+    pub visual_debug: Vec<VisualDebug>, // NOTE: HashSet<VisualDebug> is not supported by clap
 
-    /// Path to settings file
+    /// Path to settings file.
     /// If not specified, the default settings will be used
     #[arg(long)]
     pub settings: Option<String>,
 
-    /// Set the x resolution
+    /// Set the x resolution.
     #[arg(long, short)]
     pub x_pixels: Option<u32>,
 
-    /// Set the y resolution
+    /// Set the y resolution.
     #[arg(long, short)]
     pub y_pixels: Option<u32>,
 
-    /// Sets a bunch of settings to make the game look good on social media
-    ///
+    /// Sets a bunch of settings to make the game look good on social media.
     /// Overrides the x and y resolution settings.
     #[arg(long, value_enum)]
     pub social: Option<SocialMediaFormat>,
@@ -35,10 +39,6 @@ pub struct Cli {
 impl Cli {
     pub fn override_settings(&self, settings: &Settings) -> Settings {
         let mut new_config = (*settings).clone();
-
-        // if !self.visual_debug.is_empty() {
-        //     new_config.visual_debug = self.visual_debug.iter().cloned().collect();
-        // }
 
         if let Some(x) = self.x_pixels {
             new_config.window.resolution.x = x;
@@ -50,6 +50,10 @@ impl Cli {
 
         if let Some(social) = self.social {
             new_config.window.resolution = social.resolution();
+        }
+
+        for debug in self.visual_debug.iter() {
+            new_config.visual_debug.insert(*debug);
         }
 
         new_config

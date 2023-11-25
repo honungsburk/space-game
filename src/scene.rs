@@ -70,11 +70,11 @@ impl Plugin for ScenePlugin {
 pub enum GameScene {
     // Real Game Modes
     None, // No mode
+    #[default]
     MainGame,
     // Debug Game Modes
-    #[default]
     TurretPerformance, // Performance testing mode with a lot of turrets
-    PlayerDeath, // Player death testing mode
+    PlayerDeath,       // Player death testing mode
     EnemyShipAI,
     PlayerMovement,
     Turret,

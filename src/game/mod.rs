@@ -25,6 +25,8 @@ pub mod turret;
 pub mod vitality;
 pub mod weapon;
 
+use std::collections::HashSet;
+
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use player::PlayerPlugin;
@@ -35,15 +37,27 @@ use arena::ArenaPlugin;
 use projectile::ProjectilePlugin;
 
 use self::{
-    average_velocity::AverageVelocityPlugin, background::BackgroundPlugin, boids::BoidsPlugin,
-    control_system::ControlSystemPlugin, debug::DebugPlugin, enemy::EnemyPlugin,
-    events::GameOverEvent, kamikaze_drone::KamikazeDronesPlugin, movement::MovementPlugin,
-    score::ScorePlugin, screen_bounds::ScreenBoundsPlugin, sensor::SensorPlugin,
-    time_to_live::TimeToLivePlugin, trauma::TraumaPlugin, turret::TurretPlugin,
+    average_velocity::AverageVelocityPlugin,
+    background::BackgroundPlugin,
+    boids::BoidsPlugin,
+    control_system::ControlSystemPlugin,
+    debug::{DebugPlugin, VisualDebug},
+    enemy::EnemyPlugin,
+    events::GameOverEvent,
+    kamikaze_drone::KamikazeDronesPlugin,
+    movement::MovementPlugin,
+    score::ScorePlugin,
+    screen_bounds::ScreenBoundsPlugin,
+    sensor::SensorPlugin,
+    time_to_live::TimeToLivePlugin,
+    trauma::TraumaPlugin,
+    turret::TurretPlugin,
     vitality::VitalityPlugin,
 };
 
-pub struct GamePlugin;
+pub struct GamePlugin {
+    pub visual_debug: HashSet<VisualDebug>,
+}
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
@@ -67,7 +81,9 @@ impl Plugin for GamePlugin {
             ScreenBoundsPlugin,
         ))
         .add_plugins((
-            DebugPlugin,
+            DebugPlugin {
+                visual_debug: self.visual_debug.clone(),
+            },
             BackgroundPlugin,
             ArenaPlugin,
             PlayerPlugin,

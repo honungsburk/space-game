@@ -1,12 +1,16 @@
-use crate::file_save::{self, FileSave};
+use crate::{
+    file_save::{self, FileSave},
+    game::debug::VisualDebug,
+};
 use bevy::{prelude::*, window::PrimaryWindow};
 use serde::{Deserialize, Serialize};
-use std::error::Error;
+use std::{collections::HashSet, error::Error};
 use toml::from_str;
 
 /// Settings are settings that the player is allow to change.
 #[derive(Deserialize, Serialize, Debug, Default, PartialEq, Eq, Clone)]
 pub struct Settings {
+    pub visual_debug: HashSet<VisualDebug>,
     pub window: WindowSettings,
 }
 

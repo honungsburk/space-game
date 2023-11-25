@@ -32,14 +32,16 @@ pub fn run(settings: Settings, _high_scores: high_score::HighScores) {
     app.insert_resource(Msaa::Sample4).add_plugins(ShapePlugin);
 
     // Add Internal Plugins
-    app.add_plugins(GamePlugin)
-        .add_plugins(NoRotationPlugin)
-        .add_plugins(HudPlugin)
-        .add_plugins(FrameTimeDiagnosticsPlugin::default())
-        .add_plugins(ScenePlugin)
-        .add_plugins(SettingsPlugin::new(settings))
-        // Systems
-        .add_systems(Update, exit_game);
+    app.add_plugins(GamePlugin {
+        visual_debug: settings.visual_debug.clone(),
+    })
+    .add_plugins(NoRotationPlugin)
+    .add_plugins(HudPlugin)
+    .add_plugins(FrameTimeDiagnosticsPlugin::default())
+    .add_plugins(ScenePlugin)
+    .add_plugins(SettingsPlugin::new(settings))
+    // Systems
+    .add_systems(Update, exit_game);
 
     app.run()
 }

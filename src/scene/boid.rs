@@ -1,10 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use super::GameScene;
-use crate::game::{
-    arena, background, boids,
-    player_camera::{self},
-};
+use crate::game::{arena, background, boids};
 use crate::utility_systems::cleanup;
 
 pub struct BoidScenePlugin;
