@@ -1,3 +1,8 @@
+//!
+//! TODO: Settings and flags (in teh config module) are representing the same thing.
+//! Need to merge them.
+//!
+
 use crate::{
     file_save::{self, FileSave},
     game::debug::VisualDebug,
@@ -7,6 +12,7 @@ use bevy::{
     prelude::*,
     window::{PrimaryWindow, WindowMode},
 };
+use clap::ValueEnum;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashSet, error::Error};
 use toml::from_str;
@@ -39,6 +45,7 @@ impl FileSave for Settings {
 pub struct WindowSettings {
     pub resolution: ResolutionSetting,
     pub selection: Option<u32>,
+    pub mode: Option<WindowModeSetting>,
 }
 
 impl Default for WindowSettings {
@@ -46,6 +53,7 @@ impl Default for WindowSettings {
         Self {
             resolution: ResolutionSetting::default(),
             selection: None,
+            mode: None,
         }
     }
 }
@@ -71,7 +79,15 @@ impl Plugin for SettingsPlugin {
                     .map(|n| MonitorSelection::Index(n as usize))
                     .unwrap_or(MonitorSelection::Primary),
             })
-            .add_systems(Update, (update_resolution, update_monitor_selection));
+            .insert_resource(self.0.window.mode.unwrap_or_default())
+            .add_systems(
+                Update,
+                (
+                    update_resolution,
+                    update_monitor_selection,
+                    update_window_mode,
+                ),
+            );
     }
 }
 
@@ -119,6 +135,43 @@ fn update_resolution(
             window
                 .resolution
                 .set(resolution.x as f32, resolution.y as f32);
+        }
+    }
+}
+
+///
+/// What mode to use for the game window.
+///
+/// Had to implement this because the `WindowMode` enum doesn't implement `ValueEnum`, `Serialize`, and `Deserialize`.
+#[derive(
+    Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Resource, ValueEnum, Serialize, Deserialize,
+)]
+pub enum WindowModeSetting {
+    #[default]
+    Windowed,
+    BorderlessFullscreen,
+    SizedFullscreen,
+    Fullscreen,
+}
+
+impl WindowModeSetting {
+    pub fn to_window_mode(&self) -> WindowMode {
+        match self {
+            WindowModeSetting::Windowed => WindowMode::Windowed,
+            WindowModeSetting::BorderlessFullscreen => WindowMode::BorderlessFullscreen,
+            WindowModeSetting::SizedFullscreen => WindowMode::SizedFullscreen,
+            WindowModeSetting::Fullscreen => WindowMode::Fullscreen,
+        }
+    }
+}
+
+fn update_window_mode(
+    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
+    resolution: Res<WindowModeSetting>,
+) {
+    if resolution.is_changed() {
+        if let Ok(mut window) = window_query.get_single_mut() {
+            window.mode = resolution.to_window_mode();
         }
     }
 }

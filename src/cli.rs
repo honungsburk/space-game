@@ -3,18 +3,24 @@ use clap::{Parser, ValueEnum};
 use crate::{
     game::debug::VisualDebug,
     scene::GameScene,
-    settings::{ResolutionSetting, Settings},
+    settings::{ResolutionSetting, Settings, WindowModeSetting},
 };
 
 /// A Space Game
 #[derive(Parser, Debug, Default)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    /// Select which window to show the game in. Defaults to PrimaryWindow.
+    /// Select which monitor to show the game in. Defaults to your primary monitor.
     ///
-    /// Example: `--window-selection 1`
+    /// Example: `--monitor 1`
     #[arg(long)]
-    pub window_selection: Option<u32>,
+    pub monitor: Option<u32>,
+
+    /// Select which mode to show the game in. Defaults to windowed.
+    ///
+    /// Example: `--monitor fullscreen`
+    #[arg(long, value_enum)]
+    pub mode: Option<WindowModeSetting>,
 
     /// The scene to start the game in. If not specified, will use the scene in the
     /// settings file. If no settings file is specified, will use the default scene (MainGame).
@@ -54,7 +60,11 @@ impl Cli {
     pub fn override_settings(&self, settings: &Settings) -> Settings {
         let mut new_config = (*settings).clone();
 
-        if let Some(window_selection) = self.window_selection {
+        if let Some(mode) = self.mode {
+            new_config.window.mode = Some(mode);
+        }
+
+        if let Some(window_selection) = self.monitor {
             new_config.window.selection = Some(window_selection);
         }
 
