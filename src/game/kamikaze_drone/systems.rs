@@ -67,7 +67,7 @@ pub fn update(
         }
     }
 
-    let shape = KAMIKAZE_DRONE.collider();
+    // let shape = KAMIKAZE_DRONE.collider();
 
     // Apply the computation
     for (entity, mut t, mut v, guard_point_opt) in boid_query.iter_mut() {
