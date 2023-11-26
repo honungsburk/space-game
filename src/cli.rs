@@ -10,6 +10,12 @@ use crate::{
 #[derive(Parser, Debug, Default)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
+    /// Select which window to show the game in. Defaults to PrimaryWindow.
+    ///
+    /// Example: `--window-selection 1`
+    #[arg(long)]
+    pub window_selection: Option<u32>,
+
     /// The scene to start the game in. If not specified, will use the scene in the
     /// settings file. If no settings file is specified, will use the default scene (MainGame).
     ///
@@ -47,6 +53,10 @@ pub struct Cli {
 impl Cli {
     pub fn override_settings(&self, settings: &Settings) -> Settings {
         let mut new_config = (*settings).clone();
+
+        if let Some(window_selection) = self.window_selection {
+            new_config.window.selection = Some(window_selection);
+        }
 
         if let Some(scene) = self.scene {
             new_config.scene = Some(scene);

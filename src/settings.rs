@@ -3,7 +3,10 @@ use crate::{
     game::debug::VisualDebug,
     scene::GameScene,
 };
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::{
+    prelude::*,
+    window::{PrimaryWindow, WindowMode},
+};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashSet, error::Error};
 use toml::from_str;
@@ -35,12 +38,14 @@ impl FileSave for Settings {
 
 pub struct WindowSettings {
     pub resolution: ResolutionSetting,
+    pub selection: Option<u32>,
 }
 
 impl Default for WindowSettings {
     fn default() -> Self {
         Self {
             resolution: ResolutionSetting::default(),
+            selection: None,
         }
     }
 }
@@ -58,11 +63,23 @@ impl SettingsPlugin {
 impl Plugin for SettingsPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(self.0.window.resolution.clone())
-            .add_systems(Update, update_resolution);
+            .insert_resource(MonitorSelectionSetting {
+                selection: self
+                    .0
+                    .window
+                    .selection
+                    .map(|n| MonitorSelection::Index(n as usize))
+                    .unwrap_or(MonitorSelection::Primary),
+            })
+            .add_systems(Update, (update_resolution, update_monitor_selection));
     }
 }
 
 // Setting Resources
+#[derive(Resource, Debug, PartialEq, Eq, Clone)]
+pub struct MonitorSelectionSetting {
+    selection: MonitorSelection,
+}
 
 /// What the default resolution should be on start. The player can still resized the window.
 /// Resizing the window should not change this setting. They have to manually change it
@@ -77,6 +94,18 @@ pub struct ResolutionSetting {
 impl Default for ResolutionSetting {
     fn default() -> Self {
         Self { x: 1280, y: 720 }
+    }
+}
+
+fn update_monitor_selection(
+    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
+    monitor_selection: Res<MonitorSelectionSetting>,
+) {
+    if monitor_selection.is_changed() {
+        if let Ok(mut window) = window_query.get_single_mut() {
+            println!("Monitor Selection: {:?}", monitor_selection.selection);
+            window.position = WindowPosition::Centered(monitor_selection.selection);
+        }
     }
 }
 
