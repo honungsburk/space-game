@@ -114,6 +114,10 @@ Special debug sceens for faster iteration speed.
 cargo run -- --help
 ```
 
+### Code refactoring
+
+- https://github.com/tbillington/bevy_best_practices#entities
+
 ### Profiling
 
 Bevy has a [built-in profiler](https://github.com/bevyengine/bevy/blob/main/docs/profiling.md).
