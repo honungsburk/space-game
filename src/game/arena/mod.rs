@@ -211,7 +211,7 @@ impl Arena {
     pub fn spawn_asteroid_bounds(&self, commands: &mut Commands, asset_server: &Res<AssetServer>) {
         let asteroid_bounds = &self.asteroid_bounds;
 
-        let inner_radius = asteroid_bounds.radius + assets::METEOR_BIG_RADIUS * 2.0;
+        let inner_radius = asteroid_bounds.radius + assets::METEOR_BIG_RADIUS;
         let outer_radius = inner_radius + asteroid_bounds.width;
 
         let mut candidates = VecDeque::from([(Vec2::new(0.0, inner_radius), MeteorSize::Big)]);
@@ -263,6 +263,15 @@ impl Arena {
                 }
             }
         }
+
+        // Spawn the inner circle
+        let circle_radius = asteroid_bounds.radius + assets::METEOR_BIG_RADIUS * 2.0;
+        let circle_circumference = 2.0 * PI * circle_radius;
+        commands.spawn(hollow_circle(
+            circle_radius,
+            (circle_circumference / 10.0) as u32,
+        ));
+        // Spawn the outer circle
     }
 
     pub fn spawn_player(&self, commands: &mut Commands, asset_server: &Res<AssetServer>) {

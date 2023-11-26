@@ -7,6 +7,7 @@ use crate::{
         movement::FollowEntityMovement,
         player_camera::{self},
     },
+    misc::random,
     utility_systems::cleanup,
 };
 
@@ -33,9 +34,10 @@ impl Plugin for KamikazeDroneScenePlugin {
 
 fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Spawn the arena and player
-    let arena = arena::Arena::new(1000.0, 200.0);
+    let radius = 1000.0;
+    let arena = arena::Arena::new(radius, 200.0);
     arena.spawn_asteroid_bounds(&mut commands, &asset_server);
-    // arena.spawn_random_asteroids(&mut commands, &asset_db, &asset_server, 50);
+    arena.spawn_random_asteroids(&mut commands, &asset_server, 50);
 
     // Spawn an enemy ship
     let kamikaze_drone_entity =
@@ -45,21 +47,22 @@ fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn(Camera2dBundle::default())
         .insert(FollowEntityMovement::smooth(kamikaze_drone_entity));
 
-    // spawn 99 more drones
+    let spawn_count = 100;
 
-    kamikaze_drone::spawn(&mut commands, &asset_server, Vec2::new(40.0, 0.0), 0.0);
+    let mut rng = rand::thread_rng();
 
-    kamikaze_drone::spawn(&mut commands, &asset_server, Vec2::new(80.0, 0.0), 0.0);
+    for _ in 0..spawn_count {
+        let point_in_circle = random::uniform_circle(&mut rng, radius * 0.5);
 
-    // let drone_count = 1;
+        kamikaze_drone::spawn(
+            &mut commands,
+            &asset_server,
+            point_in_circle,
+            rand::random::<f32>() * std::f32::consts::PI * 2.0,
+        );
+    }
 
-    // for _ in 0..drone_count {
-    //     kamikaze_drone::spawn(
-    //         &mut commands,
-    //         &asset_db,
-    //         &asset_server,
-    //         Vec2::new(10.0 * drone_count as f32, 0.0),
-    //         0.0,
-    //     );
-    // }
+    // kamikaze_drone::spawn(&mut commands, &asset_server, Vec2::new(40.0, 0.0), 0.0);
+
+    // kamikaze_drone::spawn(&mut commands, &asset_server, Vec2::new(80.0, 0.0), 0.0);
 }
