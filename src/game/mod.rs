@@ -9,6 +9,7 @@ pub mod debug;
 pub mod enemy;
 pub mod events;
 pub mod game_entity;
+pub mod guard_point;
 pub mod kamikaze_drone;
 pub mod meteors;
 pub mod movement;

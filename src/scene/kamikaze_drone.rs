@@ -3,7 +3,9 @@ use bevy::prelude::*;
 use super::GameScene;
 use crate::{
     game::{
-        arena, background, kamikaze_drone,
+        arena, background,
+        guard_point::GuardPoint,
+        kamikaze_drone,
         movement::FollowEntityMovement,
         player_camera::{self},
     },
@@ -39,9 +41,16 @@ fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
     arena.spawn_asteroid_bounds(&mut commands, &asset_server);
     arena.spawn_random_asteroids(&mut commands, &asset_server, 50);
 
+    let guard_point = GuardPoint::new(Vec2::new(0.0, 0.0), radius);
+
     // Spawn an enemy ship
-    let kamikaze_drone_entity =
-        kamikaze_drone::spawn(&mut commands, &asset_server, Vec2::new(0.0, 0.0), 0.0);
+    let kamikaze_drone_entity = kamikaze_drone::spawn(
+        &mut commands,
+        &asset_server,
+        Vec2::new(0.0, 0.0),
+        0.0,
+        Some(guard_point),
+    );
 
     commands
         .spawn(Camera2dBundle::default())
@@ -59,6 +68,7 @@ fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
             &asset_server,
             point_in_circle,
             rand::random::<f32>() * std::f32::consts::PI * 2.0,
+            Some(guard_point),
         );
     }
 

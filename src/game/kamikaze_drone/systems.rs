@@ -1,12 +1,10 @@
 use std::{cell::RefCell, collections::HashMap};
 
-use crate::game::assets::KAMIKAZE_DRONE;
+use crate::game::{assets::KAMIKAZE_DRONE, guard_point::GuardPoint};
 
 use super::components::KamikazeDroneLabel;
 use bevy::prelude::*;
-use bevy_rapier2d::{
-    geometry::ToiDetails, pipeline::QueryFilter, plugin::RapierContext, prelude::Velocity,
-};
+use bevy_rapier2d::{pipeline::QueryFilter, plugin::RapierContext, prelude::Velocity};
 
 const BOID_MAX_SPEED: f32 = 200.0;
 const BOID_MIN_SPEED: f32 = 20.0;
@@ -34,7 +32,10 @@ pub fn update(
     mut gizmos: Gizmos,
     time: Res<Time>,
     rapier_context: Res<RapierContext>,
-    mut boid_query: Query<(Entity, &mut Transform, &mut Velocity), With<KamikazeDroneLabel>>,
+    mut boid_query: Query<
+        (Entity, &mut Transform, &mut Velocity, Option<&GuardPoint>),
+        With<KamikazeDroneLabel>,
+    >,
 ) {
     let mut compute_table = HashMap::<Entity, RefCell<UpdateCompute>>::default();
 
@@ -69,7 +70,7 @@ pub fn update(
     let shape = KAMIKAZE_DRONE.collider();
 
     // Apply the computation
-    for (entity, mut t, mut v) in boid_query.iter_mut() {
+    for (entity, mut t, mut v, guard_point_opt) in boid_query.iter_mut() {
         if let Some(compute_cell) = compute_table.get(&entity) {
             let compute = compute_cell.borrow();
 
@@ -85,6 +86,22 @@ pub fn update(
             }
 
             v.linvel += velocity_change;
+        }
+
+        if let Some(guard_point) = guard_point_opt {
+            let diff = guard_point.point - t.translation.truncate();
+            // When we are 90% of the way to the guard point, we start trying to turn around
+            let distance = diff.length() - guard_point.max_distance * 0.9;
+
+            if distance > 0.0 {
+                let speed = v.linvel.length();
+
+                // v_dist will be 1.0 when 95% of the way to the guard point, and 2.0 when 100% of the way, and 3.0 when 105% of the way ...
+                let distance_strength = guard_point.max_distance * 0.05;
+                let v_dist = distance / distance_strength;
+
+                v.linvel += speed * diff.normalize() * v_dist * v_dist;
+            }
         }
 
         // Check if the drone is heading to words collision
