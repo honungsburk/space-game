@@ -15,11 +15,14 @@ mod player_movement;
 mod turret;
 mod turret_performance;
 
+use crate::app_extension::*;
 use bevy::prelude::*;
+use clap::ValueEnum;
 use leafwing_input_manager::{
     input_map::InputMap, plugin::InputManagerPlugin, prelude::ActionState, user_input::InputKind,
     Actionlike, InputManagerBundle,
 };
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 /// Add to entities that are part of the scene, so they can be
@@ -34,12 +37,14 @@ impl SceneEntityLabel {
         }
     }
 }
-
-pub struct ScenePlugin;
+#[derive(Debug, Clone, Eq, PartialEq, Hash, Default)]
+pub struct ScenePlugin {
+    pub scene: Option<GameScene>,
+}
 
 impl Plugin for ScenePlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<GameScene>()
+        app.init_state(self.scene.unwrap_or_default())
             .init_resource::<Reload>()
             .add_plugins(InputManagerPlugin::<GameScene>::default())
             .add_plugins((
@@ -66,7 +71,22 @@ impl Plugin for ScenePlugin {
 /// is to perform performance testing on the turret enemy type.
 ///
 ///
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Default, States, Reflect, Actionlike)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Eq,
+    PartialEq,
+    Hash,
+    Default,
+    States,
+    Reflect,
+    Actionlike,
+    ValueEnum,
+    Deserialize,
+    Serialize,
+    Component,
+)]
 pub enum GameScene {
     // Real Game Modes
     None, // No mode

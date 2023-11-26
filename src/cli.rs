@@ -2,6 +2,7 @@ use clap::{Parser, ValueEnum};
 
 use crate::{
     game::debug::VisualDebug,
+    scene::GameScene,
     settings::{ResolutionSetting, Settings},
 };
 
@@ -9,6 +10,13 @@ use crate::{
 #[derive(Parser, Debug, Default)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
+    /// The scene to start the game in. If not specified, will use the scene in the
+    /// settings file. If no settings file is specified, will use the default scene (MainGame).
+    ///
+    /// Example: `--scene MainGame`
+    #[arg(long, value_enum)]
+    pub scene: Option<GameScene>,
+
     /// Show visual debug information.
     /// Takes a list of flags.
     /// CLI flags are joined with the settings file flags.
@@ -39,6 +47,10 @@ pub struct Cli {
 impl Cli {
     pub fn override_settings(&self, settings: &Settings) -> Settings {
         let mut new_config = (*settings).clone();
+
+        if let Some(scene) = self.scene {
+            new_config.scene = Some(scene);
+        }
 
         if let Some(x) = self.x_pixels {
             new_config.window.resolution.x = x;

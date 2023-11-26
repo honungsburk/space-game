@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+pub mod app_extension;
 pub mod cli;
 pub mod file_save;
 pub mod game;
@@ -38,7 +39,9 @@ pub fn run(settings: Settings, _high_scores: high_score::HighScores) {
     .add_plugins(NoRotationPlugin)
     .add_plugins(HudPlugin)
     .add_plugins(FrameTimeDiagnosticsPlugin::default())
-    .add_plugins(ScenePlugin)
+    .add_plugins(ScenePlugin {
+        scene: settings.scene.clone(),
+    })
     .add_plugins(SettingsPlugin::new(settings))
     // Systems
     .add_systems(Update, exit_game);

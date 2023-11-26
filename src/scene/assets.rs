@@ -3,7 +3,14 @@ use crate::game::movement::KeyboardMovementBundle;
 use crate::game::{assets, background};
 use crate::utility_systems;
 use bevy::prelude::*;
+
 pub struct AssetsScenePlugin;
+
+// pub fn add_game_scene<S, Marker>(app: &mut App, scene: GameScene, spawn: S)
+// where
+//     // S: System<In = In, Out = HashSet<Entity>>,
+//     S: IntoSystem<(), HashSet<Entity>, Marker>,
+// {
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Component)]
 struct AssetLabel;
@@ -21,10 +28,8 @@ impl Plugin for AssetsScenePlugin {
             );
     }
 }
-
 fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Camera
-
     commands.spawn((
         Camera2dBundle::default(),
         KeyboardMovementBundle::new(500.0),

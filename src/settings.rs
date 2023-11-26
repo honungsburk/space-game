@@ -1,6 +1,7 @@
 use crate::{
     file_save::{self, FileSave},
     game::debug::VisualDebug,
+    scene::GameScene,
 };
 use bevy::{prelude::*, window::PrimaryWindow};
 use serde::{Deserialize, Serialize};
@@ -10,6 +11,7 @@ use toml::from_str;
 /// Settings are settings that the player is allow to change.
 #[derive(Deserialize, Serialize, Debug, Default, PartialEq, Eq, Clone)]
 pub struct Settings {
+    pub scene: Option<GameScene>,
     pub visual_debug: HashSet<VisualDebug>,
     pub window: WindowSettings,
 }
