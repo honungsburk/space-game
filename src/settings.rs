@@ -113,6 +113,8 @@ impl Default for ResolutionSetting {
     }
 }
 
+/// TODO: There is a bug in bevy that prevents this from working.
+/// See https://github.com/bevyengine/bevy/issues/7600
 fn update_monitor_selection(
     mut window_query: Query<&mut Window, With<PrimaryWindow>>,
     monitor_selection: Res<MonitorSelectionSetting>,
