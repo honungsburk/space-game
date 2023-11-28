@@ -102,7 +102,11 @@ impl Plugin for GamePlugin {
             (pause_simulation, toggle_simulation, resume_simulation),
         );
 
-        let rapier_debug_plugin = RapierDebugRenderPlugin::default().disabled();
+        let mut rapier_debug_plugin = RapierDebugRenderPlugin::default();
+
+        if !self.visual_debug.contains(&VisualDebug::Colliders) {
+            rapier_debug_plugin = rapier_debug_plugin.disabled();
+        }
 
         app.add_plugins(rapier_debug_plugin);
     }

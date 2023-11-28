@@ -74,7 +74,7 @@ pub enum VisualDebug {
     BackgroundGrid,
     CameraPosition,
     CameraSetpoint,
-    Render,
+    Colliders,
     FPSCounter,
     VisionCone,
 }
@@ -97,7 +97,7 @@ pub fn create_input_map() -> InputMap<VisualDebug> {
             InputKind::Keyboard(KeyCode::F3),
             VisualDebug::CameraSetpoint,
         ),
-        (InputKind::Keyboard(KeyCode::F4), VisualDebug::Render),
+        (InputKind::Keyboard(KeyCode::F4), VisualDebug::Colliders),
         (InputKind::Keyboard(KeyCode::F5), VisualDebug::FPSCounter),
         (InputKind::Keyboard(KeyCode::F6), VisualDebug::VisionCone),
     ]);
@@ -171,7 +171,7 @@ fn debug_keyboard_input(
                 VisualDebug::CameraSetpoint => {
                     camera_setpoint_debug.as_mut().map(|flag| flag.flip());
                 }
-                VisualDebug::Render => {
+                VisualDebug::Colliders => {
                     render_debug.as_mut().map(|ctx| ctx.enabled = !ctx.enabled);
                 }
                 VisualDebug::FPSCounter => {
