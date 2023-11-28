@@ -16,9 +16,11 @@ use leafwing_input_manager::InputManagerBundle;
 use systems::*;
 
 pub use actions::PlayerShipAction;
-pub use components::Player;
+pub use components::PlayerLabel;
 
 use self::components::ContactForceInvulnerability;
+
+use super::kamikaze_drone::KamikazeDroneTargetLabel;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin
@@ -73,7 +75,7 @@ pub fn spawn_player(
             texture: asset_server.load(assets::PLAYER_SHIP.sprite_path),
             ..default()
         })
-        .insert(Player {})
+        .insert(PlayerLabel {})
         .insert(GameEntityType::Player)
         .insert(DirectionControl {
             torque_impulse_magnitude: 0.005,
@@ -116,6 +118,7 @@ pub fn spawn_player(
             linvel: Vec2::ZERO,
             angvel: 0.0,
         })
+        .insert(KamikazeDroneTargetLabel)
         .insert(AverageVelocity::new(0.5))
         .insert(Weapon::laser(
             10,
@@ -128,11 +131,11 @@ pub fn spawn_player(
         .id()
 }
 
-pub fn despawn(mut commands: Commands, player_query: Query<Entity, With<Player>>) {
+pub fn despawn(mut commands: Commands, player_query: Query<Entity, With<PlayerLabel>>) {
     despawn_all(&mut commands, &player_query)
 }
 
-pub fn despawn_all(commands: &mut Commands, player_query: &Query<Entity, With<Player>>) {
+pub fn despawn_all(commands: &mut Commands, player_query: &Query<Entity, With<PlayerLabel>>) {
     if let Ok(player_entity) = player_query.get_single() {
         commands.entity(player_entity).despawn();
     }

@@ -26,4 +26,4 @@ impl ContactForceInvulnerability {
 }
 
 #[derive(Component)]
-pub struct Player;
+pub struct PlayerLabel;

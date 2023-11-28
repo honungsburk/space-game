@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap};
 
 use crate::game::{assets::groups, guard_point::GuardPoint};
 
-use super::components::KamikazeDroneLabel;
+use super::components::{KamikazeDroneLabel, KamikazeDroneTargetLabel};
 use bevy::prelude::*;
 use bevy_rapier2d::{
     geometry::CollisionGroups, pipeline::QueryFilter, plugin::RapierContext, prelude::Velocity,
@@ -19,6 +19,8 @@ const AVOID_FACTOR: f32 = 0.05;
 const MATCHING_FACTOR: f32 = 0.05;
 const CENTERING_FACTOR: f32 = 0.0005;
 
+const TARGET_RADIUS: f32 = 300.0;
+
 const COLLISION_AVODIANCE_FACTOR: f32 = 0.1;
 
 #[derive(Debug, PartialEq, Default)]
@@ -34,9 +36,10 @@ pub fn update(
     mut gizmos: Gizmos,
     time: Res<Time>,
     rapier_context: Res<RapierContext>,
+    targets_query: Query<&Transform, (With<KamikazeDroneTargetLabel>, Without<KamikazeDroneLabel>)>,
     mut drone_query: Query<
         (Entity, &mut Transform, &mut Velocity, Option<&GuardPoint>),
-        With<KamikazeDroneLabel>,
+        (With<KamikazeDroneLabel>, Without<KamikazeDroneTargetLabel>),
     >,
 ) {
     let mut compute_table = HashMap::<Entity, RefCell<UpdateCompute>>::default();
@@ -88,6 +91,16 @@ pub fn update(
             }
 
             v.linvel += velocity_change;
+        }
+
+        for target_t in targets_query.iter() {
+            let diff = target_t.translation.truncate() - t.translation.truncate();
+            let distance = diff.length();
+
+            if distance < TARGET_RADIUS {
+                let speed = v.linvel.length();
+                v.linvel += speed * diff.normalize() * ((0.5 * distance / TARGET_RADIUS) + 0.5);
+            }
         }
 
         if let Some(guard_point) = guard_point_opt {

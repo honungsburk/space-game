@@ -22,7 +22,7 @@ use super::control_system::DirectionControl;
 use super::debug::VisionConeDebugFlag;
 use super::game_entity::Enemy;
 use super::game_entity::GameEntityType;
-use super::player::components::Player;
+use super::player::components::PlayerLabel;
 use super::vitality::Health;
 use super::weapon::Weapon;
 use crate::misc::rapier_extension;
@@ -192,9 +192,9 @@ fn update_enemy(
             &mut DirectionControl,
             &mut ShipNavigationSystem,
         ),
-        (With<EnemyShipLabel>, Without<Player>),
+        (With<EnemyShipLabel>, Without<PlayerLabel>),
     >,
-    player_query: Query<&Player>,
+    player_query: Query<&PlayerLabel>,
     rapier_context: Res<RapierContext>,
 ) {
     let mut giz = if vision_cone_debug.is_on() {

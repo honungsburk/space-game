@@ -46,7 +46,7 @@ pub fn despawn(
         Entity,
         Or<(
             With<Meteor>,
-            With<player::Player>,
+            With<player::PlayerLabel>,
             With<Enemy>,
             With<PlayerCameraLabel>,
         )>,

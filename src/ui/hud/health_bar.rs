@@ -1,5 +1,5 @@
 use crate::{
-    game::{player::components::Player, vitality::Health},
+    game::{player::components::PlayerLabel, vitality::Health},
     ui::assets::GameFonts,
 };
 use bevy::prelude::*;
@@ -58,7 +58,7 @@ pub fn build(commands: &mut Commands, asset_server: &Res<AssetServer>) -> Entity
 
 fn update_health_bar(
     mut text_query: Query<&mut Text, With<HealthBar>>,
-    player_health_query: Query<&Health, With<Player>>,
+    player_health_query: Query<&Health, With<PlayerLabel>>,
 ) {
     if let Ok(player_health) = player_health_query.get_single() {
         for mut text in text_query.iter_mut() {

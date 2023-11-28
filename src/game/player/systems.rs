@@ -1,4 +1,4 @@
-use super::components::{ContactForceInvulnerability, Player};
+use super::components::{ContactForceInvulnerability, PlayerLabel};
 use super::PlayerShipAction;
 use crate::game::control_system::DirectionControl;
 use crate::game::trauma::Trauma;
@@ -16,7 +16,7 @@ pub fn control_ship(
             &mut DirectionControl,
             &ActionState<PlayerShipAction>,
         ),
-        With<Player>,
+        With<PlayerLabel>,
     >,
 ) {
     if let Ok((mut player_impulse, player_transform, mut direction_control, input_action)) =
@@ -82,7 +82,7 @@ pub fn control_ship(
 pub fn fire_weapon(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    mut query: Query<(&Transform, &mut Weapon, &ActionState<PlayerShipAction>), With<Player>>,
+    mut query: Query<(&Transform, &mut Weapon, &ActionState<PlayerShipAction>), With<PlayerLabel>>,
 ) {
     if let Ok((player_transform, mut weapon, action)) = query.get_single_mut() {
         if action.pressed(PlayerShipAction::FireWeapon) && weapon.can_fire() {
@@ -103,7 +103,7 @@ pub fn player_collision(
             &ReadMassProperties,
             &mut ContactForceInvulnerability,
         ),
-        With<Player>,
+        With<PlayerLabel>,
     >,
 ) {
     for contact_force_event in contact_force_events.read() {
@@ -135,7 +135,7 @@ pub fn player_collision(
 
 pub fn update_contact_force_invulnerability(
     time: Res<Time>,
-    mut player_query: Query<&mut ContactForceInvulnerability, With<Player>>,
+    mut player_query: Query<&mut ContactForceInvulnerability, With<PlayerLabel>>,
 ) {
     for mut contact_force_invulnerability in player_query.iter_mut() {
         contact_force_invulnerability.tick(time.delta());
