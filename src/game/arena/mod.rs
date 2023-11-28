@@ -1,3 +1,4 @@
+use super::assets::groups;
 use super::game_entity::Enemy;
 use super::meteors::MeteorSize;
 use super::meteors::{self, Meteor};
@@ -267,10 +268,15 @@ impl Arena {
         // Spawn the inner circle
         let circle_radius = asteroid_bounds.radius + assets::METEOR_BIG_RADIUS * 2.0;
         let circle_circumference = 2.0 * PI * circle_radius;
-        commands.spawn(hollow_circle(
-            circle_radius,
-            (circle_circumference / 10.0) as u32,
-        ));
+        commands
+            .spawn(hollow_circle(
+                circle_radius,
+                (circle_circumference / 10.0) as u32,
+            ))
+            .insert(CollisionGroups {
+                memberships: groups::ARENA_GROUP,
+                filters: Group::all(),
+            });
         // Spawn the outer circle
     }
 

@@ -1,15 +1,17 @@
 use std::{cell::RefCell, collections::HashMap};
 
-use crate::game::{assets::KAMIKAZE_DRONE, guard_point::GuardPoint};
+use crate::game::{assets::groups, guard_point::GuardPoint};
 
 use super::components::KamikazeDroneLabel;
 use bevy::prelude::*;
-use bevy_rapier2d::{pipeline::QueryFilter, plugin::RapierContext, prelude::Velocity};
+use bevy_rapier2d::{
+    geometry::CollisionGroups, pipeline::QueryFilter, plugin::RapierContext, prelude::Velocity,
+};
 
-const BOID_MAX_SPEED: f32 = 200.0;
-const BOID_MIN_SPEED: f32 = 20.0;
+const DRONE_MAX_SPEED: f32 = 200.0;
+const DRONE_MIN_SPEED: f32 = 20.0;
 
-const BOID_MAX_Y: f32 = 200.0;
+const DRONE_MAX_Y: f32 = 200.0;
 
 const FOLLOW_RADIUS: f32 = 200.0;
 const AVOID_RADIUS: f32 = 40.0;
@@ -27,12 +29,12 @@ struct UpdateCompute {
     neighbors: f32,
 }
 
-// boids: https://vanhunteradams.com/Pico/Animal_Movement/Boids-algorithm.html
+// drones: https://vanhunteradams.com/Pico/Animal_Movement/drones-algorithm.html
 pub fn update(
     mut gizmos: Gizmos,
     time: Res<Time>,
     rapier_context: Res<RapierContext>,
-    mut boid_query: Query<
+    mut drone_query: Query<
         (Entity, &mut Transform, &mut Velocity, Option<&GuardPoint>),
         With<KamikazeDroneLabel>,
     >,
@@ -40,14 +42,14 @@ pub fn update(
     let mut compute_table = HashMap::<Entity, RefCell<UpdateCompute>>::default();
 
     // Apply the computation
-    for [boid_1, boid_2] in boid_query.iter_combinations() {
-        let diff = (boid_1.1.translation - boid_2.1.translation).truncate();
+    for [drone_1, drone_2] in drone_query.iter_combinations() {
+        let diff = (drone_1.1.translation - drone_2.1.translation).truncate();
         let distance = diff.length();
 
+        // This makes sure all entities exist in compute table
+        let (compute1_cell, compute2_cell) =
+            get_compute(&drone_1.0, &drone_2.0, &mut compute_table);
         if distance < FOLLOW_RADIUS {
-            let (compute1_cell, compute2_cell) =
-                get_compute(&boid_1.0, &boid_2.0, &mut compute_table);
-
             let compute1 = &mut *compute1_cell.borrow_mut();
             let compute2 = &mut *compute2_cell.borrow_mut();
 
@@ -57,10 +59,10 @@ pub fn update(
                 compute2.close -= diff;
             } else {
                 // Alignment
-                compute1.position_sum += boid_2.1.translation.truncate();
-                compute2.position_sum += boid_1.1.translation.truncate();
-                compute1.velocity_sum += boid_2.2.linvel;
-                compute2.velocity_sum += boid_1.2.linvel;
+                compute1.position_sum += drone_2.1.translation.truncate();
+                compute2.position_sum += drone_1.1.translation.truncate();
+                compute1.velocity_sum += drone_2.2.linvel;
+                compute2.velocity_sum += drone_1.2.linvel;
                 compute1.neighbors += 1.0;
                 compute2.neighbors += 1.0;
             }
@@ -70,7 +72,7 @@ pub fn update(
     // let shape = KAMIKAZE_DRONE.collider();
 
     // Apply the computation
-    for (entity, mut t, mut v, guard_point_opt) in boid_query.iter_mut() {
+    for (entity, mut t, mut v, guard_point_opt) in drone_query.iter_mut() {
         if let Some(compute_cell) = compute_table.get(&entity) {
             let compute = compute_cell.borrow();
 
@@ -107,16 +109,22 @@ pub fn update(
         // Check if the drone is heading to words collision
 
         let ray_start = t.translation.truncate();
-        let filter = QueryFilter::default(); // Should only look for meteors?
+        let mut filter = QueryFilter::default(); // Should only look for meteors?
+        filter = filter.exclude_sensors();
+        filter = filter.groups(CollisionGroups {
+            memberships: groups::ENEMY_GROUP,
+            filters: groups::METEOR_GROUP & groups::ENEMY_GROUP,
+        });
 
         // Cast a ray one second into the future fo the current direction
         // Note: Toi can be zero if the ray starts inside a collider. In that case, we ignore the ray.
 
         // First check if the ray hits a collider, in which case we need to avoid it
-        if let Some((_, ray_intersection)) =
+        if let Some((entity, ray_intersection)) =
             rapier_context.cast_ray_and_get_normal(ray_start, v.linvel, 1.0, true, filter)
         {
-            if ray_intersection.toi > 0.0 {
+            // We filter out the drones, because we don't want them to avoid each other
+            if ray_intersection.toi > 0.0 && !compute_table.contains_key(&entity) {
                 let avoidance = v.linvel.length()
                     * ray_intersection.normal
                     * COLLISION_AVODIANCE_FACTOR
@@ -151,14 +159,14 @@ pub fn update(
         //         );
         //     } else {
         //         // if the toi is zero, the ray starts inside the collider, so we will turn towards the center of the world
-        //         v.linvel = (Vec2::ZERO - ray_start).normalize() * BOID_MAX_SPEED;
+        //         v.linvel = (Vec2::ZERO - ray_start).normalize() * drone_MAX_SPEED;
         //     }
         // }
 
         if v.linvel.length() == 0.0 {
-            v.linvel = Vec2::Y * BOID_MAX_SPEED;
+            v.linvel = Vec2::Y * DRONE_MAX_SPEED;
         }
-        v.linvel.clamp_length(BOID_MIN_SPEED, BOID_MAX_SPEED);
+        v.linvel.clamp_length(DRONE_MIN_SPEED, DRONE_MAX_SPEED);
 
         // Update position
         // TODO: You need the average velocity of the frame, and delta_second is the velocity of the last frame, so this is wrong
@@ -167,7 +175,7 @@ pub fn update(
         let new_rotation = Quat::from_rotation_z(Vec2::Y.angle_between(v.linvel));
 
         if new_rotation.angle_between(t.rotation) < 0.1 {
-            v.linvel = (v.linvel * 1.1).clamp_length(BOID_MIN_SPEED, BOID_MAX_SPEED)
+            v.linvel = (v.linvel * 1.1).clamp_length(DRONE_MIN_SPEED, DRONE_MAX_SPEED)
         }
 
         t.rotation = new_rotation;
