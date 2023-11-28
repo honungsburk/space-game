@@ -54,7 +54,7 @@ pub fn spawn(
         Velocity::default(),
         KamikazeDroneLabel,
         asset.collider(),
-        Health::at_max(20),
+        Health::at_max(10),
         GameEntityType::Enemy,
     ));
 
