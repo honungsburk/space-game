@@ -7,7 +7,12 @@ use self::components::KamikazeDroneLabel;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
 
-use super::{assets, guard_point::GuardPoint};
+use super::{
+    assets::{self, KAMIKAZE_DRONE},
+    game_entity::GameEntityType,
+    guard_point::GuardPoint,
+    vitality::Health,
+};
 
 pub use components::KamikazeDroneTargetLabel;
 
@@ -48,6 +53,9 @@ pub fn spawn(
         },
         Velocity::default(),
         KamikazeDroneLabel,
+        asset.collider(),
+        Health::at_max(20),
+        GameEntityType::Enemy,
     ));
 
     if let Some(guard_point) = guard_point_opt {
