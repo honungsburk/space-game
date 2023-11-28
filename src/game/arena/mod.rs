@@ -275,12 +275,14 @@ impl Arena {
     }
 
     pub fn spawn_player(&self, commands: &mut Commands, asset_server: &Res<AssetServer>) {
-        player::spawn_player(
+        let id = player::spawn_player(
             commands,
             asset_server,
             self.player_spawn_locations.position,
             self.player_spawn_locations.rotation,
         );
+
+        player_camera::spawn(commands, id);
     }
 
     pub fn spawn_random_asteroids(

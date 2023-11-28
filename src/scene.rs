@@ -12,6 +12,7 @@ mod kamikaze_drone;
 mod main_game;
 mod player_death;
 mod player_movement;
+mod player_vs_kamikaze_drone;
 mod turret;
 mod turret_performance;
 
@@ -57,6 +58,7 @@ impl Plugin for ScenePlugin {
                 turret_performance::TurretPerformanceScenePlugin,
                 player_death::PlayerDeathScenePlugin,
                 enemy_ship_ai::EnemyShipAIScenePlugin,
+                player_vs_kamikaze_drone::PlayerVsKamikazeDroneScenePlugin,
             ))
             .add_systems(Startup, create)
             .add_systems(Update, update_scene);
@@ -101,6 +103,7 @@ pub enum GameScene {
     KamikazeDrone,
     Boid,
     Assets,
+    PlayerVsKamikazeDrone,
 }
 
 impl fmt::Display for GameScene {
@@ -116,6 +119,7 @@ impl fmt::Display for GameScene {
             GameScene::KamikazeDrone => write!(f, "Kamikaze Drone"),
             GameScene::Boid => write!(f, "Boid"),
             GameScene::Assets => write!(f, "Assets"),
+            GameScene::PlayerVsKamikazeDrone => write!(f, "Player Vs Kamikaze Drone"),
         }
     }
 }
@@ -162,6 +166,10 @@ fn create_input_map() -> InputMap<GameScene> {
         (InputKind::Keyboard(KeyCode::Key7), GameScene::KamikazeDrone),
         (InputKind::Keyboard(KeyCode::Key8), GameScene::Boid),
         (InputKind::Keyboard(KeyCode::Key9), GameScene::Assets),
+        (
+            InputKind::Keyboard(KeyCode::Key0),
+            GameScene::PlayerVsKamikazeDrone,
+        ),
     ]);
 
     input_map
