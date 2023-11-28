@@ -71,8 +71,4 @@ fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
             Some(guard_point),
         );
     }
-
-    // kamikaze_drone::spawn(&mut commands, &asset_server, Vec2::new(40.0, 0.0), 0.0);
-
-    // kamikaze_drone::spawn(&mut commands, &asset_server, Vec2::new(80.0, 0.0), 0.0);
 }
