@@ -68,9 +68,9 @@ pub fn spawn(
         Velocity::default(),
         RigidBody::Dynamic,
         // Thrustors
-        LinearThrustor::with_max_acceleration(1.0),
+        LinearThrustor::with_max_acceleration(100.0),
         AngularThrustor {
-            max_angular_acceleration: 1.0,
+            max_angular_acceleration: 5.0,
             control: PID::rotation(0.00001, 0.0, 0.00001, 0.0),
             ..default()
         },
