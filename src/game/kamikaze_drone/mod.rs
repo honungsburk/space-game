@@ -1,7 +1,7 @@
 mod components;
 mod systems;
 
-use crate::misc::transform::from_location_angle;
+use crate::misc::{control::PID, transform::from_location_angle};
 
 use self::components::KamikazeDroneLabel;
 use bevy::prelude::*;
@@ -69,7 +69,11 @@ pub fn spawn(
         RigidBody::Dynamic,
         // Thrustors
         LinearThrustor::with_max_acceleration(1.0),
-        AngularThrustor::with_max_angular_acceleration(1.0),
+        AngularThrustor {
+            max_angular_acceleration: 1.0,
+            control: PID::rotation(0.00001, 0.0, 0.00001, 0.0),
+            ..default()
+        },
     ));
 
     if let Some(guard_point) = guard_point_opt {

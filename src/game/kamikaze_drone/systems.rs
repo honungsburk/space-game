@@ -139,6 +139,7 @@ pub fn update(
         let ray_start = transform.translation.truncate();
         let mut filter = QueryFilter::default(); // Should only look for meteors?
         filter = filter.exclude_sensors();
+        filter.exclude_collider(entity); // Don't check against self
         filter = filter.groups(CollisionGroups {
             memberships: groups::ENEMY_GROUP,
             filters: groups::METEOR_GROUP & groups::ENEMY_GROUP,
@@ -181,7 +182,12 @@ pub fn update(
 
         // Update position
 
-        let target_angle = Vec2::Y.angle_between(target_velocity.linvel);
+        // let target_angle = Vec2::Y.angle_between(target_velocity.linvel);
+        let target_angle = if velocity.linvel.length() > 0.0 {
+            Vec2::Y.angle_between(velocity.linvel)
+        } else {
+            0.0
+        };
         let new_rotation = Quat::from_rotation_z(target_angle);
 
         if new_rotation.angle_between(transform.rotation) < 0.1 {

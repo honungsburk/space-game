@@ -88,7 +88,6 @@ pub fn spawn_player(
         .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(ActiveEvents::CONTACT_FORCE_EVENTS)
         .insert(ContactForceInvulnerability::new(0.1))
-        .insert(ReadMassProperties::default())
         .insert(ContactForceEventThreshold(0.0)) // TODO: increase this to some reasonable value
         .insert(Health::at_max(100))
         .insert(CollisionGroups::new(
@@ -103,6 +102,7 @@ pub fn spawn_player(
             linear_damping: 0.5,
             angular_damping: 1.0,
         })
+        .insert(ReadMassProperties::default())
         .insert(ExternalForce::default())
         .insert(ExternalImpulse::default())
         .insert(Velocity::default())

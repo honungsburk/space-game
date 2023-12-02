@@ -1,5 +1,8 @@
 #![allow(dead_code)]
 
+#[macro_use]
+extern crate approx;
+
 pub mod app_extension;
 pub mod cli;
 pub mod file_save;

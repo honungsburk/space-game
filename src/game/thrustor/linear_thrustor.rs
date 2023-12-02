@@ -22,9 +22,9 @@ pub struct LinearThrustor {
 
 impl Default for LinearThrustor {
     fn default() -> Self {
-        let kp: f32 = 0.005;
+        let kp: f32 = 0.001;
         let ki = 0.0;
-        let kd = 0.005;
+        let kd = 0.0;
         let setpoint = 0.0;
 
         Self {

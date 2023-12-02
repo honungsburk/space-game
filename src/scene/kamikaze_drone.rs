@@ -56,7 +56,7 @@ fn spawn(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn(Camera2dBundle::default())
         .insert(FollowEntityMovement::smooth(kamikaze_drone_entity));
 
-    let spawn_count = 100;
+    let spawn_count = 0;
 
     let mut rng = rand::thread_rng();
 

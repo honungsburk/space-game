@@ -11,9 +11,9 @@ use crate::misc::control::PID;
 /// Warning: There must be an ExternalImpulse, ReadMassProperties, and Transform component on the entity.
 #[derive(Component, Debug)]
 pub struct AngularThrustor {
-    is_on: bool,
-    control: PID,
-    max_angular_acceleration: f32,
+    pub is_on: bool,
+    pub control: PID,
+    pub max_angular_acceleration: f32,
 }
 
 impl Default for AngularThrustor {
