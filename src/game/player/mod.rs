@@ -3,8 +3,8 @@ pub mod components;
 mod systems;
 
 use crate::game::average_velocity::AverageVelocity;
-use crate::game::control_system::DirectionControl;
 use crate::game::game_entity::GameEntityType;
+use crate::game::thrustor::AngularThrustor;
 use crate::game::trauma::Trauma;
 use crate::game::vitality::Health;
 use crate::game::{assets, assets::groups, weapon::Weapon};
@@ -77,7 +77,7 @@ pub fn spawn_player(
         })
         .insert(PlayerLabel {})
         .insert(GameEntityType::Player)
-        .insert(DirectionControl::with_max_angular_acceleration(1.0))
+        .insert(AngularThrustor::with_max_angular_acceleration(1.0))
         .insert(InputManagerBundle::<PlayerShipAction> {
             action_state: ActionState::default(),
             input_map: actions::create_input_map(),

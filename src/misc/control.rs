@@ -8,6 +8,7 @@ use bevy::prelude::Vec2;
 // A PID controller continuously calculates an error value e(t) as the difference between a
 // desired setpoint (SP) and a measured process variable (PV) and applies a correction based on proportional, integral,
 // and derivative terms (denoted P, I, and D respectively) which give their name to the controller type.
+#[derive(Debug)]
 pub struct PID {
     kp: f32,
     ki: f32,
@@ -89,6 +90,7 @@ impl PID {
 }
 
 // 2D PID controller
+#[derive(Debug)]
 pub struct PID2D {
     pub x: PID,
     pub y: PID,

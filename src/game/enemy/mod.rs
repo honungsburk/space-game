@@ -18,11 +18,11 @@ mod ai;
 
 use super::assets;
 use super::assets::groups;
-use super::control_system::DirectionControl;
 use super::debug::VisionConeDebugFlag;
 use super::game_entity::Enemy;
 use super::game_entity::GameEntityType;
 use super::player::components::PlayerLabel;
+use super::thrustor::AngularThrustor;
 use super::vitality::Health;
 use super::weapon::Weapon;
 use crate::misc::rapier_extension;
@@ -189,7 +189,7 @@ fn update_enemy(
             &Velocity,
             &Transform,
             &VisionDonutSegment,
-            &mut DirectionControl,
+            &mut AngularThrustor,
             &mut ShipNavigationSystem,
         ),
         (With<EnemyShipLabel>, Without<PlayerLabel>),
@@ -249,7 +249,7 @@ fn update_enemy(
 
         // turn the influence vector into an angle
         let new_angle = Vec2::Y.angle_between(final_influence);
-        direction_control.set_setpoint(new_angle);
+        direction_control.set_desired_angle(new_angle);
 
         enemy_impulse.impulse = final_influence;
     }
@@ -300,7 +300,7 @@ pub fn spawn(
             angle: PI / 2.0,
         })
         .insert(ShipNavigationSystem::default())
-        .insert(DirectionControl::with_max_angular_acceleration(1.0))
+        .insert(AngularThrustor::with_max_angular_acceleration(1.0))
         .insert(ReadMassProperties::default())
         .insert(Health::at_max(50))
         .insert(Weapon::laser(

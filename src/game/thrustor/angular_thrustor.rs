@@ -5,15 +5,18 @@ use crate::misc::control::PID;
 
 /// Used to control an entity's rotation.
 ///
+/// It allows you to specify a desired angle, and it will apply forces to the entity to
+/// achieve the desired angle.
+///
 /// Warning: There must be an ExternalImpulse, ReadMassProperties, and Transform component on the entity.
-#[derive(Component)]
-pub struct DirectionControl {
+#[derive(Component, Debug)]
+pub struct AngularThrustor {
     is_on: bool,
     control: PID,
     max_angular_acceleration: f32,
 }
 
-impl Default for DirectionControl {
+impl Default for AngularThrustor {
     fn default() -> Self {
         Self {
             is_on: true,
@@ -23,7 +26,17 @@ impl Default for DirectionControl {
     }
 }
 
-impl DirectionControl {
+impl AngularThrustor {
+    /// Creates a new `AngularThrustor` with the specified control parameters and maximum angular acceleration.
+    ///
+    /// # Arguments
+    ///
+    /// * `control` - The PID controller used for controlling the angular thrust.
+    /// * `max_angular_acceleration` - The maximum angular acceleration allowed for the thrustor.
+    ///
+    /// # Returns
+    ///
+    /// A new `AngularThrustor` instance.
     pub fn new(control: PID, max_angular_acceleration: f32) -> Self {
         Self {
             control,
@@ -49,54 +62,64 @@ impl DirectionControl {
         }
     }
 
-    pub fn calculate_torque_impule(
+    pub fn calculate_torque_impulse(
         &mut self,
-        measured_value: f32,
+        angle: f32,
         angular_inertia: f32,
         dt: f32,
     ) -> Option<f32> {
         if dt > 0.0 && self.is_on {
             let max = self.max_angular_acceleration * angular_inertia;
-            Some(self.control.update(measured_value, dt).clamp(-max, max))
+            Some(self.control.update(angle, dt).clamp(-max, max))
         } else {
             None
         }
     }
 
-    pub fn set_setpoint(&mut self, setpoint: f32) {
-        self.control.set_setpoint(setpoint);
+    /// Sets the desired angle for the angular thrustor.
+    ///
+    /// # Arguments
+    ///
+    /// * `desired_angle` - The desired angle in radians.
+    pub fn set_desired_angle(&mut self, desired_angle: f32) {
+        self.control.set_setpoint(desired_angle);
     }
 
+    /// Turns on the angular thrustor.
     pub fn turn_on(&mut self) {
         self.is_on = true;
     }
 
+    /// Turns off the angular thrustor.
     pub fn turn_off(&mut self) {
         self.is_on = false;
     }
 
+    /// Returns whether the angular thrustor is turned on or off.
     pub fn is_on(&self) -> bool {
         self.is_on
     }
 
+    /// Checks if the angular thrustor is turned off.
     pub fn is_off(&self) -> bool {
         !self.is_on
     }
 }
 
-pub fn update_direction_control(
+/// A bevy system to update the angular thrustor.
+pub fn update(
     time: Res<Time>,
     mut query: Query<(
         &mut ExternalImpulse,
         &Transform,
-        &mut DirectionControl,
+        &mut AngularThrustor,
         &ReadMassProperties,
     )>,
 ) {
     for (mut impulse, transform, mut direction_control, mass) in query.iter_mut() {
         let (_, _, current_angle) = transform.rotation.to_euler(EulerRot::XYZ);
 
-        if let Some(torque_impulse) = direction_control.calculate_torque_impule(
+        if let Some(torque_impulse) = direction_control.calculate_torque_impulse(
             current_angle,
             mass.principal_inertia,
             time.delta_seconds(),

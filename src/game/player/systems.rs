@@ -1,6 +1,6 @@
 use super::components::{ContactForceInvulnerability, PlayerLabel};
 use super::PlayerShipAction;
-use crate::game::control_system::DirectionControl;
+use crate::game::thrustor::AngularThrustor;
 use crate::game::trauma::Trauma;
 use crate::game::vitality::Health;
 use crate::game::weapon::Weapon;
@@ -13,7 +13,7 @@ pub fn control_ship(
         (
             &mut ExternalImpulse,
             &Transform,
-            &mut DirectionControl,
+            &mut AngularThrustor,
             &ActionState<PlayerShipAction>,
         ),
         With<PlayerLabel>,
@@ -56,7 +56,7 @@ pub fn control_ship(
 
                 if desired_direction.length() > 0.5 {
                     let setpoint = Vec2::Y.angle_between(desired_direction);
-                    direction_control.set_setpoint(setpoint);
+                    direction_control.set_desired_angle(setpoint);
                     direction_control.turn_on();
                     // player_transform.rotation =
                     //     Quat::from_rotation_z(Vec2::Y.angle_between(desired_direction))

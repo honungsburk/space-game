@@ -4,7 +4,6 @@ pub mod average_velocity;
 pub mod background;
 pub mod boids;
 pub mod config;
-pub mod control_system;
 pub mod debug;
 pub mod enemy;
 pub mod events;
@@ -20,6 +19,7 @@ pub mod score;
 pub mod screen_bounds;
 pub mod sensor;
 mod systems;
+pub mod thrustor;
 pub mod time_to_live;
 pub mod trauma;
 pub mod turret;
@@ -41,7 +41,6 @@ use self::{
     average_velocity::AverageVelocityPlugin,
     background::BackgroundPlugin,
     boids::BoidsPlugin,
-    control_system::ControlSystemPlugin,
     debug::{DebugPlugin, VisualDebug},
     enemy::EnemyPlugin,
     events::GameOverEvent,
@@ -50,6 +49,7 @@ use self::{
     score::ScorePlugin,
     screen_bounds::ScreenBoundsPlugin,
     sensor::SensorPlugin,
+    thrustor::ThrustorPlugin,
     time_to_live::TimeToLivePlugin,
     trauma::TraumaPlugin,
     turret::TurretPlugin,
@@ -77,7 +77,7 @@ impl Plugin for GamePlugin {
             BoidsPlugin,
             KamikazeDronesPlugin,
             EnemyPlugin,
-            ControlSystemPlugin,
+            ThrustorPlugin,
             MovementPlugin,
             ScreenBoundsPlugin,
         ))
