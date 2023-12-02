@@ -300,10 +300,8 @@ pub fn spawn(
             angle: PI / 2.0,
         })
         .insert(ShipNavigationSystem::default())
-        .insert(DirectionControl {
-            torque_impulse_magnitude: 0.005,
-            ..Default::default()
-        })
+        .insert(DirectionControl::with_max_angular_acceleration(1.0))
+        .insert(ReadMassProperties::default())
         .insert(Health::at_max(50))
         .insert(Weapon::laser(
             10,

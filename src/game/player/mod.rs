@@ -77,10 +77,7 @@ pub fn spawn_player(
         })
         .insert(PlayerLabel {})
         .insert(GameEntityType::Player)
-        .insert(DirectionControl {
-            torque_impulse_magnitude: 0.005,
-            ..Default::default()
-        })
+        .insert(DirectionControl::with_max_angular_acceleration(1.0))
         .insert(InputManagerBundle::<PlayerShipAction> {
             action_state: ActionState::default(),
             input_map: actions::create_input_map(),

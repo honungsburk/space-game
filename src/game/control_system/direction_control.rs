@@ -1,88 +1,107 @@
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::ExternalImpulse;
+use bevy_rapier2d::{dynamics::ReadMassProperties, prelude::ExternalImpulse};
 
 use crate::misc::control::PID;
 
 /// Used to control an entity's rotation.
 ///
-/// Warning: There myust be an ExternalImpulse and Transform component on the entity.
+/// Warning: There must be an ExternalImpulse, ReadMassProperties, and Transform component on the entity.
 #[derive(Component)]
 pub struct DirectionControl {
-    pub is_enabled: bool,
-    pub control: PID,
-    pub torque_impulse_magnitude: f32,
-    pub torque_impulse_max: f32,
+    is_on: bool,
+    control: PID,
+    max_angular_acceleration: f32,
 }
 
 impl Default for DirectionControl {
     fn default() -> Self {
         Self {
-            is_enabled: true,
-            control: PID::rotation(1.0, 0.0, 1.0, 0.0),
-            torque_impulse_magnitude: 1.0,
-            torque_impulse_max: f32::MAX,
+            is_on: true,
+            control: PID::rotation(0.005, 0.0, 0.005, 0.0),
+            max_angular_acceleration: f32::MAX,
         }
     }
 }
 
 impl DirectionControl {
-    pub fn new(
-        is_enabled: bool,
-        control: PID,
-        torque_impulse_magnitude: f32,
-        torque_impulse_max: f32,
-    ) -> Self {
+    pub fn new(control: PID, max_angular_acceleration: f32) -> Self {
         Self {
-            is_enabled,
             control,
-            torque_impulse_magnitude,
-            torque_impulse_max,
+            max_angular_acceleration,
+            ..default()
         }
     }
 
-    pub fn calculate_torque_impule(&mut self, measured_value: f32, dt: f32) -> Option<f32> {
-        if self.is_enabled && dt > 0.0 {
-            Some(
-                (self.control.update(measured_value, dt) * self.torque_impulse_magnitude)
-                    .clamp(-self.torque_impulse_max, self.torque_impulse_max),
-            )
+    /// Create a DirectionControl that will control the entity's rotation.
+    ///
+    /// # Arguments
+    /// - `max_angular_acceleration`: The maximum angular acceleration of the entity. Measured in radians per second squared.
+    ///
+    /// # Returns
+    /// A DirectionControl that will control the entity's rotation.
+    ///
+    /// # Links
+    /// - [Angular Acceleration](https://en.wikipedia.org/wiki/Angular_acceleration)
+    pub fn with_max_angular_acceleration(max_angular_acceleration: f32) -> Self {
+        Self {
+            max_angular_acceleration: max_angular_acceleration,
+            ..default()
+        }
+    }
+
+    pub fn calculate_torque_impule(
+        &mut self,
+        measured_value: f32,
+        angular_inertia: f32,
+        dt: f32,
+    ) -> Option<f32> {
+        if dt > 0.0 && self.is_on {
+            let max = self.max_angular_acceleration * angular_inertia;
+            Some(self.control.update(measured_value, dt).clamp(-max, max))
         } else {
             None
         }
     }
 
-    pub fn turn_off(&mut self) {
-        self.is_enabled = false;
+    pub fn set_setpoint(&mut self, setpoint: f32) {
+        self.control.set_setpoint(setpoint);
     }
 
     pub fn turn_on(&mut self) {
-        self.is_enabled = true;
+        self.is_on = true;
     }
 
-    pub fn flip(&mut self) {
-        self.is_enabled = !self.is_enabled;
+    pub fn turn_off(&mut self) {
+        self.is_on = false;
     }
 
-    pub fn is_enabled(&self) -> bool {
-        self.is_enabled
+    pub fn is_on(&self) -> bool {
+        self.is_on
     }
 
-    pub fn set_setpoint(&mut self, setpoint: f32) {
-        self.control.set_setpoint(setpoint);
+    pub fn is_off(&self) -> bool {
+        !self.is_on
     }
 }
 
 pub fn update_direction_control(
     time: Res<Time>,
-    mut query: Query<(&mut ExternalImpulse, &Transform, &mut DirectionControl)>,
+    mut query: Query<(
+        &mut ExternalImpulse,
+        &Transform,
+        &mut DirectionControl,
+        &ReadMassProperties,
+    )>,
 ) {
-    for (mut player_impulse, player_transform, mut direction_control) in query.iter_mut() {
-        let (_, _, current_angle) = player_transform.rotation.to_euler(EulerRot::XYZ);
+    for (mut impulse, transform, mut direction_control, mass) in query.iter_mut() {
+        let (_, _, current_angle) = transform.rotation.to_euler(EulerRot::XYZ);
 
-        if let Some(torque_impulse) =
-            direction_control.calculate_torque_impule(current_angle, time.delta_seconds())
-        {
-            player_impulse.torque_impulse = torque_impulse;
+        if let Some(torque_impulse) = direction_control.calculate_torque_impule(
+            current_angle,
+            mass.principal_inertia,
+            time.delta_seconds(),
+        ) {
+            impulse.torque_impulse = torque_impulse;
         }
     }
 }
