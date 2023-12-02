@@ -1,6 +1,10 @@
 use std::{cell::RefCell, collections::HashMap};
 
-use crate::game::{assets::groups, guard_point::GuardPoint};
+use crate::game::{
+    assets::groups,
+    guard_point::GuardPoint,
+    thrustor::{AngularThrustor, LinearThrustor},
+};
 
 use super::components::{KamikazeDroneLabel, KamikazeDroneTargetLabel};
 use bevy::prelude::*;
@@ -34,11 +38,17 @@ struct UpdateCompute {
 // drones: https://vanhunteradams.com/Pico/Animal_Movement/drones-algorithm.html
 pub fn update(
     mut gizmos: Gizmos,
-    time: Res<Time>,
     rapier_context: Res<RapierContext>,
     targets_query: Query<&Transform, (With<KamikazeDroneTargetLabel>, Without<KamikazeDroneLabel>)>,
     mut drone_query: Query<
-        (Entity, &mut Transform, &mut Velocity, Option<&GuardPoint>),
+        (
+            Entity,
+            &Transform,
+            &Velocity,
+            Option<&GuardPoint>,
+            &mut AngularThrustor,
+            &mut LinearThrustor,
+        ),
         (With<KamikazeDroneLabel>, Without<KamikazeDroneTargetLabel>),
     >,
 ) {
@@ -75,53 +85,58 @@ pub fn update(
     // let shape = KAMIKAZE_DRONE.collider();
 
     // Apply the computation
-    for (entity, mut t, mut v, guard_point_opt) in drone_query.iter_mut() {
+    for (entity, transform, velocity, guard_point_opt, mut angular_thrustor, mut linear_thrustor) in
+        drone_query.iter_mut()
+    {
+        let mut target_velocity = velocity.clone();
+
         if let Some(compute_cell) = compute_table.get(&entity) {
             let compute = compute_cell.borrow();
 
             let mut velocity_change = compute.close * AVOID_FACTOR;
 
             if compute.neighbors > 0.0 {
-                velocity_change +=
-                    ((compute.velocity_sum / compute.neighbors) - v.linvel) * MATCHING_FACTOR;
+                velocity_change += ((compute.velocity_sum / compute.neighbors) - velocity.linvel)
+                    * MATCHING_FACTOR;
 
                 velocity_change += ((compute.position_sum / compute.neighbors)
-                    - t.translation.truncate())
+                    - transform.translation.truncate())
                     * CENTERING_FACTOR;
             }
 
-            v.linvel += velocity_change;
+            target_velocity.linvel += velocity_change;
         }
 
         for target_t in targets_query.iter() {
-            let diff = target_t.translation.truncate() - t.translation.truncate();
+            let diff = target_t.translation.truncate() - transform.translation.truncate();
             let distance = diff.length();
 
             if distance < TARGET_RADIUS {
-                let speed = v.linvel.length();
-                v.linvel += speed * diff.normalize() * ((0.5 * distance / TARGET_RADIUS) + 0.5);
+                let speed = target_velocity.linvel.length();
+                target_velocity.linvel +=
+                    speed * diff.normalize() * ((0.5 * distance / TARGET_RADIUS) + 0.5);
             }
         }
 
         if let Some(guard_point) = guard_point_opt {
-            let diff = guard_point.point - t.translation.truncate();
+            let diff = guard_point.point - transform.translation.truncate();
             // When we are 90% of the way to the guard point, we start trying to turn around
             let distance = diff.length() - guard_point.max_distance * 0.9;
 
             if distance > 0.0 {
-                let speed = v.linvel.length();
+                let speed = target_velocity.linvel.length();
 
                 // v_dist will be 1.0 when 95% of the way to the guard point, and 2.0 when 100% of the way, and 3.0 when 105% of the way ...
                 let distance_strength = guard_point.max_distance * 0.05;
                 let v_dist = distance / distance_strength;
 
-                v.linvel += speed * diff.normalize() * v_dist * v_dist;
+                target_velocity.linvel += speed * diff.normalize() * v_dist * v_dist;
             }
         }
 
         // Check if the drone is heading to words collision
 
-        let ray_start = t.translation.truncate();
+        let ray_start = transform.translation.truncate();
         let mut filter = QueryFilter::default(); // Should only look for meteors?
         filter = filter.exclude_sensors();
         filter = filter.groups(CollisionGroups {
@@ -133,65 +148,49 @@ pub fn update(
         // Note: Toi can be zero if the ray starts inside a collider. In that case, we ignore the ray.
 
         // First check if the ray hits a collider, in which case we need to avoid it
-        if let Some((entity, ray_intersection)) =
-            rapier_context.cast_ray_and_get_normal(ray_start, v.linvel, 1.0, true, filter)
-        {
+        if let Some((entity, ray_intersection)) = rapier_context.cast_ray_and_get_normal(
+            ray_start,
+            target_velocity.linvel,
+            1.0,
+            true,
+            filter,
+        ) {
             // We filter out the drones, because we don't want them to avoid each other
             if ray_intersection.toi > 0.0 && !compute_table.contains_key(&entity) {
-                let avoidance = v.linvel.length()
+                let avoidance = target_velocity.linvel.length()
                     * ray_intersection.normal
                     * COLLISION_AVODIANCE_FACTOR
                     * (1.0 / ray_intersection.toi - 1.0);
-                v.linvel += avoidance;
+                target_velocity.linvel += avoidance;
 
                 //direction * COLLISION_AVODIANCE_FACTOR * (1.0 / toi);
                 gizmos.line(
                     ray_start.extend(0.0),
-                    (ray_start + v.linvel * ray_intersection.toi).extend(0.0),
+                    (ray_start + target_velocity.linvel * ray_intersection.toi).extend(0.0),
                     Color::RED,
                 );
             }
         }
 
-        // if let Some((_, toi)) =
-        //     rapier_context.cast_shape(ray_start, 0.0, v.linvel, &shape, 1.0, true, filter)
-        // {
-        //     // let details: ToiDetails = ray_intersection.details.unwrap();
-
-        //     if toi.toi > 0.0 {
-        //         //
-        //         let avoidance =
-        //             v.linvel.length() * COLLISION_AVODIANCE_FACTOR * (1.0 / toi.toi - 1.0);
-        //         v.linvel -= avoidance;
-
-        //         //direction * COLLISION_AVODIANCE_FACTOR * (1.0 / toi);
-        //         gizmos.line(
-        //             ray_start.extend(0.0),
-        //             (ray_start + v.linvel * toi.toi).extend(0.0),
-        //             Color::RED,
-        //         );
-        //     } else {
-        //         // if the toi is zero, the ray starts inside the collider, so we will turn towards the center of the world
-        //         v.linvel = (Vec2::ZERO - ray_start).normalize() * drone_MAX_SPEED;
-        //     }
-        // }
-
-        if v.linvel.length() == 0.0 {
-            v.linvel = Vec2::Y * DRONE_MAX_SPEED;
+        if target_velocity.linvel.length() == 0.0 {
+            target_velocity.linvel = Vec2::Y * DRONE_MAX_SPEED;
         }
-        v.linvel.clamp_length(DRONE_MIN_SPEED, DRONE_MAX_SPEED);
+        target_velocity
+            .linvel
+            .clamp_length(DRONE_MIN_SPEED, DRONE_MAX_SPEED);
 
         // Update position
-        // TODO: You need the average velocity of the frame, and delta_second is the velocity of the last frame, so this is wrong
-        t.translation += v.linvel.extend(0.0) * time.delta_seconds();
 
-        let new_rotation = Quat::from_rotation_z(Vec2::Y.angle_between(v.linvel));
+        let target_angle = Vec2::Y.angle_between(target_velocity.linvel);
+        let new_rotation = Quat::from_rotation_z(target_angle);
 
-        if new_rotation.angle_between(t.rotation) < 0.1 {
-            v.linvel = (v.linvel * 1.1).clamp_length(DRONE_MIN_SPEED, DRONE_MAX_SPEED)
+        if new_rotation.angle_between(transform.rotation) < 0.1 {
+            target_velocity.linvel =
+                (target_velocity.linvel * 1.1).clamp_length(DRONE_MIN_SPEED, DRONE_MAX_SPEED)
         }
 
-        t.rotation = new_rotation;
+        linear_thrustor.set_desired_velocity(target_velocity.linvel);
+        angular_thrustor.set_desired_angle(target_angle);
     }
 }
 

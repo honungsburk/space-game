@@ -5,12 +5,16 @@ use crate::misc::transform::from_location_angle;
 
 use self::components::KamikazeDroneLabel;
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::Velocity;
+use bevy_rapier2d::{
+    dynamics::{ExternalForce, ExternalImpulse, ReadMassProperties, RigidBody},
+    prelude::Velocity,
+};
 
 use super::{
-    assets::{self, KAMIKAZE_DRONE},
+    assets,
     game_entity::GameEntityType,
     guard_point::GuardPoint,
+    thrustor::{AngularThrustor, LinearThrustor},
     vitality::Health,
 };
 
@@ -51,11 +55,21 @@ pub fn spawn(
             texture: asset_server.load(asset.sprite_path),
             ..Default::default()
         },
-        Velocity::default(),
+        // Labels
         KamikazeDroneLabel,
-        asset.collider(),
-        Health::at_max(10),
         GameEntityType::Enemy,
+        // Stats
+        Health::at_max(10),
+        // Physics
+        asset.collider(),
+        ReadMassProperties::default(),
+        ExternalForce::default(),
+        ExternalImpulse::default(),
+        Velocity::default(),
+        RigidBody::Dynamic,
+        // Thrustors
+        LinearThrustor::with_max_acceleration(100.0),
+        AngularThrustor::with_max_angular_acceleration(1.0),
     ));
 
     if let Some(guard_point) = guard_point_opt {

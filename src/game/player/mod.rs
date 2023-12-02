@@ -103,18 +103,9 @@ pub fn spawn_player(
             linear_damping: 0.5,
             angular_damping: 1.0,
         })
-        .insert(ExternalForce {
-            force: Vec2::ZERO,
-            torque: 0.0,
-        })
-        .insert(ExternalImpulse {
-            impulse: Vec2::ZERO,
-            torque_impulse: 0.0,
-        })
-        .insert(Velocity {
-            linvel: Vec2::ZERO,
-            angvel: 0.0,
-        })
+        .insert(ExternalForce::default())
+        .insert(ExternalImpulse::default())
+        .insert(Velocity::default())
         .insert(KamikazeDroneTargetLabel)
         .insert(AverageVelocity::new(0.5))
         .insert(Weapon::laser(
