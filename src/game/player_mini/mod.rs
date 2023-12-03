@@ -26,9 +26,9 @@ use super::kamikaze_drone::KamikazeDroneTargetLabel;
 // Plugin
 ////////////////////////////////////////////////////////////////////////////////
 
-pub struct PlayerPlugin;
+pub struct PlayerMiniPlugin;
 
-impl Plugin for PlayerPlugin {
+impl Plugin for PlayerMiniPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(InputManagerPlugin::<PlayerShipAction>::default())
             .add_systems(
@@ -83,7 +83,7 @@ pub fn spawn_player(
             input_map: actions::create_input_map(),
         })
         .insert(RigidBody::Dynamic)
-        .insert(assets::PLAYER_SHIP.collider())
+        .insert(assets::PLAYER_SHIP_MINI.collider())
         .insert(Trauma::default())
         .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(ActiveEvents::CONTACT_FORCE_EVENTS)
@@ -98,16 +98,10 @@ pub fn spawn_player(
             groups::PLAYER_GROUP.into(),
             groups::PLAYER_FILTER_MASK.into(),
         ))
-        // .insert(Damping {
-        //     linear_damping: 0.5,
-        //     angular_damping: 1.0,
-        // })
         .insert(ReadMassProperties::default())
         .insert(ExternalForce::default())
         .insert(ExternalImpulse::default())
         .insert(Velocity::default())
-        .insert(KamikazeDroneTargetLabel)
-        .insert(AverageVelocity::new(0.5))
         .insert(Weapon::laser(
             10,
             1000.0,

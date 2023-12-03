@@ -14,10 +14,13 @@ pub mod meteors;
 pub mod movement;
 pub mod player;
 pub mod player_camera;
+pub mod player_mini;
 pub mod projectile;
 pub mod score;
 pub mod screen_bounds;
 pub mod sensor;
+pub mod simple_enemy;
+pub mod spawner;
 mod systems;
 pub mod thrustor;
 pub mod time_to_live;
@@ -49,6 +52,8 @@ use self::{
     score::ScorePlugin,
     screen_bounds::ScreenBoundsPlugin,
     sensor::SensorPlugin,
+    simple_enemy::SimpleEnemyPlugin,
+    spawner::SpawnerPlugin,
     thrustor::ThrustorPlugin,
     time_to_live::TimeToLivePlugin,
     trauma::TraumaPlugin,
@@ -80,6 +85,8 @@ impl Plugin for GamePlugin {
             ThrustorPlugin,
             MovementPlugin,
             ScreenBoundsPlugin,
+            SimpleEnemyPlugin,
+            SpawnerPlugin,
         ))
         .add_plugins((
             DebugPlugin {

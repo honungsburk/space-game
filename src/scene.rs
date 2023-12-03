@@ -13,6 +13,7 @@ mod main_game;
 mod player_death;
 mod player_movement;
 mod player_vs_kamikaze_drone;
+mod survival;
 mod turret;
 mod turret_performance;
 
@@ -59,6 +60,7 @@ impl Plugin for ScenePlugin {
                 player_death::PlayerDeathScenePlugin,
                 enemy_ship_ai::EnemyShipAIScenePlugin,
                 player_vs_kamikaze_drone::PlayerVsKamikazeDroneScenePlugin,
+                survival::SurvivalScenePlugin,
             ))
             .add_systems(Startup, create)
             .add_systems(Update, update_scene);
@@ -104,6 +106,7 @@ pub enum GameScene {
     Boid,
     Assets,
     PlayerVsKamikazeDrone,
+    Survival,
 }
 
 impl fmt::Display for GameScene {
@@ -120,6 +123,7 @@ impl fmt::Display for GameScene {
             GameScene::Boid => write!(f, "Boid"),
             GameScene::Assets => write!(f, "Assets"),
             GameScene::PlayerVsKamikazeDrone => write!(f, "Player Vs Kamikaze Drone"),
+            GameScene::Survival => write!(f, "Survival"),
         }
     }
 }

@@ -47,7 +47,12 @@ pub const ALL: [&'static [&'static Asset]; 6] = [
 
 // PLAYER
 
-pub const ALL_PLAYERS: [&'static Asset; 1] = [&PLAYER_SHIP];
+pub const ALL_PLAYERS: [&'static Asset; 2] = [&PLAYER_SHIP, &PLAYER_SHIP_MINI];
+
+pub const PLAYER_SHIP_MINI: Asset =
+    Asset::new("Player Ship Mini", "sprites/player_ship_mini_1.png", || {
+        Collider::ball(50.0)
+    });
 
 pub const PLAYER_SHIP: Asset =
     Asset::new("Player Ship", "sprites/playerShip1_blue.png", ship_collider);

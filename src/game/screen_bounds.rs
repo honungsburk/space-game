@@ -70,6 +70,14 @@ impl ScreenBounds {
             && position.y > self.bottom
             && position.y < self.top
     }
+
+    pub fn center(&self) -> Vec2 {
+        self.center
+    }
+
+    pub fn half_diagonal(&self) -> f32 {
+        self.center.distance(Vec2::new(self.left, self.top))
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
