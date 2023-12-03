@@ -11,7 +11,10 @@ pub enum VitalitySystem {
     DeathCheck,
 }
 
-use super::game_entity::GameEntityType;
+use super::{
+    game_entity::GameEntityType,
+    item_drop::{ItemDrop, ItemDropEvent},
+};
 
 pub struct VitalityPlugin;
 
@@ -60,14 +63,28 @@ impl DeathEvent {
 pub fn update_death(
     mut commands: Commands,
     mut death_event_writer: EventWriter<DeathEvent>,
-    query: Query<(Entity, &Health, Option<&GameEntityType>)>,
+    mut drop_event_writer: EventWriter<ItemDropEvent>,
+    query: Query<(
+        Entity,
+        &Health,
+        &Transform,
+        Option<&GameEntityType>,
+        Option<&ItemDrop>,
+    )>,
 ) {
-    for (entity, health, game_entity_type) in query.iter() {
+    for (entity, health, transform, game_entity_type, item_drop_op) in query.iter() {
         if health.is_dead() {
             commands.entity(entity).despawn_recursive();
 
             if let Some(game_entity_type) = game_entity_type {
                 death_event_writer.send(DeathEvent::new(entity, *game_entity_type));
+            }
+
+            if let Some(item_drop) = item_drop_op {
+                drop_event_writer.send(ItemDropEvent::new(
+                    transform.translation.truncate(),
+                    item_drop.items().clone(),
+                ));
             }
         }
     }

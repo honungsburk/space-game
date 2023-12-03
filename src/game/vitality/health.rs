@@ -81,6 +81,11 @@ impl Health {
         self.take_damage_u32(damage.0)
     }
 
+    /// Sets the current health to 0, effectively killing the entity.
+    pub fn kill(&mut self) {
+        self.current = 0;
+    }
+
     /// Take damage from a u32
     ///
     /// # Arguments

@@ -7,6 +7,7 @@ use crate::{
 use bevy::prelude::*;
 use bevy_rapier2d::dynamics::Velocity;
 use leafwing_input_manager::action_state::ActionState;
+use serde::de;
 ////////////////////////////////////////////////////////////////////////////////
 /// Plugin
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,6 +79,8 @@ impl FollowEntityMovementBundle {
 pub struct FollowEntityMovement {
     pub target: Option<Entity>,
     pub pid: PID2D,
+    pub with_velocity_lookahead: bool,
+    pub with_rotation_lookahead: bool,
 }
 
 impl Default for FollowEntityMovement {
@@ -88,13 +91,19 @@ impl Default for FollowEntityMovement {
                 PID::basic(1.0, 0.0, 0.0, 0.0),
                 PID::basic(1.0, 0.0, 0.0, 0.0),
             ),
+            with_velocity_lookahead: false,
+            with_rotation_lookahead: false,
         }
     }
 }
 
 impl FollowEntityMovement {
     pub fn new(target: Option<Entity>, pid: PID2D) -> Self {
-        Self { target, pid }
+        Self {
+            target,
+            pid,
+            ..default()
+        }
     }
 
     pub fn basic(target: Entity) -> Self {
@@ -104,6 +113,7 @@ impl FollowEntityMovement {
                 PID::basic(1.0, 0.0, 0.0, 0.0),
                 PID::basic(1.0, 0.0, 0.0, 0.0),
             ),
+            ..default()
         }
     }
 
@@ -114,6 +124,8 @@ impl FollowEntityMovement {
                 PID::basic(0.05, 0.1, 0.0, 0.0),
                 PID::basic(0.05, 0.1, 0.0, 0.0),
             ),
+            with_velocity_lookahead: true,
+            with_rotation_lookahead: true,
         }
     }
 
@@ -153,20 +165,27 @@ pub fn update(
                 .and_then(|target| target_query.get_mut(target).ok())
         {
             // Determine desired camera placement
-            let player_rotation = if let Some(axis_data) = input_action_opt
-                .and_then(|action| action.clamped_axis_pair(PlayerShipAction::RotateShip))
-            {
-                100.0 * axis_data.xy()
-            } else {
-                target_transform.rotation.mul_vec3(Vec3::Y).xy().normalize() * 100.0
-            };
 
-            let linvel = target_velocity_opt
-                .map(|vel| vel.linvel)
-                .unwrap_or(Vec2::ZERO);
+            let mut desired_camera_placement = target_transform.translation.xy();
 
-            let desired_camera_placement = target_transform.translation.xy()
-                + (player_rotation + linvel).clamp_length(0.0, 200.0);
+            if follow_entity_movement.with_velocity_lookahead {
+                let linvel = target_velocity_opt
+                    .map(|vel| vel.linvel)
+                    .unwrap_or(Vec2::ZERO);
+                desired_camera_placement += linvel.clamp_length_max(100.0);
+            }
+
+            if follow_entity_movement.with_rotation_lookahead {
+                let player_rotation = if let Some(axis_data) = input_action_opt
+                    .and_then(|action| action.clamped_axis_pair(PlayerShipAction::RotateShip))
+                {
+                    100.0 * axis_data.xy()
+                } else {
+                    target_transform.rotation.mul_vec3(Vec3::Y).xy().normalize() * 100.0
+                };
+
+                desired_camera_placement += player_rotation.clamp_length_max(100.0);
+            }
 
             follow_entity_movement
                 .pid

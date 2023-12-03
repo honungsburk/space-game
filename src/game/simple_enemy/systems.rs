@@ -33,9 +33,11 @@ pub fn update(
 }
 
 pub fn update_on_collision(
-    mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
-    simple_enemy_query: Query<&Damage, (Without<PlayerLabel>, With<SimpleEnemyLabel>)>,
+    mut simple_enemy_query: Query<
+        (&Damage, &mut Health),
+        (Without<PlayerLabel>, With<SimpleEnemyLabel>),
+    >,
     mut player_query: Query<
         (&mut Health, &Transform),
         (With<PlayerLabel>, Without<SimpleEnemyLabel>),
@@ -50,8 +52,7 @@ pub fn update_on_collision(
                 }
 
                 let did_resolve = resolve_projectile_collision(
-                    &mut commands,
-                    &simple_enemy_query,
+                    &mut simple_enemy_query,
                     &mut player_query,
                     entity1,
                     entity2,
@@ -59,8 +60,7 @@ pub fn update_on_collision(
 
                 if !did_resolve {
                     resolve_projectile_collision(
-                        &mut commands,
-                        &simple_enemy_query,
+                        &mut simple_enemy_query,
                         &mut player_query,
                         entity2,
                         entity1,
@@ -73,8 +73,10 @@ pub fn update_on_collision(
 }
 
 fn resolve_projectile_collision(
-    commands: &mut Commands,
-    simple_enemy_query: &Query<&Damage, (Without<PlayerLabel>, With<SimpleEnemyLabel>)>,
+    simple_enemy_query: &mut Query<
+        (&Damage, &mut Health),
+        (Without<PlayerLabel>, With<SimpleEnemyLabel>),
+    >,
     player_query: &mut Query<
         (&mut Health, &Transform),
         (With<PlayerLabel>, Without<SimpleEnemyLabel>),
@@ -82,10 +84,10 @@ fn resolve_projectile_collision(
     entity1: &Entity,
     entity2: &Entity,
 ) -> bool {
-    if let Ok(damage) = simple_enemy_query.get(*entity1) {
-        commands.entity(*entity1).despawn_recursive();
-        if let Ok((mut health, transform)) = player_query.get_mut(*entity2) {
-            health.take_damage(damage);
+    if let Ok((damage, mut enemy_health)) = simple_enemy_query.get_mut(*entity1) {
+        if let Ok((mut player_health, transform)) = player_query.get_mut(*entity2) {
+            player_health.take_damage(damage);
+            enemy_health.kill();
             return true;
         } else {
             return false;

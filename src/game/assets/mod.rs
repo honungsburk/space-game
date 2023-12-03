@@ -36,13 +36,14 @@ impl Asset {
 // Assets
 ////////////////////////////////////////////////////////////////////////////////
 
-pub const ALL: [&'static [&'static Asset]; 6] = [
+pub const ALL: [&'static [&'static Asset]; 7] = [
     &ALL_PLAYERS,
     &ALL_METEORS,
     &ALL_TURRET_BASES,
     &ALL_GUNS,
     &ALL_PROJECTILES,
     &ALL_ENEMIES,
+    &ALL_PICKUPS,
 ];
 
 // PLAYER
@@ -271,3 +272,13 @@ pub const KAMIKAZE_DRONE: Asset =
     Asset::new("Kamikaze Drone", "sprites/enemy/kamikaze_drone.png", || {
         Collider::ball(10.0)
     });
+
+// Pickup
+
+pub const ALL_PICKUPS: [&'static Asset; 1] = [&PICKUP_EXPERIENCE];
+
+pub const PICKUP_EXPERIENCE: Asset = Asset::new(
+    "Experience Pickup",
+    "sprites/pickups/pickup_experience.png",
+    || Collider::ball(10.0),
+);

@@ -9,6 +9,8 @@ pub mod enemy;
 pub mod events;
 pub mod game_entity;
 pub mod guard_point;
+pub mod item_drop;
+pub mod item_pickups;
 pub mod kamikaze_drone;
 pub mod meteors;
 pub mod movement;
@@ -47,6 +49,8 @@ use self::{
     debug::{DebugPlugin, VisualDebug},
     enemy::EnemyPlugin,
     events::GameOverEvent,
+    item_drop::ItemDropPlugin,
+    item_pickups::ItemPickupPlugin,
     kamikaze_drone::KamikazeDronesPlugin,
     movement::MovementPlugin,
     score::ScorePlugin,
@@ -87,6 +91,8 @@ impl Plugin for GamePlugin {
             ScreenBoundsPlugin,
             SimpleEnemyPlugin,
             SpawnerPlugin,
+            ItemPickupPlugin,
+            ItemDropPlugin,
         ))
         .add_plugins((
             DebugPlugin {

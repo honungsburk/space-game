@@ -20,6 +20,7 @@ pub use components::PlayerLabel;
 
 use self::components::ContactForceInvulnerability;
 
+use super::item_pickups::PickupRadius;
 use super::kamikaze_drone::KamikazeDroneTargetLabel;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -98,6 +99,7 @@ pub fn spawn_player(
             groups::PLAYER_GROUP.into(),
             groups::PLAYER_FILTER_MASK.into(),
         ))
+        .insert(PickupRadius::new(200.0))
         // .insert(Damping {
         //     linear_damping: 0.5,
         //     angular_damping: 1.0,

@@ -13,6 +13,7 @@ use bevy_rapier2d::{
 use super::{
     assets::{self, groups},
     game_entity::GameEntityType,
+    item_drop::ItemDropBuilder,
     thrustor::{AngularThrustor, LinearThrustor},
     vitality::{Damage, Health},
 };
@@ -46,6 +47,7 @@ pub fn spawn(
 ) -> Entity {
     let spawn_transform = from_location_angle(location, rotation);
     let asset = assets::KAMIKAZE_DRONE;
+    let drop = ItemDropBuilder::new().add_experience(10).build();
 
     commands
         .spawn((
@@ -82,6 +84,7 @@ pub fn spawn(
                     .into(),
             ),
         ))
+        .insert(drop)
         .id()
 }
 

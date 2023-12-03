@@ -2,7 +2,6 @@ mod actions;
 pub mod components;
 mod systems;
 
-use crate::game::average_velocity::AverageVelocity;
 use crate::game::game_entity::GameEntityType;
 use crate::game::thrustor::AngularThrustor;
 use crate::game::trauma::Trauma;
@@ -19,8 +18,6 @@ pub use actions::PlayerShipAction;
 pub use components::PlayerLabel;
 
 use self::components::ContactForceInvulnerability;
-
-use super::kamikaze_drone::KamikazeDroneTargetLabel;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Plugin

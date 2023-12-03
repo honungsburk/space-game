@@ -9,12 +9,14 @@ pub const ENEMY_GROUP: Group = Group::GROUP_5;
 pub const ENEMY_PROJECTILE_GROUP: Group = Group::GROUP_6;
 pub const KAMIKAZE_DRONE_GROUP: Group = Group::GROUP_7;
 pub const SENSOR_GROUP: Group = Group::GROUP_8;
+pub const PICKUP_GROUP: Group = Group::GROUP_9;
 
 // Entity Collision Filters
 pub const PLAYER_FILTER_MASK: Group = METEOR_GROUP
     .union(ARENA_GROUP)
     .union(ENEMY_GROUP)
     .union(SENSOR_GROUP)
+    .union(PICKUP_GROUP)
     .union(ENEMY_PROJECTILE_GROUP);
 pub const METEOR_FILTER_MASK: Group = PLAYER_GROUP
     .union(METEOR_GROUP)
